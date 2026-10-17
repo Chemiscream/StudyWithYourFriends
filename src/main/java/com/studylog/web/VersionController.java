@@ -14,10 +14,15 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.1.0";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.1.0", List.of(
+                    "记录支持插入视频（mp4/webm/mov，单个不超过 40MB），与图片一样直接嵌在正文里播放。",
+                    "「插入图片」按钮更名为「图片/视频」。",
+                    "编辑器中删除视频：按住 Alt 点击视频即可删除（单击仍是播放控制）。"
+            )),
             new ReleaseNote("1.0.0", List.of(
                     "后端升级为 Java（Spring Boot）+ MySQL，更稳定易维护；原有账号、密码、记录和留言全部保留，无需重新登录。",
                     "新增管理员账号 IamAdmin，管理员可以删除任意记录与留言。",

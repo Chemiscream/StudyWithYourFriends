@@ -23,7 +23,8 @@ import java.util.*;
 @RequestMapping("/api")
 public class RecordController {
 
-    private static final int MAX_CONTENT = 15_000_000;
+    // 图文/视频混排 base64 内嵌：40MB 视频 base64 约 53MB，加若干图片留余量
+    private static final int MAX_CONTENT = 70_000_000;
 
     private final RecordRepository records;
     private final CommentRepository comments;

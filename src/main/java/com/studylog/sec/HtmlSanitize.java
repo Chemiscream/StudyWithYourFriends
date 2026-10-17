@@ -16,9 +16,12 @@ public final class HtmlSanitize {
         Safelist sl = Safelist.none()
                 .addTags("a", "b", "blockquote", "br", "code", "div", "em", "i", "img",
                         "li", "ol", "p", "pre", "s", "span", "strong", "u", "ul",
-                        "h1", "h2", "h3", "h4", "table", "tbody", "td", "th", "thead", "tr", "hr")
+                        "h1", "h2", "h3", "h4", "table", "tbody", "td", "th", "thead", "tr", "hr",
+                        "video", "source")
                 .addAttributes("a", "href", "title")
                 .addAttributes("img", "src", "alt", "style", "width", "height")
+                .addAttributes("video", "src", "controls", "preload", "poster", "style", "width", "height")
+                .addAttributes("source", "src", "type")
                 .addAttributes("span", "style")
                 .addAttributes("div", "style")
                 .addAttributes("p", "style")
@@ -29,8 +32,11 @@ public final class HtmlSanitize {
                 .addProtocols("a", "href", "http", "https", "mailto")
                 .addProtocols("img", "src", "http", "https")
                 .addProtocols("blockquote", "cite", "http", "https");
-        // jsoup 原生支持 data: 协议图片
+        // jsoup 原生支持 data: 协议；图片/视频均允许 data: base64 内嵌
         sl.addProtocols("img", "src", "data");
+        sl.addProtocols("video", "src", "data", "http", "https");
+        sl.addProtocols("video", "poster", "http", "https");
+        sl.addProtocols("source", "src", "data", "http", "https");
         SAFE = sl;
     }
 

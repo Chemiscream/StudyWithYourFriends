@@ -16,7 +16,7 @@ import java.io.IOException;
 @Order(1)
 public class BodySizeFilter implements Filter {
 
-    private static final long MAX_BODY = 20L * 1024 * 1024; // 20MB（图片 base64 图文上限 15MB）
+    private static final long MAX_BODY = 100L * 1024 * 1024; // 100MB（视频 base64 图文上限 70MB + JSON 开销）
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

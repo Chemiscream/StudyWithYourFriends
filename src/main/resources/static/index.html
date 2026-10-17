@@ -211,6 +211,14 @@ html[data-theme="dark"] .editor { background: #0d1726; }
   margin: 4px 2px;
   cursor: pointer;
 }
+.editor video {
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 8px;
+  margin: 4px 2px;
+  display: block;
+  background: #000;
+}
 .editor img:hover { outline: 2px solid var(--danger); outline-offset: 2px; }
 .btn {
   min-height: 42px; padding: 0 16px;
@@ -262,6 +270,12 @@ html[data-theme="dark"] .editor { background: #0d1726; }
   border-radius: 10px; margin: 6px 0;
   cursor: zoom-in;
   display: block;
+}
+.record-content video {
+  max-width: 100%; max-height: 420px;
+  border-radius: 10px; margin: 6px 0;
+  display: block;
+  background: #000;
 }
 .record-image {
   margin-top: 10px;
@@ -420,14 +434,14 @@ html[data-theme="dark"] .emoji-panel { box-shadow: 0 8px 24px rgba(0,0,0,.4); }
   <section id="addPanel" class="panel" hidden>
     <div class="panel-head"><h2 id="addPanelTitle">新增学习记录</h2><button id="cancelEditBtn" class="btn ghost" type="button" hidden style="min-height:32px;padding:0 12px;font-size:13px;">取消编辑</button></div>
     <div class="field">
-      <div id="newContent" class="editor" contenteditable="true" data-placeholder="今天学了什么？记录一下吧…（支持粘贴/插入图片）"></div>
+      <div id="newContent" class="editor" contenteditable="true" data-placeholder="今天学了什么？记录一下吧…（支持图片/视频）"></div>
     </div>
     <div class="field">
-      <input id="imgInput" type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+      <input id="imgInput" type="file" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm,video/quicktime" hidden>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
       <div style="display:flex;gap:8px;">
-        <button id="pickImgBtn" class="btn ghost" type="button">插入图片</button>
+        <button id="pickImgBtn" class="btn ghost" type="button">图片/视频</button>
         <button id="pickEmojiBtn" class="btn ghost" type="button" title="插入 emoji">😀</button>
       </div>
       <button id="addBtn" class="btn primary" type="button">添加记录</button>
@@ -808,11 +822,14 @@ const pickImgBtn = document.getElementById("pickImgBtn");
 const newContent = document.getElementById("newContent");
 
 const ALLOWED_IMG = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+const ALLOWED_VIDEO = ["video/mp4", "video/webm", "video/quicktime"];
+const MAX_IMG_SIZE = 5 * 1024 * 1024;    // 图片 ≤5MB
+const MAX_VIDEO_SIZE = 40 * 1024 * 1024; // 视频 ≤40MB（base64 后约 53MB）
 
 pickImgBtn.onclick = () => { newContent.focus(); imgInput.click(); };
 imgInput.onchange = () => {
   const f = imgInput.files && imgInput.files[0];
-  if (f) insertImageFile(f);
+  if (f) insertMediaFile(f);
   imgInput.value = "";
 };
 
@@ -910,7 +927,22 @@ function fileToBase64(file) {
   });
 }
 
-function insertImageAtCursor(src) {
+function makeImg(src) {
+  const img = document.createElement("img");
+  img.src = src;
+  img.alt = "学习图片";
+  return img;
+}
+
+function makeVideo(src) {
+  const v = document.createElement("video");
+  v.src = src;
+  v.controls = true;
+  v.preload = "metadata";
+  return v;
+}
+
+function insertNodeAtCursor(node) {
   newContent.focus();
   const sel = window.getSelection();
   let range;
@@ -922,28 +954,32 @@ function insertImageAtCursor(src) {
     range.collapse(false);
   }
   range.deleteContents();
-  const img = document.createElement("img");
-  img.src = src;
-  img.alt = "学习图片";
-  range.insertNode(img);
-  range.setStartAfter(img);
-  range.setEndAfter(img);
+  range.insertNode(node);
+  range.setStartAfter(node);
+  range.setEndAfter(node);
   sel.removeAllRanges();
   sel.addRange(range);
 }
 
-async function insertImageFile(file) {
-  if (!ALLOWED_IMG.includes(file.type)) {
-    addMsg.className = "msg err"; addMsg.textContent = "仅支持 png/jpg/gif/webp"; return;
+async function insertMediaFile(file) {
+  const isImg = ALLOWED_IMG.includes(file.type);
+  const isVideo = ALLOWED_VIDEO.includes(file.type);
+  if (!isImg && !isVideo) {
+    addMsg.className = "msg err"; addMsg.textContent = "仅支持 png/jpg/gif/webp 图片或 mp4/webm/mov 视频"; return;
   }
-  if (file.size > 5 * 1024 * 1024) {
+  if (isImg && file.size > MAX_IMG_SIZE) {
     addMsg.className = "msg err"; addMsg.textContent = "图片不能超过 5MB"; return;
   }
+  if (isVideo && file.size > MAX_VIDEO_SIZE) {
+    addMsg.className = "msg err"; addMsg.textContent = "视频不能超过 40MB"; return;
+  }
   try {
+    addMsg.className = "msg"; addMsg.textContent = isVideo ? "视频读取中…" : "";
     const b64 = await fileToBase64(file);
-    insertImageAtCursor(b64);
+    insertNodeAtCursor(isVideo ? makeVideo(b64) : makeImg(b64));
+    addMsg.textContent = "";
   } catch (e) {
-    addMsg.className = "msg err"; addMsg.textContent = "图片插入失败";
+    addMsg.className = "msg err"; addMsg.textContent = "插入失败";
   }
 }
 
@@ -954,16 +990,19 @@ newContent.addEventListener("paste", async e => {
   for (const it of items) {
     if (it.type && it.type.startsWith("image/")) {
       e.preventDefault();
-      await insertImageFile(it.getAsFile());
+      await insertMediaFile(it.getAsFile());
       return;
     }
   }
 });
 
-// 点击编辑器内图片删除
+// 点击编辑器内图片/视频删除（视频点击会触发播放控制，需按住 Alt 点击删除）
 newContent.addEventListener("click", e => {
-  if (e.target.tagName === "IMG" && e.target.closest(".editor")) {
-    if (confirm("删除这张图片？")) e.target.remove();
+  const t = e.target;
+  if (t.tagName === "IMG" && t.closest(".editor")) {
+    if (confirm("删除这张图片？")) t.remove();
+  } else if (t.tagName === "VIDEO" && t.closest(".editor") && e.altKey) {
+    if (confirm("删除这个视频？")) t.remove();
   }
 });
 
@@ -1013,7 +1052,7 @@ cancelEditBtn.onclick = cancelEdit;
 
 addBtn.onclick = async () => {
   const hasText = getEditorText();
-  const hasImg = newContent.querySelector("img");
+  const hasImg = newContent.querySelector("img,video");
   if (!hasText && !hasImg) {
     addMsg.className = "msg err"; addMsg.textContent = "内容不能为空"; return;
   }
