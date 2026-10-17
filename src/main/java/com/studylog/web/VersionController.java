@@ -14,10 +14,16 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.5.0";
+    public static final String VERSION = "1.6.0";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.6.0", List.of(
+                    "AI 日报更智能：模型离线时不再生成无摘要的空日报，系统每 5 分钟自动重试；连续多天未生成时按日期从早到晚排队补生成，不会跳过或覆盖。",
+                    "AI 日报生成超时延长至 10 分钟，并加互斥锁，避免慢模型生成时被重复请求打断重跑。",
+                    "日报列表分页按钮改为「上一天 / 下一天」，并对调翻页方向（上一天看更早，下一天看更新）。",
+                    "移除日报列表底部的「补生成」按钮。"
+            )),
             new ReleaseNote("1.5.0", List.of(
                     "新增「AI 日报」：每天 0 点自动生成前一天的全站学习日报，AI 用活泼有趣的风格总结大家学了什么、谁最拼、今日热词。",
                     "日报支持分页浏览历史、点击查看当日详情、一键下载为文本文件；还可手动补生成昨天/前天的日报。"
