@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-rem StudyLog Java service: ensure MySQL is up, then start Spring Boot on 8091
+rem StudyLog Java service: ensure MySQL is up, then start Spring Boot on 8090
 set DEV=C:\Files\dev
 set JAVA_HOME=%DEV%\jdk-21.0.12.1+1
 set MYSQLD=%DEV%\mysql-8.0.28-winx64\bin\mysqld.exe
@@ -25,7 +25,7 @@ if errorlevel 1 (
 :mysqlready
 
 rem 2) start the app
-echo Starting StudyLog on port 8091...
+echo Starting StudyLog on port 8090...
 start "studylog-app" /min "%JAVA_HOME%\bin\javaw.exe" -jar "%APPDIR%target\studylog.jar"
 echo Done.
 endlocal

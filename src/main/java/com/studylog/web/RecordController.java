@@ -6,6 +6,7 @@ import com.studylog.model.User;
 import com.studylog.repo.CommentRepository;
 import com.studylog.repo.RecordRepository;
 import com.studylog.repo.UserRepository;
+import com.studylog.sec.HtmlSanitize;
 import com.studylog.sec.Tokens;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,9 +43,11 @@ public class RecordController {
     // ---------- 列表 + 筛选 ----------
     @GetMapping("/records")
     Map<String, Object> list(HttpServletRequest req,
-                             @RequestParam(defaultValue = "") String username,
+                             @RequestParam(name = "q", defaultValue = "") String q,
+                             @RequestParam(name = "username", defaultValue = "") String username,
                              @RequestParam(name = "from", defaultValue = "") String dateFrom,
                              @RequestParam(name = "to", defaultValue = "") String dateTo) {
+        q = q.trim();
         username = username.trim();
         dateFrom = dateFrom.trim();
         dateTo = dateTo.trim();
@@ -53,10 +56,17 @@ public class RecordController {
                 "SELECT r.id, r.username, r.content, r.created_at, r.updated_at, COALESCE(u.color, '4a90d9') " +
                 "FROM records r LEFT JOIN users u ON u.username = r.username WHERE 1=1");
         Map<String, Object> params = new HashMap<>();
+        // q：角色名或记录内容模糊搜索（不区分大小写，参数化绑定，通配符转义）
+        String kw = null;
+        if (!q.isEmpty()) {
+            kw = "%" + escapeLike(q) + "%";
+            sql.append(" AND (LOWER(r.username) LIKE LOWER(:q) ESCAPE '\\\\' OR LOWER(r.content) LIKE LOWER(:q) ESCAPE '\\\\')");
+            params.put("q", kw);
+        }
+        // 兼容旧参数 username（仅按角色）
         if (!username.isEmpty()) {
-            sql.append(" AND LOWER(r.username) LIKE LOWER(:kw) ESCAPE '\\\\'");
-            String kw = username.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
-            params.put("kw", "%" + kw + "%");
+            sql.append(" AND LOWER(r.username) LIKE LOWER(:uname) ESCAPE '\\\\'");
+            params.put("uname", "%" + escapeLike(username) + "%");
         }
         if (!dateFrom.isEmpty()) {
             sql.append(" AND DATE(r.created_at) >= :from");
@@ -68,10 +78,10 @@ public class RecordController {
         }
         sql.append(" ORDER BY r.created_at DESC LIMIT 500");
 
-        var q = em.createNativeQuery(sql.toString());
-        params.forEach(q::setParameter);
+        var query = em.createNativeQuery(sql.toString());
+        params.forEach(query::setParameter);
         @SuppressWarnings("unchecked")
-        List<Object[]> rows = q.getResultList();
+        List<Object[]> rows = query.getResultList();
 
         String me = tokens.currentUser(req);
         List<Long> ids = rows.stream().map(r -> ((Number) r[0]).longValue()).toList();
@@ -114,7 +124,7 @@ public class RecordController {
     @PostMapping("/records")
     Map<String, Object> add(HttpServletRequest req, @RequestBody Map<String, String> body) {
         String me = requireLogin(req);
-        String content = body.getOrDefault("content", "");
+        String content = HtmlSanitize.clean(body.getOrDefault("content", ""));
         if (content.isBlank()) throw new BizException(HttpStatus.BAD_REQUEST, "内容不能为空");
         if (content.length() > MAX_CONTENT) throw new BizException(HttpStatus.BAD_REQUEST, "内容过长");
         User u = users.findByUsername(me)
@@ -132,13 +142,13 @@ public class RecordController {
         return m;
     }
 
-    // ---------- 删除 ----------
+    // ---------- 删除（作者本人或管理员） ----------
     @DeleteMapping("/records/{rid}")
     Map<String, Object> delete(HttpServletRequest req, @PathVariable Long rid) {
         String me = requireLogin(req);
         Record r = records.findById(rid)
                 .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "记录不存在"));
-        if (!r.getUsername().equals(me)) {
+        if (!r.getUsername().equals(me) && !isAdmin(me)) {
             throw new BizException(HttpStatus.FORBIDDEN, "只能删除自己的记录");
         }
         comments.deleteByRecordId(rid);
@@ -156,7 +166,7 @@ public class RecordController {
         if (!r.getUsername().equals(me)) {
             throw new BizException(HttpStatus.FORBIDDEN, "只能编辑自己的记录");
         }
-        String content = body.getOrDefault("content", "");
+        String content = HtmlSanitize.clean(body.getOrDefault("content", ""));
         if (content.isBlank()) throw new BizException(HttpStatus.BAD_REQUEST, "内容不能为空");
         if (content.length() > MAX_CONTENT) throw new BizException(HttpStatus.BAD_REQUEST, "内容过长");
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
@@ -197,7 +207,7 @@ public class RecordController {
         String me = requireLogin(req);
         Comment c = comments.findById(cid)
                 .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "留言不存在"));
-        if (!c.getUsername().equals(me)) {
+        if (!c.getUsername().equals(me) && !isAdmin(me)) {
             throw new BizException(HttpStatus.FORBIDDEN, "只能删除自己的留言");
         }
         comments.delete(c);
@@ -209,6 +219,15 @@ public class RecordController {
         String u = tokens.currentUser(req);
         if (u == null) throw new BizException(HttpStatus.UNAUTHORIZED, "未登录");
         return u;
+    }
+
+    private boolean isAdmin(String username) {
+        return users.findByUsername(username).map(User::isAdmin).orElse(false);
+    }
+
+    /** 转义 LIKE 通配符（配合 SQL 中的 ESCAPE '\\'）。 */
+    private static String escapeLike(String s) {
+        return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private String colorOf(String username) {

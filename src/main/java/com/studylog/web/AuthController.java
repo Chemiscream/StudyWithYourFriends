@@ -65,6 +65,7 @@ public class AuthController {
         m.put("token", tokens.make(username));
         m.put("username", username);
         m.put("color", color);
+        m.put("is_admin", false);
         return m;
     }
 
@@ -83,6 +84,7 @@ public class AuthController {
         m.put("token", tokens.make(username));
         m.put("username", username);
         m.put("color", u.getColor() == null ? DEFAULT_COLOR : u.getColor());
+        m.put("is_admin", u.isAdmin());
         return m;
     }
 
@@ -94,10 +96,12 @@ public class AuthController {
         if (u == null) {
             m.put("username", null);
             m.put("color", null);
+            m.put("is_admin", false);
         } else {
-            String color = users.findByUsername(u).map(User::getColor).orElse(DEFAULT_COLOR);
+            User user = users.findByUsername(u).orElse(null);
             m.put("username", u);
-            m.put("color", color == null ? DEFAULT_COLOR : color);
+            m.put("color", user == null || user.getColor() == null ? DEFAULT_COLOR : user.getColor());
+            m.put("is_admin", user != null && user.isAdmin());
         }
         return m;
     }

@@ -217,6 +217,7 @@ async function doAuth() {
     if (res.ok) {
       localStorage.setItem("studylog_token", res.token);
       localStorage.setItem("studylog_user", res.username);
+      localStorage.setItem("studylog_admin", res.is_admin ? "1" : "0");
       authMsg.className = "msg ok"; authMsg.textContent = "成功，正在返回…";
       setTimeout(() => { location.href = "/"; }, 400);
     } else {

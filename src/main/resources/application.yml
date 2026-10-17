@@ -1,5 +1,5 @@
 server:
-  port: 8091
+  port: 8090
   tomcat:
     max-http-form-post-size: 20MB
 

@@ -416,7 +416,7 @@ html[data-theme="dark"] .emoji-panel { box-shadow: 0 8px 24px rgba(0,0,0,.4); }
     <div class="panel-head"><h2>查询筛选</h2></div>
     <div class="filter-bar">
       <div class="field">
-        <label><span>按角色</span><input id="fUser" placeholder="模糊搜索，含输入即命中"></label>
+        <label><span>角色 / 内容</span><input id="fUser" placeholder="按角色名或记录内容模糊搜索"></label>
       </div>
       <div class="field date">
         <label><span>起始日期</span><input id="fFrom" type="date"></label>
@@ -459,6 +459,7 @@ const API = "";
 const PALETTE = ["4a90d9","e74c3c","27ae60","f39c12","9b59b6","1abc9c","e67e22","34495e","d35400","8e44ad","16a085","c0392b","2980b9","f1c40f","7f8c8d"];
 let token = localStorage.getItem("studylog_token") || "";
 let currentUser = localStorage.getItem("studylog_user") || "";
+let isAdmin = localStorage.getItem("studylog_admin") === "1";
 let myColor = "";
 
 function authHeaders() {
@@ -474,7 +475,8 @@ async function request(path, opts = {}) {
 function updateAuthUI() {
   const loggedIn = !!token;
   const tag = document.getElementById("userTag");
-  tag.textContent = currentUser;
+  tag.textContent = (isAdmin ? "👑 " : "") + currentUser;
+  tag.title = isAdmin ? "管理员（可删除任意记录/留言）" : "";
   tag.hidden = !loggedIn;
   if (loggedIn && myColor) {
     tag.style.background = `#${myColor}22`;
@@ -526,9 +528,10 @@ document.addEventListener("click", (e) => {
 
 // 退出登录
 document.getElementById("logoutBtn").onclick = () => {
-  token = ""; currentUser = "";
+  token = ""; currentUser = ""; isAdmin = false;
   localStorage.removeItem("studylog_token");
   localStorage.removeItem("studylog_user");
+  localStorage.removeItem("studylog_admin");
   updateAuthUI();
 };
 
@@ -547,11 +550,11 @@ themeBtn.onclick = () => {
 
 // 记录
 let records = [];
-let filter = { username: "", from: "", to: "" };
+let filter = { q: "", from: "", to: "" };
 
 async function loadRecords() {
   const params = new URLSearchParams();
-  if (filter.username) params.set("username", filter.username);
+  if (filter.q) params.set("q", filter.q);
   if (filter.from) params.set("from", filter.from);
   if (filter.to) params.set("to", filter.to);
   const res = await request("/api/records?" + params.toString());
@@ -662,14 +665,14 @@ function renderRecords() {
           <span class="record-time" title="${r.updated_at ? "发布 " + timeStr + "，最后编辑 " + editStr.replace(/[（）]/g, "") : ""}">${timeStr}${editStr}</span>
         </div>
         <div class="record-content">${r.content || ""}</div>
-        ${r.mine && token ? `<div class="record-actions"><button class="edit-btn" data-id="${r.id}" type="button">编辑</button><button class="del-btn" data-id="${r.id}" type="button">删除</button></div>` : ""}
+        ${(r.mine || isAdmin) && token ? `<div class="record-actions">${r.mine ? `<button class="edit-btn" data-id="${r.id}" type="button">编辑</button>` : ""}<button class="del-btn" data-id="${r.id}" type="button">删除</button></div>` : ""}
         <div class="comments">
           ${(r.comments || []).map(c => `
             <div class="comment-item">
               <span class="role-tag" style="background:#${c.color}22;color:#${c.color};">${esc(c.username)}</span>
               <span class="comment-text">${esc(c.content)}</span>
               <span class="comment-time">${new Date(c.created_at).toLocaleString("zh-CN", { hour12: false, month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
-              ${c.mine && token ? `<button class="comment-del" data-cid="${c.id}" type="button" title="删除留言">删除</button>` : ""}
+              ${(c.mine || isAdmin) && token ? `<button class="comment-del" data-cid="${c.id}" type="button" title="删除留言">删除</button>` : ""}
             </div>
           `).join("")}
           ${token ? `
@@ -984,13 +987,13 @@ async function delRecord(id) {
 }
 
 document.getElementById("searchBtn").onclick = () => {
-  filter.username = document.getElementById("fUser").value.trim();
+  filter.q = document.getElementById("fUser").value.trim();
   filter.from = document.getElementById("fFrom").value;
   filter.to = document.getElementById("fTo").value;
   loadRecords();
 };
 document.getElementById("resetBtn").onclick = () => {
-  filter = { username: "", from: "", to: "" };
+  filter = { q: "", from: "", to: "" };
   document.getElementById("fUser").value = "";
   document.getElementById("fFrom").value = "";
   document.getElementById("fTo").value = "";
@@ -1003,9 +1006,12 @@ if (token) {
     if (res.ok && res.username) {
       currentUser = res.username;
       myColor = res.color || "4a90d9";
+      isAdmin = !!res.is_admin;
+      localStorage.setItem("studylog_admin", isAdmin ? "1" : "0");
     } else {
-      token = ""; currentUser = ""; myColor = "";
+      token = ""; currentUser = ""; myColor = ""; isAdmin = false;
       localStorage.removeItem("studylog_token");
+      localStorage.removeItem("studylog_admin");
     }
     updateAuthUI();
     loadRecords();

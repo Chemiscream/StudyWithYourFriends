@@ -42,6 +42,12 @@
       <artifactId>jieba-analysis</artifactId>
       <version>1.0.2</version>
     </dependency>
+    <!-- 服务端 HTML 清洗，防存储型 XSS（记录正文为富文本） -->
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.17.2</version>
+    </dependency>
   </dependencies>
 
   <build>
