@@ -23,6 +23,7 @@ mysql-data/
 # 本地配置（含密码等环境差异，只提交 application.yml 模板）
 application-local.yml
 application-local.properties
+admin-credentials.properties
 
 # IDE / 系统
 .idea/

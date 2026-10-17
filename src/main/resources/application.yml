@@ -6,6 +6,9 @@ server:
 spring:
   application:
     name: studylog
+  config:
+    # 管理员凭据等本地私密配置（文件不入 git，见 .gitignore）
+    import: optional:file:./admin-credentials.properties
   datasource:
     url: jdbc:mysql://localhost:3306/studylog?useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
     username: root
