@@ -1,5 +1,35 @@
+# 构建产物
 target/
+build/
+out/
+
+# 日志
 *.log
+*.out
+app.err.log
+app.out.log
+
+# 数据库文件（SQLite/MySQL 本地数据/导出），库本体在 C:\Files\dev\mysql-data，不进仓库
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sql.bak
+data/
+mysql-data/
+
+# 本地配置（含密码等环境差异，只提交 application.yml 模板）
+application-local.yml
+application-local.properties
+
+# IDE / 系统
 .idea/
 *.iml
 .vscode/
+.settings/
+.project
+.classpath
+.DS_Store
+Thumbs.db

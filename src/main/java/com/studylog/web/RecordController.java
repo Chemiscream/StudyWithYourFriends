@@ -95,6 +95,7 @@ public class RecordController {
                 cm.put("id", c.getId());
                 cm.put("username", c.getUsername());
                 cm.put("content", c.getContent());
+                cm.put("reply_to", c.getReplyTo());
                 cm.put("color", colorOf(c.getUsername()));
                 cm.put("created_at", c.getCreatedAt());
                 cm.put("mine", c.getUsername().equals(me));
@@ -189,10 +190,18 @@ public class RecordController {
         if (content.isEmpty()) throw new BizException(HttpStatus.BAD_REQUEST, "留言不能为空");
         if (content.length() > 2000) throw new BizException(HttpStatus.BAD_REQUEST, "留言过长");
         if (!records.existsById(rid)) throw new BizException(HttpStatus.NOT_FOUND, "记录不存在");
+        String replyTo = body.getOrDefault("reply_to", "").trim();
+        if (!replyTo.isEmpty()) {
+            if (replyTo.length() > 32) throw new BizException(HttpStatus.BAD_REQUEST, "被回复用户名过长");
+            if (!users.existsByUsername(replyTo)) throw new BizException(HttpStatus.BAD_REQUEST, "被回复用户不存在");
+        } else {
+            replyTo = null;
+        }
         Comment c = new Comment();
         c.setRecordId(rid);
         c.setUsername(me);
         c.setContent(content);
+        c.setReplyTo(replyTo);
         c.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
         comments.save(c);
         Map<String, Object> m = new LinkedHashMap<>();

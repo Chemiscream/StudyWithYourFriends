@@ -19,6 +19,10 @@ public class Comment {
     @Column(nullable = false, length = 2000)
     private String content;
 
+    /** 被回复的用户名（普通留言为 null）。 */
+    @Column(name = "reply_to", length = 32)
+    private String replyTo;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
@@ -30,6 +34,8 @@ public class Comment {
     public void setUsername(String username) { this.username = username; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    public String getReplyTo() { return replyTo; }
+    public void setReplyTo(String replyTo) { this.replyTo = replyTo; }
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
 }
