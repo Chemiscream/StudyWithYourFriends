@@ -34,7 +34,7 @@ public class DailyReportController {
         this.tokens = tokens;
     }
 
-    /** 分页列表：从昨天往前，每页 size 条。 */
+    /** 分页列表：从昨天往前，每页 size 条。返回完整 summary 和 stat，供弹窗按天展示。 */
     @GetMapping
     Map<String, Object> list(HttpServletRequest req,
                              @RequestParam(defaultValue = "0") int page,
@@ -49,8 +49,10 @@ public class DailyReportController {
         for (DailyReport r : p.getContent()) {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("report_date", r.getReportDate().toString());
+            m.put("summary", r.getSummary());
             m.put("summary_preview", summaryPreview(r.getSummary()));
             m.put("has_summary", r.getSummary() != null && !r.getSummary().isBlank());
+            m.put("stat", parseStat(r.getContent()));
             m.put("total", readTotal(r.getContent()));
             items.add(m);
         }
@@ -61,6 +63,24 @@ public class DailyReportController {
         out.put("size", size);
         out.put("total_pages", p.getTotalPages());
         out.put("has_more", page + 1 < p.getTotalPages());
+        return out;
+    }
+
+    /** 最近一天的日报（含今天，若已生成），供首页面板预览。 */
+    @GetMapping("/latest")
+    Map<String, Object> latest(HttpServletRequest req) {
+        requireLogin(req);
+        Optional<DailyReport> opt = repo.findTopByOrderByReportDateDesc();
+        if (opt.isEmpty()) {
+            Map<String, Object> out = new LinkedHashMap<>();
+            out.put("ok", true);
+            out.put("report", null);
+            return out;
+        }
+        DailyReport r = opt.get();
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("ok", true);
+        out.put("report", detailOf(r));
         return out;
     }
 

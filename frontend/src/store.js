@@ -40,9 +40,10 @@ export const state = reactive({
     listOpen: false,
     detailOpen: false,
     detail: null,      // { report_date, summary, stat }
-    list: [],          // [{ report_date, summary_preview, has_summary, total }]
+    latest: null,      // { report_date, summary, stat } 首页面板预览
+    list: [],          // [{ report_date, summary, summary_preview, has_summary, stat, total }]
     page: 0,
-    size: 5,
+    size: 3,
     hasMore: true,
     loading: false,
     msg: "",
@@ -284,6 +285,13 @@ export function closeEmoji() {
 }
 
 // ---------- AI 日报 ----------
+export async function loadLatestDaily() {
+  try {
+    const res = await request("/api/daily-reports/latest");
+    if (res.ok) state.daily.latest = res.report || null;
+  } catch (e) { /* 忽略 */ }
+}
+
 export async function openDailyList() {
   state.daily.listOpen = true;
   state.daily.page = 0;
@@ -333,6 +341,7 @@ export async function init() {
   checkVersion();
   if (state.token) {
     await refreshMe();
+    await loadLatestDaily();
   }
   await loadRecords();
 }

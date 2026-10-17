@@ -21,4 +21,7 @@ public interface DailyReportRepository extends JpaRepository<DailyReport, Long> 
     /** 所有已有日报的日期，供补生成任务判断哪些天缺失 */
     @Query("SELECT r.reportDate FROM DailyReport r")
     List<LocalDate> findAllReportDates();
+
+    /** 最近一天的日报，供首页面板预览 */
+    Optional<DailyReport> findTopByOrderByReportDateDesc();
 }

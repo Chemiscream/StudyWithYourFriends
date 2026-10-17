@@ -519,7 +519,8 @@ html[data-theme="light"] .chat-bubble .md-code { background: #1f2937; }
 .daily-entry:hover { border-color: var(--primary); transform: translateY(-1px); }
 .daily-ico { font-size: 16px; }
 .daily-hint { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
-.daily-list-card { width: min(560px, 94vw); }
+.daily-preview-text { margin: 6px 0 0; color: var(--ink); font-size: 13px; line-height: 1.6; }
+.daily-list-card { width: min(680px, 94vw); max-height: 82vh; overflow-y: auto; }
 .daily-detail-card { width: min(640px, 94vw); }
 .daily-loading, .daily-empty, .daily-msg { text-align: center; color: var(--muted); padding: 18px 0; font-size: 14px; }
 .daily-msg { color: var(--warn); padding: 8px 0; }
@@ -535,8 +536,10 @@ html[data-theme="light"] .chat-bubble .md-code { background: #1f2937; }
 .daily-preview { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
 .daily-pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 4px 0 14px; }
 .daily-page-info { color: var(--muted); font-size: 13px; min-width: 60px; text-align: center; }
-.daily-backfill { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.daily-backfill-label { color: var(--muted); font-size: 13px; }
+.daily-multi { display: grid; gap: 18px; margin: 8px 0 14px; }
+.daily-day { padding-bottom: 18px; border-bottom: 1px dashed var(--line); }
+.daily-day:last-child { border-bottom: none; padding-bottom: 0; }
+.daily-day-date { font-size: 16px; margin: 0 0 10px; }
 .daily-footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .daily-summary {
   background: var(--panel-soft); border: 1px solid var(--line); border-radius: 10px;
