@@ -535,8 +535,9 @@ html[data-theme="light"] .chat-bubble .md-code { background: #1f2937; }
 .daily-preview { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
 .daily-pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 4px 0 14px; }
 .daily-page-info { color: var(--muted); font-size: 13px; min-width: 60px; text-align: center; }
-.daily-backfill { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed var(--line); }
+.daily-backfill { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .daily-backfill-label { color: var(--muted); font-size: 13px; }
+.daily-footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .daily-summary {
   background: var(--panel-soft); border: 1px solid var(--line); border-radius: 10px;
   padding: 14px 16px; font-size: 14px; line-height: 1.75; color: var(--ink);

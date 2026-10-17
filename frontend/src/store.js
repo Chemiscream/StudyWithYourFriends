@@ -328,24 +328,6 @@ export async function openDailyDetail(date) {
 }
 export function closeDailyDetail() { state.daily.detailOpen = false; state.daily.detail = null; }
 
-export async function generateDailyReport(date) {
-  state.daily.msg = "生成中…";
-  try {
-    const res = await request("/api/daily-reports/generate", {
-      method: "POST",
-      body: JSON.stringify({ date }),
-    });
-    if (!res.ok) { state.daily.msg = res.message || "生成失败"; return; }
-    state.daily.detail = { report_date: res.report_date, summary: res.summary, stat: res.stat || {} };
-    state.daily.detailOpen = true;
-    state.daily.msg = res.message || "已生成";
-    // 刷新列表
-    if (state.daily.listOpen) loadDailyList();
-  } catch (e) {
-    state.daily.msg = "网络错误";
-  }
-}
-
 // ---------- 启动 ----------
 export async function init() {
   checkVersion();
