@@ -144,6 +144,7 @@ public class RecordController {
     }
 
     // ---------- 删除（作者本人或管理员） ----------
+    @org.springframework.transaction.annotation.Transactional
     @DeleteMapping("/records/{rid}")
     Map<String, Object> delete(HttpServletRequest req, @PathVariable Long rid) {
         String me = requireLogin(req);
