@@ -1,16 +1,27 @@
 <script setup>
 import { ref, onMounted, watch, nextTick } from "vue";
-import { state } from "../store.js";
+import { state, loadStats } from "../store.js";
 
 // 折叠状态存 localStorage（与旧版 key 一致）
 const collapsed = ref(localStorage.getItem("studylog_collapse_stats") === "1");
 const cloudCanvas = ref(null);
 
+const RANGES = [
+  { key: "all", label: "全部" },
+  { key: "month", label: "本月" },
+  { key: "week", label: "本周" },
+  { key: "today", label: "本日" },
+];
+
 function toggle() {
   collapsed.value = !collapsed.value;
   localStorage.setItem("studylog_collapse_stats", collapsed.value ? "1" : "0");
-  // 词云 canvas 折叠时宽度为 0，重新展开时需重绘
   if (!collapsed.value) nextTick(drawCloud);
+}
+
+function switchRange(key) {
+  if (state.statsRange === key) return;
+  loadStats(key);
 }
 
 const CLOUD_COLORS = ["#4a90d9","#e74c3c","#27ae60","#f39c12","#9b59b6","#1abc9c","#e67e22","#16a085","#d35400","#8e44ad","#2980b9","#c0392b"];
@@ -79,6 +90,16 @@ onMounted(() => { if (!collapsed.value) nextTick(drawCloud); });
       <span class="record-time">共 {{ state.statsTotal }} 条记录</span>
     </div>
     <div class="collapse-body">
+      <div class="stats-range">
+        <button
+          v-for="r in RANGES"
+          :key="r.key"
+          type="button"
+          class="range-btn"
+          :class="{ active: state.statsRange === r.key }"
+          @click="switchRange(r.key)"
+        >{{ r.label }}</button>
+      </div>
       <h3 class="stats-sub">提交排行</h3>
       <div class="rank-list">
         <div v-if="!state.ranking.length" class="rank-empty">暂无数据</div>

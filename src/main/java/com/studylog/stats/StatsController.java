@@ -3,6 +3,7 @@ package com.studylog.stats;
 import jakarta.persistence.EntityManager;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
@@ -20,13 +21,25 @@ public class StatsController {
         this.wordExtractor = new WordExtractor();
     }
 
+    /**
+     * 统计接口。
+     * @param range 时间范围：all（全部，默认）/ month（本月）/ week（本周）/ today（本日），均按上海时区计算。
+     */
     @GetMapping("/stats")
-    Map<String, Object> stats() {
+    Map<String, Object> stats(@RequestParam(defaultValue = "all") String range) {
+        range = range == null ? "all" : range.trim().toLowerCase();
+        String cond = switch (range) {
+            case "month" -> "WHERE DATE(r.created_at + INTERVAL 8 HOUR) >= DATE_FORMAT(NOW() + INTERVAL 8 HOUR, '%Y-%m-01')";
+            case "week"  -> "WHERE YEARWEEK(r.created_at + INTERVAL 8 HOUR, 1) = YEARWEEK(NOW() + INTERVAL 8 HOUR, 1)";
+            case "today" -> "WHERE DATE(r.created_at + INTERVAL 8 HOUR) = DATE(NOW() + INTERVAL 8 HOUR)";
+            default      -> "";
+        };
+
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
                 "SELECT r.username, COUNT(*) AS cnt, COALESCE(u.color, '4a90d9') AS color " +
                 "FROM records r LEFT JOIN users u ON u.username = r.username " +
-                "GROUP BY r.username ORDER BY cnt DESC").getResultList();
+                cond + " GROUP BY r.username ORDER BY cnt DESC").getResultList();
 
         List<Map<String, Object>> ranking = new ArrayList<>();
         long total = 0;
@@ -42,7 +55,8 @@ public class StatsController {
 
         Map<String, Long> counter = new HashMap<>();
         @SuppressWarnings("unchecked")
-        List<String> contents = em.createNativeQuery("SELECT content FROM records").getResultList();
+        List<String> contents = em.createNativeQuery("SELECT content FROM records r " + cond)
+                .getResultList();
         for (String content : contents) {
             for (String w : wordExtractor.extract(content)) {
                 counter.merge(w, 1L, Long::sum);

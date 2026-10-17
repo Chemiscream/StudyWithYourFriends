@@ -27,6 +27,7 @@ export const state = reactive({
   addMsg: { text: "", cls: "" },
   // 统计
   statsTotal: 0,
+  statsRange: "all", // all / month / week / today
   ranking: [],
   words: [],
   // 版本
@@ -239,9 +240,10 @@ export async function delComment(cid) {
 }
 
 // ---------- 统计 ----------
-export async function loadStats() {
+export async function loadStats(range) {
+  if (range) state.statsRange = range;
   try {
-    const res = await request("/api/stats");
+    const res = await request(`/api/stats?range=${state.statsRange}`);
     if (!res.ok) return;
     state.statsTotal = res.total || 0;
     state.ranking = res.ranking || [];
