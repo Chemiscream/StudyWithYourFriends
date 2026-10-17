@@ -1,5 +1,6 @@
 package com.studylog.sec;
 
+import com.studylog.repo.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -19,11 +20,14 @@ public class Tokens {
 
     private final byte[] secret;
     private final long ttlSeconds;
+    private final UserRepository users;
 
     public Tokens(@Value("${app.secret}") String secret,
-                  @Value("${app.token-ttl-seconds}") long ttlSeconds) {
+                  @Value("${app.token-ttl-seconds}") long ttlSeconds,
+                  UserRepository users) {
         this.secret = secret.getBytes(StandardCharsets.UTF_8);
         this.ttlSeconds = ttlSeconds;
+        this.users = users;
     }
 
     public String make(String username) {
@@ -62,7 +66,10 @@ public class Tokens {
     public String currentUser(HttpServletRequest req) {
         String auth = req.getHeader("Authorization");
         if (auth != null && auth.startsWith("Bearer ")) {
-            return parse(auth.substring(7));
+            String u = parse(auth.substring(7));
+            // 签名只保证 token 未被篡改且未过期；改名后旧 token 里的用户名已不存在，
+            // 这里必须确认用户真实存在，防止旧设备用旧名继续写数据
+            return u != null && users.existsByUsername(u) ? u : null;
         }
         return null;
     }

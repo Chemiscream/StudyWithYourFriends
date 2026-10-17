@@ -4,8 +4,10 @@ import com.studylog.model.User;
 import com.studylog.repo.UserRepository;
 import com.studylog.sec.Passwords;
 import com.studylog.sec.Tokens;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -26,10 +28,12 @@ public class AuthController {
 
     private final UserRepository users;
     private final Tokens tokens;
+    private final EntityManager em;
 
-    public AuthController(UserRepository users, Tokens tokens) {
+    public AuthController(UserRepository users, Tokens tokens, EntityManager em) {
         this.users = users;
         this.tokens = tokens;
+        this.em = em;
     }
 
     static String pickColor(String username) {
@@ -104,6 +108,66 @@ public class AuthController {
             m.put("is_admin", user != null && user.isAdmin());
         }
         return m;
+    }
+
+    /**
+     * 改名：站点所有关联都以 username 字符串快照存储（无数据库外键），
+     * 因此改名 = 在一个事务里级联更新所有含 username 的表。
+     * 注意：新增含 username 的表时，必须在这里同步加一条 UPDATE。
+     */
+    @PutMapping("/users/rename")
+    @Transactional
+    Map<String, Object> rename(HttpServletRequest req, @RequestBody Map<String, String> body) {
+        String oldName = tokens.currentUser(req);
+        if (oldName == null) throw new BizException(HttpStatus.UNAUTHORIZED, "未登录");
+        String newName = body.getOrDefault("new_username", "").trim();
+        if (newName.isEmpty()) throw new BizException(HttpStatus.BAD_REQUEST, "新用户名不能为空");
+        if (newName.length() > 32) throw new BizException(HttpStatus.BAD_REQUEST, "用户名过长（最多 32 字）");
+        if (newName.equals(oldName)) throw new BizException(HttpStatus.BAD_REQUEST, "新用户名与当前用户名相同");
+        if (users.existsByUsername(newName)) throw new BizException(HttpStatus.BAD_REQUEST, "用户名已存在");
+
+        User u = users.findByUsername(oldName)
+                .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "用户不存在"));
+        u.setUsername(newName);
+        users.save(u); // username 不是主键（主键是自增 id），save 按 id 更新，安全
+        em.createNativeQuery("UPDATE records SET username = :n WHERE username = :o")
+                .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
+        em.createNativeQuery("UPDATE comments SET username = :n WHERE username = :o")
+                .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
+        em.createNativeQuery("UPDATE ai_messages SET username = :n WHERE username = :o")
+                .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
+
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("ok", true);
+        m.put("message", "改名成功");
+        m.put("username", newName);
+        m.put("token", tokens.make(newName)); // 旧 token 里的名字已失效，重签新 token
+        m.put("color", u.getColor() == null ? DEFAULT_COLOR : u.getColor());
+        m.put("is_admin", u.isAdmin());
+        return m;
+    }
+
+    /** 修改密码：校验原密码后更新；token 与密码无关，无需重签。 */
+    @PutMapping("/users/password")
+    Map<String, Object> changePassword(HttpServletRequest req, @RequestBody Map<String, String> body) {
+        String username = tokens.currentUser(req);
+        if (username == null) throw new BizException(HttpStatus.UNAUTHORIZED, "未登录");
+        String oldPwd = body.getOrDefault("old_password", "");
+        String newPwd = body.getOrDefault("new_password", "");
+        if (oldPwd.isEmpty() || newPwd.isEmpty()) {
+            throw new BizException(HttpStatus.BAD_REQUEST, "密码不能为空");
+        }
+        if (newPwd.length() > 128) {
+            throw new BizException(HttpStatus.BAD_REQUEST, "新密码过长（最多 128 位）");
+        }
+        User u = users.findByUsername(username)
+                .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "用户不存在"));
+        if (!Passwords.verify(oldPwd, u.getPasswordHash())) {
+            throw new BizException(HttpStatus.BAD_REQUEST, "原密码错误");
+        }
+        u.setPasswordHash(Passwords.hash(newPwd));
+        users.save(u);
+        return Map.of("ok", true, "message", "密码已修改");
     }
 
     @PutMapping("/users/color")
