@@ -1,0 +1,29 @@
+server:
+  port: 8091
+  tomcat:
+    max-http-form-post-size: 20MB
+
+spring:
+  application:
+    name: studylog
+  datasource:
+    url: jdbc:mysql://localhost:3306/studylog?useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: "263656"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+app:
+  secret: ${STUDYLOG_SECRET:studylog-local-secret}
+  token-ttl-seconds: 3153600000
