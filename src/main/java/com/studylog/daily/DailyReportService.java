@@ -233,7 +233,7 @@ public class DailyReportService {
         payload.put("temperature", 0.8); // 稍微高一点，让风格更活泼
 
         HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(cfgBaseUrl + "/chat/completions"))
-                .timeout(Duration.ofSeconds(180))
+                .timeout(Duration.ofSeconds(600))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(om.writeValueAsString(payload)));
         if (!cfgApiKey.isEmpty()) b.header("Authorization", "Bearer " + cfgApiKey);
