@@ -7,6 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>登录 - 学习记录</title>
+<link rel="icon" type="image/svg+xml" href="/logo.svg">
 <style>
 :root {
   --bg: #f0f4fa;
@@ -86,11 +87,7 @@ html[data-theme="dark"] input { background: #0d1726; }
 .auth-logo {
   width: 56px; height: 56px;
   margin: 0 auto 14px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #4a90d9, #7b5cff);
-  display: grid; place-items: center;
-  color: #fff; font-size: 26px; font-weight: 800;
-  box-shadow: 0 12px 28px rgba(74, 144, 217, .28);
+  display: block;
 }
 .auth-card h1 { text-align: center; font-size: 22px; }
 .auth-card .sub { text-align: center; color: var(--muted); font-size: 13px; margin-top: 6px; }
@@ -165,7 +162,7 @@ input:focus {
 
 <div class="auth-wrap">
   <div class="auth-card">
-    <div class="auth-logo">学</div>
+    <img class="auth-logo" src="/logo.svg" alt="学习记录 logo">
     <h1>学习记录</h1>
     <p class="sub">记录每天的学习，和伙伴一起成长</p>
     <div class="auth-tabs">
