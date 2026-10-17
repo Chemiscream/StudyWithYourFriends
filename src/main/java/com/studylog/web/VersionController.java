@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.1.0";
+    public static final String VERSION = "1.1.1";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.1.1", List.of(
+                    "修复：不先点击编辑器就直接插入图片/视频时，光标消失、内容插错位置的问题。"
+            )),
             new ReleaseNote("1.1.0", List.of(
                     "记录支持插入视频（mp4/webm/mov，单个不超过 40MB），与图片一样直接嵌在正文里播放。",
                     "「插入图片」按钮更名为「图片/视频」。",

@@ -942,23 +942,38 @@ function makeVideo(src) {
   return v;
 }
 
+// 记录编辑器内最后一次光标位置：未点击编辑器直接插入媒体时，用它在正确位置插入
+let lastEditorRange = null;
+document.addEventListener("selectionchange", () => {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount && newContent.contains(sel.anchorNode)) {
+    lastEditorRange = sel.getRangeAt(0).cloneRange();
+  }
+});
+
 function insertNodeAtCursor(node) {
-  newContent.focus();
   const sel = window.getSelection();
   let range;
   if (sel && sel.rangeCount && newContent.contains(sel.anchorNode)) {
     range = sel.getRangeAt(0);
+  } else if (lastEditorRange) {
+    range = lastEditorRange;
   } else {
     range = document.createRange();
     range.selectNodeContents(newContent);
     range.collapse(false);
   }
+  newContent.focus();
   range.deleteContents();
+  // 媒体节点后必须跟一个 <br>：否则媒体是最后一个节点时浏览器无处渲染光标（光标"消失"）
+  const br = document.createElement("br");
+  range.insertNode(br);
   range.insertNode(node);
   range.setStartAfter(node);
-  range.setEndAfter(node);
+  range.collapse(true);
   sel.removeAllRanges();
   sel.addRange(range);
+  lastEditorRange = range.cloneRange();
 }
 
 async function insertMediaFile(file) {
