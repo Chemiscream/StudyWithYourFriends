@@ -3,6 +3,9 @@ target/
 build/
 out/
 
+# 前端（Vue/Vite）
+frontend/node_modules/
+
 # 日志
 *.log
 *.out

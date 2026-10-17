@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>学习记录</title>
+<link rel="icon" type="image/svg+xml" href="/logo.svg">
+<script>
+// 主题需在 Vue 挂载前应用，避免暗色用户看到白屏闪烁
+(function () {
+  var t = localStorage.getItem("studylog_theme");
+  if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
+})();
+</script>
+</head>
+<body>
+<div id="app"></div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
