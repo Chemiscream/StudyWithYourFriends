@@ -30,3 +30,17 @@ spring:
 app:
   secret: ${STUDYLOG_SECRET:studylog-local-secret}
   token-ttl-seconds: 3153600000
+  ai:
+    # 默认模型服务（OpenAI 兼容接口），本机 LM Studio 默认地址如下；可用环境变量覆盖
+    base-url: ${STUDYLOG_AI_BASE_URL:http://localhost:1234/v1}
+    # 本地 LM Studio 一般无鉴权，留空即可；接入外部 API 时可在此配默认 Key（也可用环境变量）
+    api-key: ${STUDYLOG_AI_API_KEY:}
+    # 模型名留空 = 自动选择（取模型服务返回的第一个模型）
+    model: ${STUDYLOG_AI_MODEL:}
+    # 并发与排队：本地模型建议 1；队列满员后新请求直接拒绝
+    max-concurrent: ${STUDYLOG_AI_MAX_CONCURRENT:1}
+    max-queue: ${STUDYLOG_AI_MAX_QUEUE:10}
+    # 单次请求超时（秒），本地大模型推理慢可适当调大
+    timeout-seconds: ${STUDYLOG_AI_TIMEOUT:180}
+    # 发给模型的学习记录上下文字符预算（超出丢弃最旧记录），按模型上下文窗口调整
+    max-context-chars: ${STUDYLOG_AI_MAX_CONTEXT:16000}

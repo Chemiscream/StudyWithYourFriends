@@ -8,16 +8,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** 业务异常：带 HTTP 状态码和提示信息，对应 Python 版 jsonify + 状态码。 */
-class BizException extends RuntimeException {
-    final HttpStatus status;
-
-    BizException(HttpStatus status, String message) {
-        super(message);
-        this.status = status;
-    }
-}
-
 @RestControllerAdvice
 class BizExceptionHandler {
     @ExceptionHandler(BizException.class)
