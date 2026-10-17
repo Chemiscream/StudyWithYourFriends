@@ -80,7 +80,7 @@ public class DailyReportController {
         String d = body == null ? null : (String) body.get("date");
         LocalDate date = parseDate(d);
         Boolean ok = service.generate(date);
-        if (ok == null) return Map.of("ok", false, "message", "AI 模型离线，系统每 5 分钟自动重试");
+        if (ok == null) return Map.of("ok", false, "message", "AI 模型离线或正在生成中，系统每 5 分钟自动重试");
         if (!ok) return Map.of("ok", false, "message", "该日期没有学习记录，未生成日报");
         DailyReport r = repo.findByReportDate(date).orElseThrow();
         Map<String, Object> out = new LinkedHashMap<>(detailOf(r));

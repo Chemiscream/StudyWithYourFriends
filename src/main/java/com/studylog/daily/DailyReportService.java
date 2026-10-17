@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,9 @@ public class DailyReportService {
     private final WordExtractor wordExtractor = new WordExtractor();
     private final ObjectMapper om = new ObjectMapper();
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+
+    /** 生成中的互斥锁：防止补生成任务与手动请求并发打模型，也防止慢生成被重复请求打断。 */
+    private final AtomicBoolean generating = new AtomicBoolean(false);
 
     private final String cfgBaseUrl;
     private final String cfgApiKey;
@@ -58,25 +62,34 @@ public class DailyReportService {
 
     /**
      * 生成指定上海日期的日报。
-     * @return true=成功保存；false=当天无记录；null=模型离线（未保存，等待补生成重试）
+     * 同一时间只允许一个生成任务在执行（互斥锁）：模型生成慢时不会被新请求打断重跑。
+     * @return true=成功保存；false=当天无记录；null=模型离线或正在生成中（未保存，等待补生成重试）
      */
     @Transactional
     public Boolean generate(LocalDate date) {
-        List<RecordRow> rows = fetchRecordsOfDate(date);
-        if (rows.isEmpty()) return false;
+        if (!generating.compareAndSet(false, true)) {
+            // 已有生成任务在跑，不重复请求
+            return null;
+        }
+        try {
+            List<RecordRow> rows = fetchRecordsOfDate(date);
+            if (rows.isEmpty()) return false;
 
-        Map<String, Object> stat = buildStat(rows);
-        String summary = buildAiSummary(date, rows);
-        // 模型离线：不保存，留给补生成任务重试
-        if (summary == null) return null;
+            Map<String, Object> stat = buildStat(rows);
+            String summary = buildAiSummary(date, rows);
+            // 模型离线：不保存，留给补生成任务重试
+            if (summary == null) return null;
 
-        DailyReport r = repo.findByReportDate(date).orElseGet(DailyReport::new);
-        r.setReportDate(date);
-        r.setContent(toJson(stat));
-        r.setSummary(summary);
-        r.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
-        repo.save(r);
-        return true;
+            DailyReport r = repo.findByReportDate(date).orElseGet(DailyReport::new);
+            r.setReportDate(date);
+            r.setContent(toJson(stat));
+            r.setSummary(summary);
+            r.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+            repo.save(r);
+            return true;
+        } finally {
+            generating.set(false);
+        }
     }
 
     /**
@@ -220,7 +233,7 @@ public class DailyReportService {
         payload.put("temperature", 0.8); // 稍微高一点，让风格更活泼
 
         HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(cfgBaseUrl + "/chat/completions"))
-                .timeout(Duration.ofSeconds(60))
+                .timeout(Duration.ofSeconds(180))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(om.writeValueAsString(payload)));
         if (!cfgApiKey.isEmpty()) b.header("Authorization", "Bearer " + cfgApiKey);
