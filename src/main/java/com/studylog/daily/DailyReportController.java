@@ -49,6 +49,7 @@ public class DailyReportController {
         for (DailyReport r : p.getContent()) {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("report_date", r.getReportDate().toString());
+            m.put("subtitle", r.getSubtitle());
             m.put("summary", r.getSummary());
             m.put("summary_preview", summaryPreview(r.getSummary()));
             m.put("has_summary", r.getSummary() != null && !r.getSummary().isBlank());
@@ -114,6 +115,7 @@ public class DailyReportController {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("ok", true);
         out.put("report_date", r.getReportDate().toString());
+        out.put("subtitle", r.getSubtitle());
         out.put("summary", r.getSummary());
         out.put("stat", parseStat(r.getContent()));
         out.put("created_at", r.getCreatedAt());

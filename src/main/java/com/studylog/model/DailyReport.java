@@ -25,6 +25,10 @@ public class DailyReport {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
+    /** AI 生成的一句话副标题（不超过20字），用于列表/面板预览 */
+    @Column(name = "subtitle", length = 100)
+    private String subtitle;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
@@ -36,6 +40,8 @@ public class DailyReport {
     public void setContent(String content) { this.content = content; }
     public String getSummary() { return summary; }
     public void setSummary(String summary) { this.summary = summary; }
+    public String getSubtitle() { return subtitle; }
+    public void setSubtitle(String subtitle) { this.subtitle = subtitle; }
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
 }

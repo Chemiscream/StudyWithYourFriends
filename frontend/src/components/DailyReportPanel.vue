@@ -4,10 +4,11 @@ import { state, openDailyList, openDailyDetail } from "../store.js";
 
 const latest = computed(() => state.daily.latest);
 
-// 副标题：summary 前 20 字，没有则用统计
+// 副标题：优先用后端 subtitle，没有则用 summary 前 20 字兜底
 const subtitle = computed(() => {
   const r = latest.value;
   if (!r) return "";
+  if (r.subtitle) return r.subtitle;
   const s = r.summary;
   if (s && s.trim()) {
     const one = s.replace(/\s+/g, " ").trim();

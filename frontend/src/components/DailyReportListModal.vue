@@ -6,6 +6,7 @@ const d = state.daily;
 const pageInfo = computed(() => `第 ${d.page + 1} 页`);
 
 function subtitle(item) {
+  if (item.subtitle) return item.subtitle;
   const s = item.summary;
   if (s && s.trim()) {
     const one = s.replace(/\s+/g, " ").trim();

@@ -76,14 +76,15 @@ public class DailyReportService {
             if (rows.isEmpty()) return false;
 
             Map<String, Object> stat = buildStat(rows);
-            String summary = buildAiSummary(date, rows);
+            AiResult ai = buildAiSummary(date, rows);
             // 模型离线：不保存，留给补生成任务重试
-            if (summary == null) return null;
+            if (ai == null) return null;
 
             DailyReport r = repo.findByReportDate(date).orElseGet(DailyReport::new);
             r.setReportDate(date);
             r.setContent(toJson(stat));
-            r.setSummary(summary);
+            r.setSummary(ai.summary());
+            r.setSubtitle(ai.subtitle());
             r.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
             repo.save(r);
             return true;
@@ -185,10 +186,15 @@ public class DailyReportService {
     }
 
     private record RecordRow(String username, String content, String color) {}
+    private record AiResult(String subtitle, String summary) {}
 
     // ---------- AI 趣味摘要 ----------
 
-    private String buildAiSummary(LocalDate date, List<RecordRow> rows) {
+    /**
+     * 分两次请求模型：先生成正文日报，再根据正文提炼一句短副标题。
+     * 副标题不混入正文，独立生成更稳定。
+     */
+    private AiResult buildAiSummary(LocalDate date, List<RecordRow> rows) {
         // 组装上下文（剥离 HTML/base64，截断单条，控制总预算）
         StringBuilder sb = new StringBuilder();
         int used = 0;
@@ -203,12 +209,6 @@ public class DailyReportService {
         }
         String recordsText = sb.length() == 0 ? "（暂无文本内容）" : sb.toString();
 
-        String system = "你是「学习记录」网站的日报小编，要把大家一天的学习情况写成一篇活泼有趣的日报。\n" +
-                "风格要求：像朋友在群里聊天，语气轻快带点梗，适当用 emoji，不要太官方太严肃。\n" +
-                "内容要求：基于以下当日记录，总结大家学了什么、谁最拼、有什么亮点。可以适度调侃，但绝对不要编造记录里没有的内容。\n" +
-                "格式要求：150-300 字，可以用 1-2 个小标题或分点，让阅读轻松。\n" +
-                "今天的日期是 " + date + "。";
-
         try {
             String model = cfgModel;
             if (model.isEmpty()) {
@@ -216,9 +216,43 @@ public class DailyReportService {
                 if (models.isEmpty()) return null;
                 model = models.get(0);
             }
-            return callChat(model, system, recordsText);
+
+            // 第一次：生成正文日报
+            String system = "你是「学习记录」网站的日报小编，要把大家一天的学习情况写成一篇活泼有趣的日报。\n" +
+                    "风格要求：像朋友在群里聊天，语气轻快带点梗，适当用 emoji，不要太官方太严肃。\n" +
+                    "内容要求：基于以下当日记录，总结大家学了什么、谁最拼、有什么亮点。可以适度调侃，但绝对不要编造记录里没有的内容。\n" +
+                    "格式要求：150-300 字，可以用 1-2 个小标题或分点，让阅读轻松。\n" +
+                    "今天的日期是 " + date + "。";
+            String summary = callChat(model, system, "以下是今天大家的学习记录：\n" + recordsText + "\n请写日报。");
+            if (summary == null) return null;
+
+            // 第二次：根据正文提炼一句短副标题
+            String subtitle = buildSubtitle(model, date, summary);
+            if (subtitle == null || subtitle.isBlank()) {
+                // 兜底：正文前 20 字
+                String one = summary.replaceAll("\\s+", " ").trim();
+                subtitle = one.length() > 20 ? one.substring(0, 20) + "…" : one;
+            }
+            return new AiResult(subtitle, summary);
         } catch (Exception e) {
-            return null; // 模型离线/失败，摘要留空，前端降级展示
+            return null;
+        }
+    }
+
+    /** 第二次请求：让模型根据正文日报生成一句不超过 10 字的副标题。 */
+    private String buildSubtitle(String model, LocalDate date, String summary) {
+        String system = "你是标题提炼助手。请根据下面的日报正文，用一句不超过 10 个字的话高度概括当天的整体情况。" +
+                "只输出这一句话，不要加引号、书名号或任何前后缀。今天的日期是 " + date + "。";
+        try {
+            String res = callChat(model, system, "日报正文：\n" + summary + "\n\n请输出不超过 10 个字的副标题。");
+            if (res == null) return null;
+            res = res.trim();
+            // 去掉模型可能加的引号/书名号/句号
+            res = res.replaceAll("^[「\"'《]+", "").replaceAll("[」\"'》。！？]+$", "").trim();
+            if (res.length() > 30) res = res.substring(0, 30);
+            return res;
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -227,7 +261,7 @@ public class DailyReportService {
         payload.put("model", model);
         payload.put("messages", List.of(
                 Map.of("role", "system", "content", system),
-                Map.of("role", "user", "content", "以下是今天大家的学习记录：\n" + user + "\n请写日报。")
+                Map.of("role", "user", "content", user)
         ));
         payload.put("stream", false);
         payload.put("temperature", 0.8); // 稍微高一点，让风格更活泼
