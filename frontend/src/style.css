@@ -515,12 +515,17 @@ html[data-theme="light"] .chat-bubble .md-code { background: #1f2937; }
 }
 
 /* AI 日报 */
-.daily-entry { cursor: pointer; transition: border-color .16s ease, transform .12s ease; }
-.daily-entry:hover { border-color: var(--primary); transform: translateY(-1px); }
+.daily-entry { transition: border-color .16s ease, transform .12s ease; }
+.daily-entry:hover { border-color: var(--primary); }
 .daily-ico { font-size: 16px; }
 .daily-hint { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
-.daily-preview-text { margin: 6px 0 0; color: var(--ink); font-size: 13px; line-height: 1.6; }
-.daily-list-card { width: min(680px, 94vw); max-height: 82vh; overflow-y: auto; }
+.daily-more { color: var(--muted); font-size: 13px; cursor: pointer; transition: color .14s; }
+.daily-more:hover { color: var(--primary); }
+.daily-card { margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; transition: border-color .14s ease, background .14s ease; }
+.daily-card:hover { border-color: var(--primary); background: var(--panel-soft); }
+.daily-card-title { font-weight: 700; color: var(--ink); font-size: 14px; }
+.daily-card-sub { color: var(--muted); font-size: 12.5px; margin-top: 4px; line-height: 1.5; }
+.daily-list-card { width: min(560px, 94vw); max-height: 82vh; overflow-y: auto; }
 .daily-detail-card { width: min(640px, 94vw); }
 .daily-loading, .daily-empty, .daily-msg { text-align: center; color: var(--muted); padding: 18px 0; font-size: 14px; }
 .daily-msg { color: var(--warn); padding: 8px 0; }
@@ -530,10 +535,8 @@ html[data-theme="light"] .chat-bubble .md-code { background: #1f2937; }
   cursor: pointer; transition: border-color .14s ease, background .14s ease;
 }
 .daily-item:hover { border-color: var(--primary); background: var(--panel-soft); }
-.daily-item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.daily-date { font-weight: 700; color: var(--ink); font-size: 14px; }
-.daily-count { color: var(--muted); font-size: 12px; }
-.daily-preview { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.daily-item-title { font-weight: 700; color: var(--ink); font-size: 14px; }
+.daily-item-sub { color: var(--muted); font-size: 12.5px; margin-top: 4px; line-height: 1.5; }
 .daily-pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 4px 0 14px; }
 .daily-page-info { color: var(--muted); font-size: 13px; min-width: 60px; text-align: center; }
 .daily-multi { display: grid; gap: 18px; margin: 8px 0 14px; }
