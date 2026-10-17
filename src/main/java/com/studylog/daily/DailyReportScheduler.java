@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
-/** 每天 00:00（上海时间）自动生成前一天的全站日报。 */
+/** 每天 00:00（上海时间）自动生成前一天的全站日报；模型离线时由补生成任务兜底重试。 */
 @Component
 public class DailyReportScheduler {
 
@@ -24,8 +24,21 @@ public class DailyReportScheduler {
         try {
             service.generate(yesterday);
         } catch (Exception e) {
-            // 定时任务失败不抛出，避免影响其他调度；日志由调用方观察
             System.err.println("[DailyReport] 生成 " + yesterday + " 日报失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 每 5 分钟检查并补生成缺失日报中最早的一天。
+     * 模型离线导致某天未生成时，这里会持续重试直到成功；
+     * 连续多天未生成时，按日期从早到晚一天一天补，不会跳过或覆盖。
+     */
+    @Scheduled(fixedDelay = 5 * 60 * 1000, initialDelay = 60 * 1000)
+    public void backfillMissing() {
+        try {
+            service.backfillOne();
+        } catch (Exception e) {
+            System.err.println("[DailyReport] 补生成任务异常: " + e.getMessage());
         }
     }
 }

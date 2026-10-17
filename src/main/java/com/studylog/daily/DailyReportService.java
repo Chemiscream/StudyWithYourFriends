@@ -57,16 +57,18 @@ public class DailyReportService {
     }
 
     /**
-     * 生成指定上海日期的日报。若当天无记录则不生成（返回 false）。
-     * 已存在则覆盖更新（用于手动重生成）。
+     * 生成指定上海日期的日报。
+     * @return true=成功保存；false=当天无记录；null=模型离线（未保存，等待补生成重试）
      */
     @Transactional
-    public boolean generate(LocalDate date) {
+    public Boolean generate(LocalDate date) {
         List<RecordRow> rows = fetchRecordsOfDate(date);
         if (rows.isEmpty()) return false;
 
         Map<String, Object> stat = buildStat(rows);
         String summary = buildAiSummary(date, rows);
+        // 模型离线：不保存，留给补生成任务重试
+        if (summary == null) return null;
 
         DailyReport r = repo.findByReportDate(date).orElseGet(DailyReport::new);
         r.setReportDate(date);
@@ -75,6 +77,35 @@ public class DailyReportService {
         r.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
         repo.save(r);
         return true;
+    }
+
+    /**
+     * 补生成缺失日报中最早的一天。
+     * 每次只补最早的一天，保证按日期顺序排队——模型离线多日后恢复时，
+     * 会从最早的缺失日期开始一天一天补，不会让后面的覆盖前面的。
+     */
+    @SuppressWarnings("unchecked")
+    public void backfillOne() {
+        // 有学习记录的日期（上海时区，升序）
+        List<java.sql.Date> sqlDates = em.createNativeQuery(
+                "SELECT DISTINCT DATE(created_at + INTERVAL 8 HOUR) AS d FROM records ORDER BY d ASC")
+                .getResultList();
+        if (sqlDates.isEmpty()) return;
+        List<LocalDate> recordDates = sqlDates.stream().map(java.sql.Date::toLocalDate).toList();
+
+        // 已有日报的日期
+        Set<LocalDate> done = repo.findAllReportDates().stream().collect(Collectors.toSet());
+
+        for (LocalDate d : recordDates) {
+            if (!done.contains(d)) {
+                try {
+                    generate(d);
+                } catch (Exception e) {
+                    System.err.println("[DailyReport] 补生成 " + d + " 失败: " + e.getMessage());
+                }
+                break; // 一次只补最早的一天，下一轮再补下一个
+            }
+        }
     }
 
     // ---------- 统计 ----------
