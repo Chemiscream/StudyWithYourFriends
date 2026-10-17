@@ -35,6 +35,18 @@ export const state = reactive({
   // emoji 面板（全站单例）
   emoji: { visible: false, kind: null, inputEl: null, savedRange: null, anchorEl: null },
   profileOpen: false,
+  // AI 日报
+  daily: {
+    listOpen: false,
+    detailOpen: false,
+    detail: null,      // { report_date, summary, stat }
+    list: [],          // [{ report_date, summary_preview, has_summary, total }]
+    page: 0,
+    size: 5,
+    hasMore: true,
+    loading: false,
+    msg: "",
+  },
 });
 
 // ---------- 工具 ----------
@@ -269,6 +281,69 @@ export function toggleEmoji(kind, inputEl, savedRange, anchorEl) {
 export function closeEmoji() {
   const em = state.emoji;
   em.visible = false; em.kind = null; em.inputEl = null; em.savedRange = null; em.anchorEl = null;
+}
+
+// ---------- AI 日报 ----------
+export async function openDailyList() {
+  state.daily.listOpen = true;
+  state.daily.page = 0;
+  state.daily.list = [];
+  state.daily.hasMore = true;
+  await loadDailyList();
+}
+export function closeDailyList() { state.daily.listOpen = false; }
+
+export async function loadDailyList() {
+  state.daily.loading = true;
+  state.daily.msg = "";
+  try {
+    const res = await request(`/api/daily-reports?page=${state.daily.page}&size=${state.daily.size}`);
+    if (!res.ok) { state.daily.msg = res.message || "加载失败"; return; }
+    state.daily.list = res.items || [];
+    state.daily.hasMore = !!res.has_more;
+  } catch (e) {
+    state.daily.msg = "网络错误";
+  } finally {
+    state.daily.loading = false;
+  }
+}
+
+export function dailyPrevPage() {
+  if (state.daily.page > 0) { state.daily.page--; loadDailyList(); }
+}
+export function dailyNextPage() {
+  if (state.daily.hasMore) { state.daily.page++; loadDailyList(); }
+}
+
+export async function openDailyDetail(date) {
+  state.daily.msg = "";
+  try {
+    const res = await request("/api/daily-reports/" + date);
+    if (!res.ok) { state.daily.msg = res.message || "加载失败"; return; }
+    state.daily.detail = { report_date: res.report_date, summary: res.summary, stat: res.stat || {} };
+    state.daily.detailOpen = true;
+  } catch (e) {
+    state.daily.msg = "网络错误";
+  }
+}
+export function closeDailyDetail() { state.daily.detailOpen = false; state.daily.detail = null; }
+
+export async function generateDailyReport(date) {
+  state.daily.msg = "生成中…";
+  try {
+    const res = await request("/api/daily-reports/generate", {
+      method: "POST",
+      body: JSON.stringify({ date }),
+    });
+    if (!res.ok) { state.daily.msg = res.message || "生成失败"; return; }
+    state.daily.detail = { report_date: res.report_date, summary: res.summary, stat: res.stat || {} };
+    state.daily.detailOpen = true;
+    state.daily.msg = res.message || "已生成";
+    // 刷新列表
+    if (state.daily.listOpen) loadDailyList();
+  } catch (e) {
+    state.daily.msg = "网络错误";
+  }
 }
 
 // ---------- 启动 ----------

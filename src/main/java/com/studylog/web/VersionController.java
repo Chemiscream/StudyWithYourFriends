@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.4.0";
+    public static final String VERSION = "1.5.0";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.5.0", List.of(
+                    "新增「AI 日报」：每天 0 点自动生成前一天的全站学习日报，AI 用活泼有趣的风格总结大家学了什么、谁最拼、今日热词。",
+                    "日报支持分页浏览历史、点击查看当日详情、一键下载为文本文件；还可手动补生成昨天/前天的日报。"
+            )),
             new ReleaseNote("1.4.0", List.of(
                     "前端整体重构为 Vue 3：界面与操作习惯保持不变，页面响应更快，后续新功能迭代更轻松。",
                     "登录页并入主应用，旧地址 /login.html 会自动跳转（无需更改书签）。"

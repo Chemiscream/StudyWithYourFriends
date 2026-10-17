@@ -78,6 +78,9 @@ npm run build   # 产物输出到 ../src/main/resources/static（会清空旧产
 | GET / DELETE | `/api/ai/history` | 查看 / 清空自己的 AI 对话记忆（登录） |
 | GET | `/api/ai/status` | AI 队列状态（登录） |
 | GET | `/api/version` | 版本号与更新日志 |
+| GET | `/api/daily-reports?page=&size=` | AI 日报列表（分页，从昨天往前） |
+| GET | `/api/daily-reports/{date}` | 指定日期日报详情 |
+| POST | `/api/daily-reports/generate` | 生成指定日期日报（body: `{date}`） |
 
 > AI 模型服务配置见 `application.yml` 的 `app.ai.*`（默认 `http://localhost:1234/v1`，并发/队列/超时/上下文预算均可用环境变量覆盖）。
 
