@@ -4,11 +4,13 @@ import com.studylog.model.Comment;
 import com.studylog.model.CommentLike;
 import com.studylog.model.Notification;
 import com.studylog.model.Record;
+import com.studylog.model.RecordFavorite;
 import com.studylog.model.RecordLike;
 import com.studylog.model.User;
 import com.studylog.repo.CommentLikeRepository;
 import com.studylog.repo.CommentRepository;
 import com.studylog.repo.NotificationRepository;
+import com.studylog.repo.RecordFavoriteRepository;
 import com.studylog.repo.RecordLikeRepository;
 import com.studylog.repo.RecordRepository;
 import com.studylog.repo.UserRepository;
@@ -16,6 +18,7 @@ import com.studylog.sec.HtmlSanitize;
 import com.studylog.sec.Tokens;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,12 +34,15 @@ public class RecordController {
 
     // 图文/视频混排 base64 内嵌：40MB 视频 base64 约 53MB，加若干图片留余量
     private static final int MAX_CONTENT = 70_000_000;
+    // 「我的收藏」弹窗最多返回的条数
+    private static final int MAX_FAVORITES = 200;
 
     private final RecordRepository records;
     private final CommentRepository comments;
     private final UserRepository users;
     private final RecordLikeRepository likes;
     private final CommentLikeRepository commentLikes;
+    private final RecordFavoriteRepository favorites;
     private final NotificationRepository notifications;
     private final Tokens tokens;
     private final EntityManager em;
@@ -44,6 +50,7 @@ public class RecordController {
     public RecordController(RecordRepository records, CommentRepository comments,
                             UserRepository users, RecordLikeRepository likes,
                             CommentLikeRepository commentLikes,
+                            RecordFavoriteRepository favorites,
                             NotificationRepository notifications,
                             Tokens tokens, EntityManager em) {
         this.records = records;
@@ -51,6 +58,7 @@ public class RecordController {
         this.users = users;
         this.likes = likes;
         this.commentLikes = commentLikes;
+        this.favorites = favorites;
         this.notifications = notifications;
         this.tokens = tokens;
         this.em = em;
@@ -124,11 +132,16 @@ public class RecordController {
         // 点赞数 + 当前用户是否已赞
         Map<Long, Long> likeCounts = new HashMap<>();
         Set<Long> likedIds = new HashSet<>();
+        // 当前用户已收藏的记录
+        Set<Long> favoritedIds = new HashSet<>();
         if (!ids.isEmpty()) {
             for (Object[] row : likes.countByRecordIds(ids)) {
                 likeCounts.put(((Number) row[0]).longValue(), ((Number) row[1]).longValue());
             }
-            if (me != null) likedIds.addAll(likes.findLikedRecordIds(ids, me));
+            if (me != null) {
+                likedIds.addAll(likes.findLikedRecordIds(ids, me));
+                favoritedIds.addAll(favorites.findFavoritedRecordIds(ids, me));
+            }
         }
 
         List<Map<String, Object>> out = new ArrayList<>();
@@ -146,6 +159,7 @@ public class RecordController {
             m.put("comments", commentsMap.getOrDefault(rid, List.of()));
             m.put("like_count", likeCounts.getOrDefault(rid, 0L));
             m.put("liked", likedIds.contains(rid));
+            m.put("favorited", favoritedIds.contains(rid));
             out.add(m);
         }
 
@@ -183,6 +197,7 @@ public class RecordController {
         m.put("comments", cms);
         m.put("like_count", likes.countByRecordId(rid));
         m.put("liked", me != null && likes.findByRecordIdAndUsername(rid, me).isPresent());
+        m.put("favorited", me != null && favorites.findByRecordIdAndUsername(rid, me).isPresent());
         Map<String, Object> res = new LinkedHashMap<>();
         res.put("ok", true);
         res.put("record", m);
@@ -218,6 +233,57 @@ public class RecordController {
         m.put("liked", liked);
         m.put("like_count", likes.countByRecordId(rid));
         return m;
+    }
+
+    // ---------- 收藏（切换，仅登录用户） ----------
+    @PostMapping("/records/{rid}/favorite")
+    Map<String, Object> toggleFavorite(HttpServletRequest req, @PathVariable Long rid) {
+        String me = requireLogin(req);
+        if (!records.existsById(rid)) throw new BizException(HttpStatus.NOT_FOUND, "记录不存在");
+        boolean favorited;
+        var existing = favorites.findByRecordIdAndUsername(rid, me);
+        if (existing.isPresent()) {
+            favorites.delete(existing.get());
+            favorited = false;
+        } else {
+            RecordFavorite f = new RecordFavorite();
+            f.setRecordId(rid);
+            f.setUsername(me);
+            f.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+            favorites.save(f);
+            favorited = true;
+        }
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("ok", true);
+        m.put("favorited", favorited);
+        return m;
+    }
+
+    // ---------- 我的收藏列表（弹窗预览，仅登录用户） ----------
+    @GetMapping("/favorites")
+    Map<String, Object> myFavorites(HttpServletRequest req) {
+        String me = requireLogin(req);
+        List<RecordFavorite> favs = favorites.findByUsernameOrderByCreatedAtDesc(me, PageRequest.of(0, MAX_FAVORITES));
+        List<Long> ids = favs.stream().map(RecordFavorite::getRecordId).toList();
+        Map<Long, Record> byId = new HashMap<>();
+        for (Record r : records.findAllById(ids)) byId.put(r.getId(), r);
+        List<Map<String, Object>> out = new ArrayList<>();
+        // 按收藏时间倒序返回；记录已被删除的收藏行（理论上已级联清理）直接跳过
+        for (RecordFavorite f : favs) {
+            Record r = byId.get(f.getRecordId());
+            if (r == null) continue;
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", r.getId());
+            m.put("username", r.getUsername());
+            m.put("color", colorOf(r.getUsername()));
+            m.put("created_at", r.getCreatedAt());
+            m.put("updated_at", r.getUpdatedAt());
+            m.put("mine", r.getUsername().equals(me));
+            m.put("preview", plainText(r.getContent(), 120));
+            m.put("favorited_at", f.getCreatedAt());
+            out.add(m);
+        }
+        return Map.of("ok", true, "records", out);
     }
 
     // ---------- 留言点赞（切换） ----------
@@ -288,6 +354,7 @@ public class RecordController {
         if (!cids.isEmpty()) commentLikes.deleteByCommentIdIn(cids);
         comments.deleteByRecordId(rid);
         likes.deleteByRecordId(rid);
+        favorites.deleteByRecordId(rid);
         notifications.deleteByRecordId(rid);
         records.delete(r);
         return Map.of("ok", true, "message", "已删除");
@@ -420,9 +487,14 @@ public class RecordController {
 
     /** 记录 HTML 内容转纯文本摘要（用于点赞通知预览）。 */
     private static String plainText(String html) {
+        return plainText(html, 60);
+    }
+
+    /** 记录 HTML 内容转纯文本摘要（max 为超长时的截断字数）。 */
+    private static String plainText(String html, int max) {
         if (html == null) return "";
         String t = html.replaceAll("<[^>]+>", " ").replace("&nbsp;", " ").replaceAll("\\s+", " ").trim();
-        return t.length() > 60 ? t.substring(0, 60) + "…" : t;
+        return t.length() > max ? t.substring(0, max) + "…" : t;
     }
 
     /** 转义 LIKE 通配符（配合 SQL 中的 ESCAPE '\\'）。 */

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onUnmounted } from "vue";
-import { state, PALETTE, chooseColor, logout, toggleTheme, loadNotifications } from "../store.js";
+import { state, PALETTE, chooseColor, logout, toggleTheme, loadNotifications, openFavorites } from "../store.js";
 
 const loggedIn = computed(() => !!state.token);
 const myColor = computed(() => state.myColor || "4a90d9");
@@ -40,6 +40,9 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
         :title="state.isAdmin ? '管理员（可删除任意记录/留言）' : ''"
         :style="{ background: '#' + myColor + '22', color: '#' + myColor }"
       >{{ state.isAdmin ? "👑 " : "" }}{{ state.user }}</span>
+      <button v-if="loggedIn" class="icon-btn" type="button" title="我的收藏" @click="openFavorites">
+        ⭐
+      </button>
       <button v-if="loggedIn" class="icon-btn notif-btn" type="button" title="消息通知" @click="toggleNotif">
         🔔
         <span v-if="state.notif.unread > 0" class="notif-badge">{{ state.notif.unread > 99 ? "99+" : state.notif.unread }}</span>

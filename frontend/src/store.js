@@ -29,6 +29,8 @@ export const state = reactive({
   detailReturnScroll: null, // 从动态列表进入详情时记住的滚动位置；null 表示返回时回顶部（如从消息进入）
   // 通知
   notif: { open: false, unread: 0, items: [], loading: false },
+  // 我的收藏（弹窗预览）
+  favorites: { open: false, items: [], loading: false, msg: "" },
   // 编辑态
   editingId: null,
   editHtml: "",
@@ -142,6 +144,43 @@ export async function toggleLike(rid) {
   } catch (e) { /* 网络错误不打断 */ }
 }
 
+// ---------- 收藏 ----------
+export async function toggleFavorite(rid) {
+  if (!state.token) { alert("请先登录再收藏"); return; }
+  try {
+    const res = await request(`/api/records/${rid}/favorite`, { method: "POST" });
+    if (!res.ok) { alert(res.message || "操作失败"); return; }
+    const rec = state.records.find((r) => r.id === rid);
+    if (rec) rec.favorited = res.favorited;
+    if (state.detailRecord && state.detailRecord.id === rid) state.detailRecord.favorited = res.favorited;
+    if (state.favorites.open) loadFavorites(); // 弹窗开着时同步列表（取消收藏的条目实时移除）
+  } catch (e) { /* 网络错误不打断 */ }
+}
+
+export function openFavorites() {
+  state.favorites.open = true;
+  loadFavorites();
+}
+export function closeFavorites() {
+  state.favorites.open = false;
+  state.favorites.msg = "";
+}
+
+export async function loadFavorites() {
+  if (!state.token) return;
+  state.favorites.loading = true;
+  state.favorites.msg = "";
+  try {
+    const res = await request("/api/favorites");
+    if (!res.ok) { state.favorites.msg = res.message || "加载失败"; return; }
+    state.favorites.items = res.records || [];
+  } catch (e) {
+    state.favorites.msg = "网络错误";
+  } finally {
+    state.favorites.loading = false;
+  }
+}
+
 // ---------- 留言点赞 ----------
 export async function toggleCommentLike(cid) {
   if (!state.token) { alert("请先登录再点赞"); return; }
@@ -234,6 +273,7 @@ export function logout() {
   clearAuth();
   stopNotifPoll();
   state.notif = { open: false, unread: 0, items: [], loading: false };
+  state.favorites = { open: false, items: [], loading: false, msg: "" };
   closeDetail();
   cancelEdit(); // 清理编辑态，避免残留到下一次登录
   aiReset(); // 引用在文件底部定义前被调用？不会：logout 由用户点击触发，届时模块已初始化

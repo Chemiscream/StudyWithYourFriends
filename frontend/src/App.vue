@@ -14,6 +14,7 @@ import RecordList from "./components/RecordList.vue";
 import DetailView from "./components/DetailView.vue";
 import ProfileModal from "./components/ProfileModal.vue";
 import NotifModal from "./components/NotifModal.vue";
+import FavoriteModal from "./components/FavoriteModal.vue";
 import UpdateModal from "./components/UpdateModal.vue";
 import EmojiPanel from "./components/EmojiPanel.vue";
 
@@ -47,6 +48,7 @@ onUnmounted(() => window.removeEventListener("hashchange", onHash));
   </div>
   <EmojiPanel />
   <NotifModal v-if="state.notif.open" />
+  <FavoriteModal v-if="state.favorites.open" />
   <ProfileModal v-if="state.profileOpen" />
   <UpdateModal v-if="state.update" />
   <DailyReportListModal v-if="state.daily.listOpen" />

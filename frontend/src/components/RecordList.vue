@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive } from "vue";
-import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, toggleCommentLike, openDetail } from "../store.js";
+import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail } from "../store.js";
 
 const countInfo = computed(() => (state.records.length ? `共 ${state.records.length} 条` : ""));
 
@@ -77,11 +77,18 @@ function onRecordClick(r, e) {
         </div>
         <div class="record-content clickable" v-html="r.content || ''" title="点击查看详情"></div>
         <div class="record-foot">
-          <button
-            class="like-btn" :class="{ liked: r.liked }" type="button"
-            :title="state.token ? (r.liked ? '取消点赞' : '点赞') : '登录后可点赞'"
-            @click="toggleLike(r.id)"
-          >{{ r.liked ? "❤️" : "🤍" }} {{ r.like_count || 0 }}</button>
+          <div class="foot-left">
+            <button
+              class="like-btn" :class="{ liked: r.liked }" type="button"
+              :title="state.token ? (r.liked ? '取消点赞' : '点赞') : '登录后可点赞'"
+              @click="toggleLike(r.id)"
+            >{{ r.liked ? "❤️" : "🤍" }} {{ r.like_count || 0 }}</button>
+            <button
+              class="fav-btn" :class="{ favored: r.favorited }" type="button"
+              :title="state.token ? (r.favorited ? '取消收藏' : '收藏') : '登录后可收藏'"
+              @click="toggleFavorite(r.id)"
+            >{{ r.favorited ? "⭐" : "☆" }}</button>
+          </div>
           <div v-if="(r.mine || state.isAdmin) && state.token" class="record-actions">
             <button v-if="r.mine" class="edit-btn" type="button" @click="startEdit(r)">编辑</button>
             <button class="del-btn" type="button" @click="delRecord(r.id)">删除</button>
