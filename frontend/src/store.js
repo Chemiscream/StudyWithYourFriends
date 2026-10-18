@@ -527,9 +527,9 @@ export function closeDailyDetail() { state.daily.detailOpen = false; state.daily
 // ---------- 启动 ----------
 export async function init() {
   checkVersion();
+  await loadLatestDaily(); // 日报公开：未登录也加载
   if (state.token) {
     await refreshMe();
-    await loadLatestDaily();
     loadNotifications();
     startNotifPoll();
   }

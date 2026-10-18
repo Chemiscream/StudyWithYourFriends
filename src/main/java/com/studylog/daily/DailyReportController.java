@@ -34,12 +34,10 @@ public class DailyReportController {
         this.tokens = tokens;
     }
 
-    /** 分页列表：从昨天往前，每页 size 条。返回完整 summary 和 stat，供弹窗按天展示。 */
+    /** 分页列表：从昨天往前，每页 size 条。返回完整 summary 和 stat，供弹窗按天展示。公开（未登录可读）。 */
     @GetMapping
-    Map<String, Object> list(HttpServletRequest req,
-                             @RequestParam(defaultValue = "0") int page,
+    Map<String, Object> list(@RequestParam(defaultValue = "0") int page,
                              @RequestParam(defaultValue = "5") int size) {
-        requireLogin(req);
         page = Math.max(0, page);
         size = Math.min(20, Math.max(1, size));
         LocalDate today = LocalDate.now(SH);
@@ -67,10 +65,9 @@ public class DailyReportController {
         return out;
     }
 
-    /** 最近一天的日报（含今天，若已生成），供首页面板预览。 */
+    /** 最近一天的日报（含今天，若已生成），供首页面板预览。公开（未登录可读）。 */
     @GetMapping("/latest")
-    Map<String, Object> latest(HttpServletRequest req) {
-        requireLogin(req);
+    Map<String, Object> latest() {
         Optional<DailyReport> opt = repo.findTopByOrderByReportDateDesc();
         if (opt.isEmpty()) {
             Map<String, Object> out = new LinkedHashMap<>();
@@ -85,10 +82,9 @@ public class DailyReportController {
         return out;
     }
 
-    /** 指定日期详情。 */
+    /** 指定日期详情。公开（未登录可读）。 */
     @GetMapping("/{date}")
-    Map<String, Object> detail(HttpServletRequest req, @PathVariable String date) {
-        requireLogin(req);
+    Map<String, Object> detail(@PathVariable String date) {
         DailyReport r = repo.findByReportDate(parseDate(date))
                 .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "该日期暂无日报"));
         return detailOf(r);

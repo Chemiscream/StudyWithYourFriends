@@ -39,7 +39,7 @@ onUnmounted(() => window.removeEventListener("hashchange", onHash));
     <template v-else>
       <StatsPanel />
       <AiChatPanel v-if="state.token" />
-      <DailyReportPanel v-if="state.token" />
+      <DailyReportPanel />
       <RecordEditor v-if="state.token" />
       <FilterBar />
       <RecordList />
