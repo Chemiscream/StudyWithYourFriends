@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -326,7 +327,10 @@ public class AiController {
         String note = included < rows.size()
                 ? "（记录较多，仅包含最新 " + included + " 条，更早的未包含）"
                 : "（共 " + included + " 条）";
+        String now = ZonedDateTime.now(DISPLAY_ZONE)
+                .format(DateTimeFormatter.ofPattern("yyyy年M月d日 EEEE HH:mm", Locale.CHINA));
         return "你是「学习记录」网站的 AI 助手，负责回答关于站内学习记录的问题。\n" +
+                "现在是 " + now + "（北京时间）。用户说「今天」「昨天」时以此为准。\n" +
                 "以下是站内用户的学习记录" + note + "，按时间倒序，格式为 [日期] 用户名：内容：\n---\n" +
                 (sb.length() == 0 ? "（暂无记录）\n" : sb.toString()) +
                 "---\n" +
