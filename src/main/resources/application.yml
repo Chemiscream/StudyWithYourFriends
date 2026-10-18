@@ -6,6 +6,10 @@ server:
 spring:
   application:
     name: studylog
+  web:
+    resources:
+      # 前端静态资源：外部目录优先（npm run build 后同步到这里，改前端无需重启），jar 内为兜底
+      static-locations: file:./static-frontend/, classpath:/static/
   config:
     # 管理员凭据等本地私密配置（文件不入 git，见 .gitignore）
     import: optional:file:./admin-credentials.properties

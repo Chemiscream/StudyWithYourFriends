@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.7.4";
+    public static final String VERSION = "1.7.5";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.7.5", List.of(
+                    "前端资源支持热更新：调整界面样式等纯前端改动后立即生效，无需重启服务器（后端逻辑改动仍需重启）。"
+            )),
             new ReleaseNote("1.7.4", List.of(
                     "确认弹窗按钮顺序调整：「确定」放左边、「取消」放右边，删除/清空等操作确认更顺手。"
             )),
