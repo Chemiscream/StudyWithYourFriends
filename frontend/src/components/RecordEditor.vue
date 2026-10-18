@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
-import { state, submitRecord, cancelEdit, toggleEmoji, askConfirm } from "../store.js";
+import { state, submitRecord, cancelEdit, toggleEmoji, askConfirm, ensureUsers } from "../store.js";
 
 const editor = ref(null);      // contenteditable div
 const imgInput = ref(null);
@@ -11,8 +11,68 @@ const ALLOWED_VIDEO = ["video/mp4", "video/webm", "video/quicktime"];
 const MAX_IMG_SIZE = 5 * 1024 * 1024;    // 图片 ≤5MB
 const MAX_VIDEO_SIZE = 40 * 1024 * 1024; // 视频 ≤40MB（base64 后约 53MB）
 
+// ---------- @提及补全（富文本编辑器专用：基于光标所在文本节点检测） ----------
+const mentionOpen = ref(false);
+const mentionItems = ref([]);
+const mentionIndex = ref(0);
+let mNode = null;  // 光标所在文本节点
+let mStart = -1;   // @ 在该文本节点中的偏移
+
+function mQuery() {
+  const sel = window.getSelection();
+  if (!sel || !sel.isCollapsed || !sel.anchorNode || sel.anchorNode.nodeType !== 3) return null;
+  if (!editor.value || !editor.value.contains(sel.anchorNode)) return null;
+  const left = sel.anchorNode.textContent.slice(0, sel.anchorOffset);
+  const m = left.match(/@([^\s@]{0,32})$/);
+  return m ? { query: m[1] } : null;
+}
+function onEditorInput() {
+  const hit = mQuery();
+  if (!hit) { mentionOpen.value = false; return; }
+  ensureUsers();
+  const q = hit.query.toLowerCase();
+  mentionItems.value = state.users
+    .filter((u) => !q || u.username.toLowerCase().includes(q))
+    .slice(0, 20);
+  if (!mentionItems.value.length) { mentionOpen.value = false; return; }
+  const sel = window.getSelection();
+  mNode = sel.anchorNode;
+  mStart = sel.anchorOffset - hit.query.length - 1; // 去掉 @ 与查询词
+  mentionIndex.value = 0;
+  mentionOpen.value = true;
+}
+function mentionPick(u) {
+  if (!u || mNode == null || !editor.value) return;
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  if (!editor.value.contains(mNode)) { mentionOpen.value = false; return; } // 触发点节点已被移除（如编辑器被清空）
+  const rng = document.createRange();
+  rng.setStart(mNode, mStart);
+  rng.setEnd(sel.anchorNode, sel.anchorOffset); // @ 到光标 = 未完成的提及片段
+  rng.deleteContents();
+  const txt = document.createTextNode("@" + u.username + " ");
+  rng.insertNode(txt);
+  rng.setStart(txt, txt.length);
+  rng.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(rng);
+  mentionOpen.value = false;
+  editor.value.focus();
+}
+function onEditorKeydown(e) {
+  if (!mentionOpen.value) return;
+  if (e.key === "ArrowDown") { e.preventDefault(); mentionIndex.value = (mentionIndex.value + 1) % mentionItems.value.length; }
+  else if (e.key === "ArrowUp") { e.preventDefault(); mentionIndex.value = (mentionIndex.value - 1 + mentionItems.value.length) % mentionItems.value.length; }
+  else if (e.key === "Enter") { e.preventDefault(); mentionPick(mentionItems.value[mentionIndex.value]); } // 补全优先于换行
+  else if (e.key === "Escape") { mentionOpen.value = false; }
+}
+function onEditorBlur() {
+  setTimeout(() => { mentionOpen.value = false; }, 150); // 先让列表项 mousedown 生效
+}
+
 // 编辑态切换时填充/清空编辑器（v-html 不适用于 contenteditable，命令式操作）
 watch(() => state.editingId, (id) => {
+  mentionOpen.value = false; // 切换时收起补全弹层
   if (id != null && editor.value) {
     editor.value.innerHTML = state.editHtml || "";
     nextTickScroll();
@@ -222,15 +282,27 @@ onUnmounted(() => {
       <h2>{{ state.editingId ? "编辑记录" : "新增学习记录" }}</h2>
       <button v-if="state.editingId" class="btn ghost" type="button" style="min-height:32px;padding:0 12px;font-size:13px;" @click="cancelEdit">取消编辑</button>
     </div>
-    <div class="field">
+    <div class="field editor-wrap">
       <div
         ref="editor"
         class="editor"
         contenteditable="true"
-        data-placeholder="今天学了什么？记录一下吧…（支持图片/视频）"
+        data-placeholder="今天学了什么？记录一下吧…（支持图片/视频，输入@可提及他人）"
         @paste="onPaste"
         @click="onEditorClick"
+        @input="onEditorInput"
+        @keydown="onEditorKeydown"
+        @blur="onEditorBlur"
       ></div>
+      <div v-if="mentionOpen" class="mention-pop editor-mention">
+        <button
+          v-for="(u, i) in mentionItems" :key="u.username" type="button"
+          :class="{ active: i === mentionIndex }"
+          @mousedown.prevent="mentionPick(u)"
+        >
+          <span class="role-tag" :style="{ background: '#' + (u.color || '4a90d9') + '22', color: '#' + (u.color || '4a90d9') }">@{{ u.username }}</span>
+        </button>
+      </div>
     </div>
     <div class="field">
       <input ref="imgInput" type="file" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm,video/quicktime" hidden @change="onImgPicked">

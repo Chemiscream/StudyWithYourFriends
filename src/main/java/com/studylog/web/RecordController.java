@@ -340,6 +340,8 @@ public class RecordController {
         r.setContent(content);
         r.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
         records.save(r);
+        // 记录正文中的 @提及也推送通知（仅创建时解析，编辑不重复通知）
+        notifyMentions(content, r, me, new HashSet<>());
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("ok", true);
         m.put("id", r.getId());
@@ -465,19 +467,33 @@ public class RecordController {
             notified.add(c.getReplyTo());
         }
         // @提及：解析正文中的 @用户名，存在且非自己才通知，去重后上限 5 人
-        Matcher m = MENTION_RE.matcher(c.getContent());
+        notifyMentions(c.getContent(), record, me, notified);
+        // 作者未被回复/未被提及才收「评论了你的记录」
+        String owner = record.getUsername();
+        if (!owner.equals(me) && !notified.contains(owner)) {
+            saveNotification(owner, me, "comment", record.getId(), c.getId(), preview);
+        }
+    }
+
+    /**
+     * 解析正文中的 @用户名并推送 mention 通知。
+     * 文本先去掉 HTML 标签再匹配，避免把标签属性/URL 里的 @ 误当提及；
+     * 仅真实存在的非管理员、非自己的用户名才通知，同一接收人只发一条，上限 5 人。
+     */
+    private void notifyMentions(String text, Record record, String me, Set<String> notified) {
+        // 标签变空格，防止 <img src="@x"> 之类被误解析，也避免相邻标签文本拼接成假提及
+        String plain = text.replaceAll("<[^>]*>", " ");
+        Matcher m = MENTION_RE.matcher(plain);
         int mentioned = 0;
         while (m.find() && mentioned < MAX_MENTIONS) {
             String u = m.group(1);
             if (u.equals(me) || notified.contains(u) || !users.existsByUsername(u)) continue;
             if (users.existsByUsernameAndAdminTrue(u)) continue; // 管理员对普通用户隐藏，@管理员不通知
-            saveNotification(u, me, "mention", record.getId(), c.getId(), preview);
+            String preview = plain.replaceAll("\\s+", " ").trim();
+            if (preview.length() > 60) preview = preview.substring(0, 60) + "…";
+            saveNotification(u, me, "mention", record.getId(), null, preview);
             notified.add(u);
             mentioned++;
-        }
-        String owner = record.getUsername();
-        if (!owner.equals(me) && !notified.contains(owner)) {
-            saveNotification(owner, me, "comment", record.getId(), c.getId(), preview);
         }
     }
 
