@@ -32,6 +32,7 @@ public class DailyReportService {
 
     private static final Pattern TAG_RE = Pattern.compile("<[^>]+>");
     private static final Pattern B64_RE = Pattern.compile("data:(?:image|video)/[a-zA-Z0-9.+]+;base64,[A-Za-z0-9+/=]+");
+    private static final java.time.ZoneId SHANGHAI = java.time.ZoneId.of("Asia/Shanghai");
 
     private final DailyReportRepository repo;
     private final EntityManager em;
@@ -110,7 +111,11 @@ public class DailyReportService {
         // 已有日报的日期
         Set<LocalDate> done = repo.findAllReportDates().stream().collect(Collectors.toSet());
 
+        // 只补今天（上海时区）之前的缺失日期：今天还没过完，数据不完整，
+        // 当天的日报由次日 0:05 的定时任务生成
+        LocalDate today = LocalDate.now(SHANGHAI);
         for (LocalDate d : recordDates) {
+            if (!d.isBefore(today)) break; // 日期升序，到今天就可以停了
             if (!done.contains(d)) {
                 try {
                     generate(d);
