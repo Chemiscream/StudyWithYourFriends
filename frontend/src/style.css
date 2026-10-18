@@ -66,19 +66,20 @@ h1, h2, h3, p { margin: 0; }
 
 .shell { max-width: 1200px; margin: 0 auto; padding: 28px 24px 60px; }
 
-/* 顶栏固定：滚动时吸附在视口顶部（毛玻璃背景，避免下方内容透出） */
+/* 顶栏固定：滚动时吸附在视口顶部；宽度与下方内容列对齐（毛玻璃背景） */
 header.app-bar {
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px;
-  margin: 0 -24px 20px;
-  padding: 12px 24px;
-  border-bottom: 1px solid var(--line);
-  background: rgba(251, 252, 254, .9);
+  margin: 0 0 20px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(251, 252, 254, .92);
   backdrop-filter: blur(12px);
   box-shadow: var(--shadow-soft);
 }
-html[data-theme="dark"] header.app-bar { background: rgba(17, 29, 45, .9); }
+html[data-theme="dark"] header.app-bar { background: rgba(17, 29, 45, .92); }
 .app-bar .brand { display: flex; align-items: center; gap: 12px; }
 .app-bar .brand-mark {
   width: 42px; height: 42px;
@@ -346,7 +347,6 @@ html[data-theme="dark"] .editor { background: #0d1726; }
 .notif-modal-head h2 { margin: 0; font-size: 16px; }
 .notif-head-actions { display: flex; align-items: center; gap: 8px; }
 .notif-modal-card .btn { width: auto; }
-.notif-close { min-height: 30px; padding: 0 10px; font-size: 13px; }
 .notif-list { overflow-y: auto; max-height: 60vh; display: grid; }
 .notif-clear {
   border: none; background: none; cursor: pointer;
@@ -379,8 +379,7 @@ html[data-theme="dark"] .editor { background: #0d1726; }
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 18px; border-bottom: 1px solid var(--line); flex: none;
 }
-.fav-modal-head h2 { margin: 0; font-size: 16px; }
-.fav-modal-card .btn { width: auto; }
+.fav-modal-head h2 { margin: 0; font-size: 16px; white-space: nowrap; }
 .fav-list { overflow-y: auto; max-height: 60vh; }
 .fav-item {
   display: grid; gap: 4px; width: 100%; text-align: left;
@@ -476,6 +475,15 @@ html[data-theme="dark"] .editor { background: #0d1726; }
 .modal-card ul { margin: 0 0 18px; padding-left: 20px; }
 .modal-card li { font-size: 13.5px; line-height: 1.75; color: var(--ink); }
 .modal-card .btn { width: 100%; min-height: 40px; }
+/* 弹窗右上角关闭按钮：不用 .btn（会被 .modal-card .btn 拉成 100% 宽） */
+.modal-close {
+  min-height: 30px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel-soft); color: var(--muted);
+  font-size: 13px; font-weight: 700;
+  flex: none; width: auto;
+}
+.modal-close:hover { border-color: var(--primary); color: var(--primary-dark); }
 .ver-tag { display: block; text-align: center; color: var(--muted); font-size: 11px; margin-top: 28px; user-select: none; }
 
 /* 修改个人信息弹窗 */
@@ -613,8 +621,8 @@ html[data-theme="light"] .chat-bubble .md-code { background: #1f2937; }
 @media (max-width: 600px) {
   .shell { padding: 16px 12px calc(40px + env(safe-area-inset-bottom)); }
   .app-bar { flex-wrap: wrap; gap: 8px; align-items: center; }
-  /* 移动端 shell 内边距变小，顶栏负边距同步收窄（提高选择器优先级覆盖桌面规则） */
-  header.app-bar { margin: 0 -12px 12px; padding: 8px 12px; }
+  /* 移动端顶栏内边距收窄（宽度已与内容列对齐） */
+  header.app-bar { margin: 0 0 12px; padding: 8px 10px; }
   .app-bar .brand-mark { width: 34px; height: 34px; font-size: 16px; }
   .app-bar h1 { font-size: 17px; }
   .app-bar .sub { display: none; }

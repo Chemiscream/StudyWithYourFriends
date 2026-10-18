@@ -16,7 +16,7 @@ function close() {
     <div class="modal-card fav-modal-card">
       <div class="fav-modal-head">
         <h2>我的收藏</h2>
-        <button class="btn ghost notif-close" type="button" title="关闭" @click="close">✕</button>
+        <button class="modal-close" type="button" title="关闭" @click="close">✕</button>
       </div>
       <div class="fav-list">
         <div v-if="state.favorites.loading" class="notif-empty">加载中…</div>

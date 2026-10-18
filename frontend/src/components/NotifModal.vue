@@ -27,7 +27,7 @@ function close() {
         <h2>消息</h2>
         <div class="notif-head-actions">
           <button class="notif-clear" type="button" title="清除全部消息" @click="onClear">清除消息</button>
-          <button class="btn ghost notif-close" type="button" title="关闭" @click="close">✕</button>
+          <button class="modal-close" type="button" title="关闭" @click="close">✕</button>
         </div>
       </div>
       <div class="notif-list">
