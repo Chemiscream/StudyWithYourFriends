@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.9.1";
+    public static final String VERSION = "1.9.2";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.9.2", List.of(
+                    "顶栏布局微调：⚙️ 设置按钮移到「退出」左边。"
+            )),
             new ReleaseNote("1.9.1", List.of(
                     "✏️ 按钮升级为 ⚙️ 设置面板：集中入口包含「修改个人信息」和「查看更新日志」。",
                     "新增历史更新日志浏览：设置 → 查看更新日志，可查看从 1.0.0 至今每个版本的更新内容。",
