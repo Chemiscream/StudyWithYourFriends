@@ -34,19 +34,6 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
       </div>
     </div>
     <div class="user-area">
-      <span
-        v-if="loggedIn"
-        class="user-tag"
-        :title="state.isAdmin ? '管理员（可删除任意记录/留言）' : ''"
-        :style="{ background: '#' + myColor + '22', color: '#' + myColor }"
-      >{{ state.isAdmin ? "👑 " : "" }}{{ state.user }}</span>
-      <button v-if="loggedIn" class="icon-btn" type="button" title="我的收藏" @click="openFavorites">
-        ⭐
-      </button>
-      <button v-if="loggedIn" class="icon-btn notif-btn" type="button" title="消息通知" @click="toggleNotif">
-        🔔
-        <span v-if="state.notif.unread > 0" class="notif-badge">{{ state.notif.unread > 99 ? "99+" : state.notif.unread }}</span>
-      </button>
       <div v-if="loggedIn" id="colorPickerWrap">
         <button id="colorBtn" type="button" title="我的主题色" @click.stop="paletteOpen = !paletteOpen">
           <span id="colorDot" :style="{ background: '#' + myColor }"></span>
@@ -61,6 +48,19 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
           ></button>
         </div>
       </div>
+      <span
+        v-if="loggedIn"
+        class="user-tag"
+        :title="state.isAdmin ? '管理员（可删除任意记录/留言）' : ''"
+        :style="{ background: '#' + myColor + '22', color: '#' + myColor }"
+      >{{ state.isAdmin ? "👑 " : "" }}{{ state.user }}</span>
+      <button v-if="loggedIn" class="icon-btn" type="button" title="我的收藏" @click="openFavorites">
+        ⭐
+      </button>
+      <button v-if="loggedIn" class="icon-btn notif-btn" type="button" title="消息通知" @click="toggleNotif">
+        🔔
+        <span v-if="state.notif.unread > 0" class="notif-badge">{{ state.notif.unread > 99 ? "99+" : state.notif.unread }}</span>
+      </button>
       <button v-if="loggedIn" class="icon-btn" type="button" title="修改个人信息" @click="state.profileOpen = true">✏️</button>
       <a v-if="!loggedIn" class="btn primary login-link" href="#login" style="min-height:36px;padding:0 16px;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;">登录</a>
       <button class="icon-btn" type="button" title="切换主题" @click="toggleTheme">🌓</button>
