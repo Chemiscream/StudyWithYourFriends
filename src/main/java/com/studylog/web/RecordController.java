@@ -1,5 +1,6 @@
 package com.studylog.web;
 
+import com.studylog.ai.AiAssistantService;
 import com.studylog.model.Comment;
 import com.studylog.model.CommentLike;
 import com.studylog.model.Notification;
@@ -54,13 +55,15 @@ public class RecordController {
     private final NotificationRepository notifications;
     private final Tokens tokens;
     private final EntityManager em;
+    private final AiAssistantService aiAssistant;
 
     public RecordController(RecordRepository records, CommentRepository comments,
                             UserRepository users, RecordLikeRepository likes,
                             CommentLikeRepository commentLikes,
                             RecordFavoriteRepository favorites,
                             NotificationRepository notifications,
-                            Tokens tokens, EntityManager em) {
+                            Tokens tokens, EntityManager em,
+                            AiAssistantService aiAssistant) {
         this.records = records;
         this.comments = comments;
         this.users = users;
@@ -70,6 +73,7 @@ public class RecordController {
         this.notifications = notifications;
         this.tokens = tokens;
         this.em = em;
+        this.aiAssistant = aiAssistant;
     }
 
     // ---------- 列表 + 筛选 ----------
@@ -342,6 +346,8 @@ public class RecordController {
         records.save(r);
         // 记录正文中的 @提及也推送通知（仅创建时解析，编辑不重复通知）
         notifyMentions(content, r, me, new HashSet<>());
+        // 正文 @AI助手：AI 异步读取记录后留言回应（创建触发）
+        aiAssistant.replyOnRecord(r, me);
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("ok", true);
         m.put("id", r.getId());
@@ -387,6 +393,8 @@ public class RecordController {
         r.setContent(content);
         r.setUpdatedAt(now);
         records.save(r);
+        // 编辑后正文中包含 @AI助手 也触发回应（无论原记录是否已触发过）；普通用户 @提及 编辑时不重复通知
+        aiAssistant.replyOnRecord(r, me);
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("ok", true);
         m.put("updated_at", now);
@@ -419,6 +427,8 @@ public class RecordController {
         c.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
         comments.save(c);
         createNotifications(record, c, me);
+        // 留言中 @AI助手：AI 异步读取记录与留言后回复该留言
+        aiAssistant.replyToComment(record, c);
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("ok", true);
         m.put("id", c.getId());
@@ -488,6 +498,7 @@ public class RecordController {
         while (m.find() && mentioned < MAX_MENTIONS) {
             String u = m.group(1);
             if (u.equals(me) || notified.contains(u) || !users.existsByUsername(u)) continue;
+            if (u.equals(AiAssistantService.AI_NAME)) continue; // AI 助手是虚拟用户，不收通知（回复行为由触发方触发）
             if (users.existsByUsernameAndAdminTrue(u)) continue; // 管理员对普通用户隐藏，@管理员不通知
             String preview = plain.replaceAll("\\s+", " ").trim();
             if (preview.length() > 60) preview = preview.substring(0, 60) + "…";
@@ -498,6 +509,7 @@ public class RecordController {
     }
 
     private void saveNotification(String recipient, String actor, String type, Long recordId, Long commentId, String preview) {
+        if (AiAssistantService.AI_NAME.equals(recipient)) return; // AI 助手虚拟用户，不接收任何通知
         Notification n = new Notification();
         n.setRecipient(recipient);
         n.setActor(actor);

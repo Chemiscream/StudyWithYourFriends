@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.7.5";
+    public static final String VERSION = "1.8.0";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.8.0", List.of(
+                    "新增 AI 助手虚拟用户：在留言或记录中 @「AI助手」，它会阅读记录和留言后回复你；每次日报发布后它也会发一条播报记录。"
+            )),
             new ReleaseNote("1.7.5", List.of(
                     "前端资源支持热更新：调整界面样式等纯前端改动后立即生效，无需重启服务器（后端逻辑改动仍需重启）。"
             )),

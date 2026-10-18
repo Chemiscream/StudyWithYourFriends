@@ -36,6 +36,7 @@ public class DailyReportService {
 
     private final DailyReportRepository repo;
     private final EntityManager em;
+    private final com.studylog.ai.AiAssistantService aiAssistant;
     private final WordExtractor wordExtractor = new WordExtractor();
     private final ObjectMapper om = new ObjectMapper();
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
@@ -49,12 +50,14 @@ public class DailyReportService {
     private final int maxContextChars;
 
     public DailyReportService(DailyReportRepository repo, EntityManager em,
+                              com.studylog.ai.AiAssistantService aiAssistant,
                               @Value("${app.ai.base-url}") String baseUrl,
                               @Value("${app.ai.api-key:}") String apiKey,
                               @Value("${app.ai.model:}") String model,
                               @Value("${app.ai.max-context-chars:16000}") int maxContextChars) {
         this.repo = repo;
         this.em = em;
+        this.aiAssistant = aiAssistant;
         this.cfgBaseUrl = stripSlash(baseUrl);
         this.cfgApiKey = apiKey == null ? "" : apiKey.trim();
         this.cfgModel = model == null ? "" : model.trim();
@@ -88,6 +91,8 @@ public class DailyReportService {
             r.setSubtitle(ai.subtitle());
             r.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
             repo.save(r);
+            // 日报发布成功后由 AI 助手发一条播报记录（同事务，生成失败则不播报）
+            aiAssistant.announceReport(date);
             return true;
         } finally {
             generating.set(false);
