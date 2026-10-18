@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.7.1";
+    public static final String VERSION = "1.7.2";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.7.2", List.of(
+                    "消息和收藏弹窗更紧凑美观：弹窗整体收窄，标题栏与列表间距收紧。"
+            )),
             new ReleaseNote("1.7.1", List.of(
                     "新增收藏功能：每条记录右侧 ☆ 一键收藏，顶栏 ⭐ 查看我的收藏列表，点击直达详情页。",
                     "留言和记录正文都支持 @提及：输入 @ 弹出用户列表自动补全（支持输入过滤、↑↓ 键盘选择），被提及的人会在消息中心收到提醒。",
