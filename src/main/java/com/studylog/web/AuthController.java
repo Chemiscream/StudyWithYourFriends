@@ -134,7 +134,15 @@ public class AuthController {
                 .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
         em.createNativeQuery("UPDATE comments SET username = :n WHERE username = :o")
                 .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
+        em.createNativeQuery("UPDATE comments SET reply_to = :n WHERE reply_to = :o")
+                .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
         em.createNativeQuery("UPDATE ai_messages SET username = :n WHERE username = :o")
+                .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
+        em.createNativeQuery("UPDATE record_likes SET username = :n WHERE username = :o")
+                .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
+        em.createNativeQuery("UPDATE notifications SET recipient = :n WHERE recipient = :o")
+                .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
+        em.createNativeQuery("UPDATE notifications SET actor = :n WHERE actor = :o")
                 .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
 
         Map<String, Object> m = new LinkedHashMap<>();

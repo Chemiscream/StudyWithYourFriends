@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onUnmounted } from "vue";
-import { state, PALETTE, chooseColor, logout, toggleTheme } from "../store.js";
+import { state, PALETTE, chooseColor, logout, toggleTheme, fmtComment, loadNotifications, openNotification, clearNotifications } from "../store.js";
 
 const loggedIn = computed(() => !!state.token);
 const myColor = computed(() => state.myColor || "4a90d9");
@@ -10,8 +10,21 @@ function pickColor(c) {
   paletteOpen.value = false;
   chooseColor(c);
 }
+
+// 通知铃铛
+function toggleNotif() {
+  state.notif.open = !state.notif.open;
+  if (state.notif.open) loadNotifications(); // 每次打开拉最新
+}
+function onClearNotif() {
+  if (!state.notif.items.length) return;
+  if (!confirm("确定清除全部消息？")) return;
+  clearNotifications();
+}
+
 function onDocClick(e) {
   if (paletteOpen.value && !e.target.closest("#colorPickerWrap")) paletteOpen.value = false;
+  if (state.notif.open && !e.target.closest("#notifWrap")) state.notif.open = false;
 }
 document.addEventListener("click", onDocClick);
 onUnmounted(() => document.removeEventListener("click", onDocClick));
@@ -33,6 +46,31 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
         :title="state.isAdmin ? '管理员（可删除任意记录/留言）' : ''"
         :style="{ background: '#' + myColor + '22', color: '#' + myColor }"
       >{{ state.isAdmin ? "👑 " : "" }}{{ state.user }}</span>
+      <div v-if="loggedIn" id="notifWrap">
+        <button class="icon-btn notif-btn" type="button" title="消息通知" @click.stop="toggleNotif">
+          🔔
+          <span v-if="state.notif.unread > 0" class="notif-badge">{{ state.notif.unread > 99 ? "99+" : state.notif.unread }}</span>
+        </button>
+        <div v-if="state.notif.open" class="notif-panel">
+          <div class="notif-head">
+            <span class="notif-title">消息</span>
+            <button class="notif-clear" type="button" title="清除全部消息" @click="onClearNotif">清除消息</button>
+          </div>
+          <div v-if="!state.notif.items.length" class="notif-empty">暂无消息</div>
+          <button
+            v-for="n in state.notif.items" :key="n.id"
+            class="notif-item" :class="{ unread: !n.read }" type="button"
+            @click="openNotification(n)"
+          >
+            <span class="notif-text">
+              <b>{{ n.actor }}</b> {{ n.type === "reply" ? "回复了你" : "评论了你的记录" }}
+              <span v-if="!n.read" class="notif-dot"></span>
+            </span>
+            <span v-if="n.preview" class="notif-preview">{{ n.preview }}</span>
+            <span class="notif-time">{{ fmtComment(n.created_at) }}</span>
+          </button>
+        </div>
+      </div>
       <div v-if="loggedIn" id="colorPickerWrap">
         <button id="colorBtn" type="button" title="我的主题色" @click.stop="paletteOpen = !paletteOpen">
           <span id="colorDot" :style="{ background: '#' + myColor }"></span>

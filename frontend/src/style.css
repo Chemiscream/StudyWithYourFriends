@@ -280,6 +280,75 @@ html[data-theme="dark"] .editor { background: #0d1726; }
 }
 .record-image:hover { border-color: var(--primary); }
 .record-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+/* 记录底栏：点赞在左，操作按钮在右 */
+.record-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.record-foot .record-actions { margin-top: 0; }
+.like-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  min-height: 30px; padding: 0 12px;
+  border: 1px solid var(--line-strong); border-radius: 999px;
+  background: var(--panel-soft); color: var(--muted);
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all .14s ease;
+}
+.like-btn:hover { border-color: #e74c3c; }
+.like-btn.liked { border-color: #e74c3c; background: #e74c3c18; color: #e74c3c; }
+.record-content.clickable { cursor: pointer; }
+/* 评论折叠 */
+.comments-toggle {
+  border: none; background: none; cursor: pointer;
+  color: var(--primary-dark); font-size: 12px; font-weight: 700;
+  padding: 2px 0; text-align: left; width: fit-content;
+}
+.comments-toggle:hover { text-decoration: underline; }
+/* 详情页 */
+.detail-view { display: grid; gap: 12px; }
+.detail-head { display: flex; align-items: center; gap: 12px; margin-bottom: 0; }
+.back-btn { min-height: 34px; padding: 0 14px; font-size: 13px; }
+/* 通知铃铛 */
+#notifWrap { position: relative; }
+.notif-btn { position: relative; }
+.notif-badge {
+  position: absolute; top: -4px; right: -6px;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: 999px; background: #e74c3c; color: #fff;
+  font-size: 10px; font-weight: 800; line-height: 16px; text-align: center;
+  pointer-events: none;
+}
+.notif-panel {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+  width: 320px; max-height: 420px; overflow-y: auto;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--panel); box-shadow: var(--shadow-soft);
+  display: grid;
+}
+.notif-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; background: var(--panel);
+}
+.notif-title { font-size: 13px; font-weight: 800; }
+.notif-clear {
+  border: none; background: none; cursor: pointer;
+  color: var(--danger); font-size: 12px; font-weight: 700; padding: 2px 6px; border-radius: 6px;
+}
+.notif-clear:hover { background: var(--danger-soft); }
+.notif-empty { padding: 28px 12px; text-align: center; color: var(--muted); font-size: 13px; }
+.notif-item {
+  display: grid; gap: 2px; text-align: left;
+  padding: 10px 12px; border: none; border-bottom: 1px solid var(--line);
+  background: none; cursor: pointer; font-size: 13px; color: var(--ink);
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--panel-soft); }
+.notif-item.unread { background: var(--primary-soft); }
+.notif-text b { font-weight: 800; }
+.notif-dot { display: inline-block; width: 8px; height: 8px; margin-left: 6px; border-radius: 50%; background: #e74c3c; vertical-align: middle; }
+.notif-preview {
+  color: var(--muted); font-size: 12px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.notif-time { color: var(--muted); font-size: 11px; }
 .edit-btn {
   min-height: 30px; padding: 0 12px;
   border: 1px solid var(--line-strong); border-radius: 8px;

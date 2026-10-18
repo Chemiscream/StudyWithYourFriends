@@ -177,7 +177,7 @@ public class DailyReportService {
     @SuppressWarnings("unchecked")
     private List<RecordRow> fetchRecordsOfDate(LocalDate date) {
         List<Object[]> rows = em.createNativeQuery(
-                "SELECT r.username, r.content, COALESCE(u.color, '4a90d9') " +
+                "SELECT r.id, r.username, r.content, COALESCE(u.color, '4a90d9') " +
                 "FROM records r LEFT JOIN users u ON u.username = r.username " +
                 "WHERE DATE(r.created_at + INTERVAL 8 HOUR) = :date " +
                 "ORDER BY r.created_at ASC")
@@ -185,12 +185,32 @@ public class DailyReportService {
                 .getResultList();
         List<RecordRow> out = new ArrayList<>(rows.size());
         for (Object[] r : rows) {
-            out.add(new RecordRow((String) r[0], (String) r[1], (String) r[2]));
+            out.add(new RecordRow(((Number) r[0]).longValue(), (String) r[1], (String) r[2], (String) r[3]));
         }
         return out;
     }
 
-    private record RecordRow(String username, String content, String color) {}
+    /** 取若干记录下的全部评论（按时间升序），key 为记录 id，值为 [评论者, 内容]。 */
+    @SuppressWarnings("unchecked")
+    private Map<Long, List<String[]>> fetchCommentsOfRecords(List<Long> recordIds) {
+        Map<Long, List<String[]>> out = new LinkedHashMap<>();
+        if (recordIds.isEmpty()) return out;
+        StringBuilder in = new StringBuilder();
+        for (int i = 0; i < recordIds.size(); i++) {
+            in.append(i == 0 ? "" : ",").append(recordIds.get(i));
+        }
+        List<Object[]> rows = em.createNativeQuery(
+                "SELECT c.record_id, c.username, c.content FROM comments c " +
+                "WHERE c.record_id IN (" + in + ") ORDER BY c.created_at ASC")
+                .getResultList();
+        for (Object[] r : rows) {
+            out.computeIfAbsent(((Number) r[0]).longValue(), k -> new ArrayList<>())
+                    .add(new String[]{(String) r[1], (String) r[2]});
+        }
+        return out;
+    }
+
+    private record RecordRow(long id, String username, String content, String color) {}
     private record AiResult(String subtitle, String summary) {}
 
     // ---------- AI 趣味摘要 ----------
@@ -201,6 +221,9 @@ public class DailyReportService {
      */
     private AiResult buildAiSummary(LocalDate date, List<RecordRow> rows) {
         // 组装上下文（剥离 HTML/base64，截断单条，控制总预算）
+        // 每条记录下附带其评论，让日报能反映大家的讨论互动
+        Map<Long, List<String[]>> commentsMap = fetchCommentsOfRecords(
+                rows.stream().map(RecordRow::id).toList());
         StringBuilder sb = new StringBuilder();
         int used = 0;
         for (RecordRow r : rows) {
@@ -211,6 +234,16 @@ public class DailyReportService {
             if (used + line.length() > maxContextChars) break;
             sb.append(line);
             used += line.length();
+            List<String[]> cs = commentsMap.getOrDefault(r.id, List.of());
+            for (String[] c : cs) {
+                String ctext = c[1].replaceAll("\\s+", " ").trim();
+                if (ctext.isBlank()) continue;
+                if (ctext.length() > 100) ctext = ctext.substring(0, 100) + "…";
+                String cline = "  [评论] " + c[0] + ": " + ctext + "\n";
+                if (used + cline.length() > maxContextChars) break;
+                sb.append(cline);
+                used += cline.length();
+            }
         }
         String recordsText = sb.length() == 0 ? "（暂无文本内容）" : sb.toString();
 
@@ -225,7 +258,7 @@ public class DailyReportService {
             // 第一次：生成正文日报
             String system = "你是「学习记录」网站的日报小编，要把大家一天的学习情况写成一篇活泼有趣的日报。\n" +
                     "风格要求：像朋友在群里聊天，语气轻快带点梗，适当用 emoji，不要太官方太严肃。\n" +
-                    "内容要求：基于以下当日记录，总结大家学了什么、谁最拼、有什么亮点。可以适度调侃，但绝对不要编造记录里没有的内容。\n" +
+                    "内容要求：基于以下当日记录（每条记录下可能附带大家的评论互动），总结大家学了什么、谁最拼、有什么亮点，也可以提到有趣的讨论互动。可以适度调侃，但绝对不要编造记录里没有的内容。\n" +
                     "格式要求：150-300 字，可以用 1-2 个小标题或分点，让阅读轻松。\n" +
                     "今天的日期是 " + date + "。";
             String summary = callChat(model, system, "以下是今天大家的学习记录：\n" + recordsText + "\n请写日报。");

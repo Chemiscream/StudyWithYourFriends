@@ -1,9 +1,13 @@
 package com.studylog.web;
 
 import com.studylog.model.Comment;
+import com.studylog.model.Notification;
 import com.studylog.model.Record;
+import com.studylog.model.RecordLike;
 import com.studylog.model.User;
 import com.studylog.repo.CommentRepository;
+import com.studylog.repo.NotificationRepository;
+import com.studylog.repo.RecordLikeRepository;
 import com.studylog.repo.RecordRepository;
 import com.studylog.repo.UserRepository;
 import com.studylog.sec.HtmlSanitize;
@@ -29,14 +33,20 @@ public class RecordController {
     private final RecordRepository records;
     private final CommentRepository comments;
     private final UserRepository users;
+    private final RecordLikeRepository likes;
+    private final NotificationRepository notifications;
     private final Tokens tokens;
     private final EntityManager em;
 
     public RecordController(RecordRepository records, CommentRepository comments,
-                            UserRepository users, Tokens tokens, EntityManager em) {
+                            UserRepository users, RecordLikeRepository likes,
+                            NotificationRepository notifications,
+                            Tokens tokens, EntityManager em) {
         this.records = records;
         this.comments = comments;
         this.users = users;
+        this.likes = likes;
+        this.notifications = notifications;
         this.tokens = tokens;
         this.em = em;
     }
@@ -92,22 +102,25 @@ public class RecordController {
         if (!ids.isEmpty()) {
             List<Comment> cs = comments.findByRecordIdInOrderByCreatedAtAsc(ids);
             for (Comment c : cs) {
-                Map<String, Object> cm = new LinkedHashMap<>();
-                cm.put("id", c.getId());
-                cm.put("username", c.getUsername());
-                cm.put("content", c.getContent());
-                cm.put("reply_to", c.getReplyTo());
-                cm.put("color", colorOf(c.getUsername()));
-                cm.put("created_at", c.getCreatedAt());
-                cm.put("mine", c.getUsername().equals(me));
-                commentsMap.computeIfAbsent(c.getRecordId(), k -> new ArrayList<>()).add(cm);
+                commentsMap.computeIfAbsent(c.getRecordId(), k -> new ArrayList<>()).add(commentMap(c, me));
             }
+        }
+
+        // 点赞数 + 当前用户是否已赞
+        Map<Long, Long> likeCounts = new HashMap<>();
+        Set<Long> likedIds = new HashSet<>();
+        if (!ids.isEmpty()) {
+            for (Object[] row : likes.countByRecordIds(ids)) {
+                likeCounts.put(((Number) row[0]).longValue(), ((Number) row[1]).longValue());
+            }
+            if (me != null) likedIds.addAll(likes.findLikedRecordIds(ids, me));
         }
 
         List<Map<String, Object>> out = new ArrayList<>();
         for (Object[] r : rows) {
+            long rid = ((Number) r[0]).longValue();
             Map<String, Object> m = new LinkedHashMap<>();
-            m.put("id", ((Number) r[0]).longValue());
+            m.put("id", rid);
             m.put("username", r[1]);
             m.put("content", r[2]);
             String color = r[5] == null ? AuthController.DEFAULT_COLOR : (String) r[5];
@@ -115,11 +128,65 @@ public class RecordController {
             m.put("created_at", toOffset(r[3]));
             m.put("updated_at", r[4] == null ? null : toOffset(r[4]));
             m.put("mine", r[1].equals(me));
-            m.put("comments", commentsMap.getOrDefault(((Number) r[0]).longValue(), List.of()));
+            m.put("comments", commentsMap.getOrDefault(rid, List.of()));
+            m.put("like_count", likeCounts.getOrDefault(rid, 0L));
+            m.put("liked", likedIds.contains(rid));
             out.add(m);
         }
 
         return Map.of("ok", true, "records", out);
+    }
+
+    // ---------- 单条详情（详情页） ----------
+    @GetMapping("/records/{rid}")
+    Map<String, Object> getOne(HttpServletRequest req, @PathVariable Long rid) {
+        String me = tokens.currentUser(req);
+        Record r = records.findById(rid)
+                .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "记录不存在或已被删除"));
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", r.getId());
+        m.put("username", r.getUsername());
+        m.put("content", r.getContent());
+        m.put("color", colorOf(r.getUsername()));
+        m.put("created_at", r.getCreatedAt());
+        m.put("updated_at", r.getUpdatedAt());
+        m.put("mine", r.getUsername().equals(me));
+        List<Map<String, Object>> cms = new ArrayList<>();
+        for (Comment c : comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid))) {
+            cms.add(commentMap(c, me));
+        }
+        m.put("comments", cms);
+        m.put("like_count", likes.countByRecordId(rid));
+        m.put("liked", me != null && likes.findByRecordIdAndUsername(rid, me).isPresent());
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("ok", true);
+        res.put("record", m);
+        return res;
+    }
+
+    // ---------- 点赞（切换） ----------
+    @PostMapping("/records/{rid}/like")
+    Map<String, Object> toggleLike(HttpServletRequest req, @PathVariable Long rid) {
+        String me = requireLogin(req);
+        if (!records.existsById(rid)) throw new BizException(HttpStatus.NOT_FOUND, "记录不存在");
+        boolean liked;
+        var existing = likes.findByRecordIdAndUsername(rid, me);
+        if (existing.isPresent()) {
+            likes.delete(existing.get());
+            liked = false;
+        } else {
+            RecordLike l = new RecordLike();
+            l.setRecordId(rid);
+            l.setUsername(me);
+            l.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+            likes.save(l);
+            liked = true;
+        }
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("ok", true);
+        m.put("liked", liked);
+        m.put("like_count", likes.countByRecordId(rid));
+        return m;
     }
 
     // ---------- 新增 ----------
@@ -155,6 +222,8 @@ public class RecordController {
             throw new BizException(HttpStatus.FORBIDDEN, "只能删除自己的记录");
         }
         comments.deleteByRecordId(rid);
+        likes.deleteByRecordId(rid);
+        notifications.deleteByRecordId(rid);
         records.delete(r);
         return Map.of("ok", true, "message", "已删除");
     }
@@ -191,7 +260,8 @@ public class RecordController {
         String content = body.getOrDefault("content", "").trim();
         if (content.isEmpty()) throw new BizException(HttpStatus.BAD_REQUEST, "留言不能为空");
         if (content.length() > 2000) throw new BizException(HttpStatus.BAD_REQUEST, "留言过长");
-        if (!records.existsById(rid)) throw new BizException(HttpStatus.NOT_FOUND, "记录不存在");
+        Record record = records.findById(rid)
+                .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "记录不存在"));
         String replyTo = body.getOrDefault("reply_to", "").trim();
         if (!replyTo.isEmpty()) {
             if (replyTo.length() > 32) throw new BizException(HttpStatus.BAD_REQUEST, "被回复用户名过长");
@@ -206,6 +276,7 @@ public class RecordController {
         c.setReplyTo(replyTo);
         c.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
         comments.save(c);
+        createNotifications(record, c, me);
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("ok", true);
         m.put("id", c.getId());
@@ -221,11 +292,54 @@ public class RecordController {
         if (!c.getUsername().equals(me) && !isAdmin(me)) {
             throw new BizException(HttpStatus.FORBIDDEN, "只能删除自己的留言");
         }
+        notifications.deleteByCommentId(cid);
         comments.delete(c);
         return Map.of("ok", true, "message", "已删除");
     }
 
     // ---------- 工具 ----------
+    private Map<String, Object> commentMap(Comment c, String me) {
+        Map<String, Object> cm = new LinkedHashMap<>();
+        cm.put("id", c.getId());
+        cm.put("username", c.getUsername());
+        cm.put("content", c.getContent());
+        cm.put("reply_to", c.getReplyTo());
+        cm.put("color", colorOf(c.getUsername()));
+        cm.put("created_at", c.getCreatedAt());
+        cm.put("mine", c.getUsername().equals(me));
+        return cm;
+    }
+
+    /**
+     * 留言产生两类通知：回复了你的评论（reply）、评论了你的记录（comment）。
+     * 自己操作自己不通知；同一接收人只发一条（回复记录作者自己的评论时按 reply 通知一次）。
+     */
+    private void createNotifications(Record record, Comment c, String me) {
+        String preview = c.getContent().length() > 60 ? c.getContent().substring(0, 60) + "…" : c.getContent();
+        Set<String> notified = new HashSet<>();
+        if (c.getReplyTo() != null && !c.getReplyTo().equals(me)) {
+            saveNotification(c.getReplyTo(), me, "reply", record.getId(), c.getId(), preview);
+            notified.add(c.getReplyTo());
+        }
+        String owner = record.getUsername();
+        if (!owner.equals(me) && !notified.contains(owner)) {
+            saveNotification(owner, me, "comment", record.getId(), c.getId(), preview);
+        }
+    }
+
+    private void saveNotification(String recipient, String actor, String type, Long recordId, Long commentId, String preview) {
+        Notification n = new Notification();
+        n.setRecipient(recipient);
+        n.setActor(actor);
+        n.setType(type);
+        n.setRecordId(recordId);
+        n.setCommentId(commentId);
+        n.setPreview(preview);
+        n.setRead(false);
+        n.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+        notifications.save(n);
+    }
+
     private String requireLogin(HttpServletRequest req) {
         String u = tokens.currentUser(req);
         if (u == null) throw new BizException(HttpStatus.UNAUTHORIZED, "未登录");

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive } from "vue";
-import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji } from "../store.js";
+import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, openDetail } from "../store.js";
 
 const countInfo = computed(() => (state.records.length ? `共 ${state.records.length} 条` : ""));
 
@@ -11,6 +11,13 @@ function draft(r) {
   return commentDrafts[r.id];
 }
 const commentInputs = {};
+
+// 评论折叠：key 为记录 id，true 表示已展开全部
+const expanded = reactive({});
+function visibleComments(r) {
+  const cs = r.comments || [];
+  return expanded[r.id] ? cs : cs.slice(0, 3);
+}
 
 function replyStateVisible(r) {
   return !!(state.activeReply && state.activeReply.rid === r.id);
@@ -36,6 +43,13 @@ function openCommentEmoji(r, e) {
 function registerInput(r, el) {
   if (el) commentInputs[r.id] = el;
 }
+
+// 点击记录正文区域进入详情页；链接/按钮/输入框/媒体/评论区不触发
+function onRecordClick(r, e) {
+  if (e.target.closest("a, button, input, video, img, .comments, .record-foot")) return;
+  if (window.getSelection().toString()) return; // 正在选择文本时不跳转
+  openDetail(r.id);
+}
 </script>
 
 <template>
@@ -50,6 +64,7 @@ function registerInput(r, el) {
         v-for="r in state.records" :key="r.id"
         class="record" :class="{ mine: r.mine }"
         :style="{ borderLeftColor: '#' + (r.color || '4a90d9') }"
+        @click="onRecordClick(r, $event)"
       >
         <div class="record-head">
           <div class="record-user">
@@ -60,13 +75,20 @@ function registerInput(r, el) {
             {{ fmtTime(r.created_at) }}<template v-if="r.updated_at">（编辑于 {{ fmtTime(r.updated_at) }}）</template>
           </span>
         </div>
-        <div class="record-content" v-html="r.content || ''"></div>
-        <div v-if="(r.mine || state.isAdmin) && state.token" class="record-actions">
-          <button v-if="r.mine" class="edit-btn" type="button" @click="startEdit(r)">编辑</button>
-          <button class="del-btn" type="button" @click="delRecord(r.id)">删除</button>
+        <div class="record-content clickable" v-html="r.content || ''" title="点击查看详情"></div>
+        <div class="record-foot">
+          <button
+            class="like-btn" :class="{ liked: r.liked }" type="button"
+            :title="state.token ? (r.liked ? '取消点赞' : '点赞') : '登录后可点赞'"
+            @click="toggleLike(r.id)"
+          >{{ r.liked ? "❤️" : "🤍" }} {{ r.like_count || 0 }}</button>
+          <div v-if="(r.mine || state.isAdmin) && state.token" class="record-actions">
+            <button v-if="r.mine" class="edit-btn" type="button" @click="startEdit(r)">编辑</button>
+            <button class="del-btn" type="button" @click="delRecord(r.id)">删除</button>
+          </div>
         </div>
         <div class="comments">
-          <div v-for="c in r.comments || []" :key="c.id" class="comment-item">
+          <div v-for="c in visibleComments(r)" :key="c.id" class="comment-item">
             <span class="role-tag" :style="{ background: '#' + c.color + '22', color: '#' + c.color }">{{ c.username }}</span>
             <span v-if="c.reply_to" class="reply-badge">回复 <b>@{{ c.reply_to }}</b></span>
             <span class="comment-text">{{ c.content }}</span>
@@ -74,6 +96,16 @@ function registerInput(r, el) {
             <button v-if="(c.mine || state.isAdmin) && state.token" class="comment-del" type="button" title="删除留言" @click="delComment(c.id)">删除</button>
             <button v-if="state.token && !c.mine" class="comment-reply" type="button" title="回复这条留言" @click="onReply(r, c)">回复</button>
           </div>
+          <button
+            v-if="(r.comments || []).length > 3 && !expanded[r.id]"
+            class="comments-toggle" type="button"
+            @click="expanded[r.id] = true"
+          >查看全部 {{ r.comments.length }} 条回复 ▾</button>
+          <button
+            v-if="(r.comments || []).length > 3 && expanded[r.id]"
+            class="comments-toggle" type="button"
+            @click="expanded[r.id] = false"
+          >收起回复 ▴</button>
           <template v-if="state.token">
             <div v-if="replyStateVisible(r)" class="reply-state">
               回复 <b>@{{ state.activeReply.name }}</b>

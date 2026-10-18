@@ -21,6 +21,13 @@ export const state = reactive({
   records: [],
   filter: { q: "", from: "", to: "" },
   activeReply: null, // {rid, name} 普通留言时为 null
+  // 详情页（hash #record/id 同步，占满页面）
+  detailId: parseDetailHash(),
+  detailRecord: null,
+  detailLoading: false,
+  detailMsg: "",
+  // 通知
+  notif: { open: false, unread: 0, items: [], loading: false },
   // 编辑态
   editingId: null,
   editHtml: "",
@@ -57,6 +64,110 @@ export function fmtTime(iso) {
 }
 export function fmtComment(iso) {
   return new Date(iso).toLocaleString("zh-CN", { hour12: false, month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+// ---------- 详情页（hash #record/id 同步） ----------
+export function parseDetailHash() {
+  const m = /^#record\/(\d+)$/.exec(location.hash);
+  return m ? Number(m[1]) : null;
+}
+
+export function openDetail(id) {
+  if (state.detailId === id && state.detailRecord) return;
+  location.hash = "#record/" + id; // hashchange 里统一加载
+}
+
+export function closeDetail() {
+  state.detailId = null;
+  state.detailRecord = null;
+  state.detailMsg = "";
+  state.activeReply = null;
+  if (location.hash.startsWith("#record/")) {
+    // 用 replaceState 去掉 hash，避免回退键落回详情页
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+}
+
+/** hash 变化时同步详情页状态并加载数据（初始加载也调用一次）。 */
+export function syncDetailFromHash() {
+  const id = parseDetailHash();
+  if (id !== state.detailId) {
+    state.detailId = id;
+    state.detailRecord = null;
+    state.detailMsg = "";
+    state.activeReply = null;
+  }
+  if (id) loadDetail();
+}
+
+export async function loadDetail() {
+  if (!state.detailId) return;
+  state.detailLoading = true;
+  state.detailMsg = "";
+  try {
+    const res = await request("/api/records/" + state.detailId);
+    if (res.ok) {
+      state.detailRecord = res.record;
+    } else {
+      state.detailRecord = null;
+      state.detailMsg = res.message || "记录不存在或已被删除";
+    }
+  } catch (e) {
+    state.detailMsg = "网络错误";
+  } finally {
+    state.detailLoading = false;
+  }
+}
+
+// ---------- 点赞 ----------
+export async function toggleLike(rid) {
+  if (!state.token) { alert("请先登录再点赞"); return; }
+  try {
+    const res = await request(`/api/records/${rid}/like`, { method: "POST" });
+    if (!res.ok) { alert(res.message || "操作失败"); return; }
+    const rec = state.records.find((r) => r.id === rid);
+    if (rec) { rec.like_count = res.like_count; rec.liked = res.liked; }
+    if (state.detailRecord && state.detailRecord.id === rid) {
+      state.detailRecord.like_count = res.like_count;
+      state.detailRecord.liked = res.liked;
+    }
+  } catch (e) { /* 网络错误不打断 */ }
+}
+
+// ---------- 通知 ----------
+let notifTimer = null;
+export async function loadNotifications() {
+  if (!state.token) return;
+  try {
+    const res = await request("/api/notifications");
+    if (!res.ok) return;
+    state.notif.unread = res.unread || 0;
+    state.notif.items = res.items || [];
+  } catch (e) { /* 通知失败不影响主功能 */ }
+}
+export function startNotifPoll() {
+  stopNotifPoll();
+  notifTimer = setInterval(loadNotifications, 30000);
+}
+export function stopNotifPoll() {
+  if (notifTimer) { clearInterval(notifTimer); notifTimer = null; }
+}
+/** 点击通知：标记已读并跳转对应记录详情页。 */
+export async function openNotification(n) {
+  state.notif.open = false;
+  if (!n.read) {
+    request(`/api/notifications/${n.id}/read`, { method: "POST" }).then(loadNotifications);
+  }
+  openDetail(n.record_id);
+}
+export async function clearNotifications() {
+  try {
+    const res = await request("/api/notifications/clear", { method: "POST" });
+    if (res.ok) {
+      state.notif.items = [];
+      state.notif.unread = 0;
+    }
+  } catch (e) { /* 忽略 */ }
 }
 
 // ---------- 主题 ----------
@@ -98,6 +209,9 @@ export async function refreshMe() {
 
 export function logout() {
   clearAuth();
+  stopNotifPoll();
+  state.notif = { open: false, unread: 0, items: [], loading: false };
+  closeDetail();
   cancelEdit(); // 清理编辑态，避免残留到下一次登录
   aiReset(); // 引用在文件底部定义前被调用？不会：logout 由用户点击触发，届时模块已初始化
 }
@@ -116,6 +230,8 @@ export async function doAuth(mode, username, password) {
     state.token = res.token;
     await refreshMe();
     showHome();
+    loadNotifications();
+    startNotifPoll();
     return { ok: true };
   } catch (e) {
     return { ok: false, message: "网络错误" };
@@ -206,7 +322,10 @@ export async function submitRecord(html) {
 export async function delRecord(id) {
   if (!confirm("确定删除这条记录？")) return;
   const res = await request("/api/records/" + id, { method: "DELETE" });
-  if (res.ok) loadRecords();
+  if (res.ok) {
+    if (state.detailId === id) closeDetail(); // 详情页正开着被删的记录时退回主页
+    loadRecords();
+  }
   else alert(res.message || "删除失败");
 }
 
@@ -219,6 +338,7 @@ export async function sendComment(rid, content) {
   if (res.ok) {
     state.activeReply = null;
     loadRecords();
+    if (state.detailId === rid) loadDetail();
   } else {
     alert(res.message || "留言失败");
   }
@@ -235,7 +355,10 @@ export function cancelReply() {
 export async function delComment(cid) {
   if (!confirm("确定删除这条留言？")) return;
   const res = await request(`/api/comments/${cid}`, { method: "DELETE" });
-  if (res.ok) loadRecords();
+  if (res.ok) {
+    loadRecords();
+    if (state.detailId) loadDetail();
+  }
   else alert(res.message || "删除失败");
 }
 
@@ -344,8 +467,11 @@ export async function init() {
   if (state.token) {
     await refreshMe();
     await loadLatestDaily();
+    loadNotifications();
+    startNotifPoll();
   }
   await loadRecords();
+  syncDetailFromHash(); // 直接打开 #record/id 链接（刷新/分享）时加载详情页
 }
 
 // AI 模块在 useAiChat.js 中定义；logout 需要重置 AI 状态，延迟绑定避免循环依赖
