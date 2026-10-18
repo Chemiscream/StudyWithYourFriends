@@ -264,6 +264,10 @@ html[data-theme="dark"] .editor { background: #0d1726; }
   display: block;
   background: #000;
 }
+/* 编辑器为光标占位在媒体后补的 <br> 及连续空 <br>：显示时隐藏，避免图与图之间大段空白 */
+.record-content img + br,
+.record-content video + br,
+.record-content br + br { display: none; }
 .record-image {
   margin-top: 10px;
   max-width: 100%;
