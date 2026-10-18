@@ -31,6 +31,8 @@ export const state = reactive({
   notif: { open: false, unread: 0, items: [], loading: false },
   // 我的收藏（弹窗预览）
   favorites: { open: false, items: [], loading: false, msg: "" },
+  // 用户列表（留言 @提及补全用，登录后拉取）
+  users: [],
   // 编辑态
   editingId: null,
   editHtml: "",
@@ -274,6 +276,7 @@ export function logout() {
   stopNotifPoll();
   state.notif = { open: false, unread: 0, items: [], loading: false };
   state.favorites = { open: false, items: [], loading: false, msg: "" };
+  state.users = [];
   closeDetail();
   cancelEdit(); // 清理编辑态，避免残留到下一次登录
   aiReset(); // 引用在文件底部定义前被调用？不会：logout 由用户点击触发，届时模块已初始化
@@ -318,7 +321,8 @@ export async function renameUser(newName) {
     state.token = res.token;
     setToken(res.token);
     localStorage.setItem("studylog_user", state.user);
-    await Promise.all([loadRecords(), loadStats()]);
+    state.users = []; // 用户名已变，清空缓存让下次补全时重新拉取
+    await Promise.all([loadRecords(), loadStats(), ensureUsers()]);
     return { ok: true };
   }
   return { ok: false, message: res.message || "修改失败" };
@@ -524,12 +528,22 @@ export async function openDailyDetail(date) {
 }
 export function closeDailyDetail() { state.daily.detailOpen = false; state.daily.detail = null; }
 
+// ---------- 用户列表（@提及补全） ----------
+export async function ensureUsers() {
+  if (state.users.length || !state.token) return;
+  try {
+    const res = await request("/api/users");
+    if (res.ok) state.users = res.users || [];
+  } catch (e) { /* 补全列表拉取失败不打断输入 */ }
+}
+
 // ---------- 启动 ----------
 export async function init() {
   checkVersion();
   await loadLatestDaily(); // 日报公开：未登录也加载
   if (state.token) {
     await refreshMe();
+    ensureUsers();
     loadNotifications();
     startNotifPoll();
   }

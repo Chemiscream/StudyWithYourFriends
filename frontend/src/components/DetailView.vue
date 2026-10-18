@@ -2,6 +2,9 @@
 import { reactive, ref, computed } from "vue";
 import { state, fmtTime, fmtComment, closeDetail, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike } from "../store.js";
 import { renderMention } from "../utils/md.js";
+import { useMention } from "../useMention.js";
+
+const mention = useMention(); // 留言 @提及自动补全
 
 const r = computed(() => state.detailRecord);
 
@@ -15,6 +18,7 @@ function commentPlaceholder() {
   return replyStateVisible() ? "回复 @" + state.activeReply.name + "：" : "友善留言…";
 }
 function onSend() {
+  if (mention.takeEnterGuard()) return; // Enter 用于补全时吞掉本次发送
   const text = draft.text.trim();
   if (!text || !r.value) return;
   draft.text = "";
@@ -106,8 +110,20 @@ function onDelete() {
               v-model="draft.text"
               :placeholder="commentPlaceholder()"
               maxlength="2000"
+              @input="mention.onInput"
+              @keydown="mention.onKeydown"
+              @blur="mention.onBlur"
               @keydown.enter="onSend"
             >
+            <div v-if="mention.open" class="mention-pop">
+              <button
+                v-for="(u, i) in mention.items" :key="u.username" type="button"
+                :class="{ active: i === mention.index }"
+                @mousedown.prevent="mention.pick(u)"
+              >
+                <span class="role-tag" :style="{ background: '#' + (u.color || '4a90d9') + '22', color: '#' + (u.color || '4a90d9') }">@{{ u.username }}</span>
+              </button>
+            </div>
             <button class="btn ghost emoji-open" type="button" title="插入 emoji" @click="openCommentEmoji">😀</button>
             <button class="btn" type="button" @click="onSend">留言</button>
           </div>

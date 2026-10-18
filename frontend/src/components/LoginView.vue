@@ -34,7 +34,7 @@ async function submit() {
         <button :class="{ active: mode === 'login' }" type="button" @click="setMode('login')">登录</button>
         <button :class="{ active: mode === 'register' }" type="button" @click="setMode('register')">注册</button>
       </div>
-      <div class="field"><label><span>用户名（角色）</span><input v-model="user" autocomplete="username"></label></div>
+      <div class="field"><label><span>用户名</span><input v-model="user" autocomplete="username"></label></div>
       <div class="field"><label><span>密码</span><input v-model="pwd" type="password" :autocomplete="mode === 'login' ? 'current-password' : 'new-password'" @keydown.enter="submit"></label></div>
       <button class="primary-btn" type="button" :disabled="busy" @click="submit">{{ mode === "login" ? "登录" : "注册" }}</button>
       <div class="msg" :class="msg.cls">{{ msg.text }}</div>

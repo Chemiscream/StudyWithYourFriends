@@ -19,7 +19,7 @@ async function doReset() {
     <div class="panel-head"><h2>查询筛选</h2></div>
     <div class="filter-bar">
       <div class="field">
-        <label><span>角色 / 内容</span><input v-model="f.q" placeholder="按角色名或记录内容模糊搜索" @keydown.enter="doSearch"></label>
+        <label><span>用户 / 内容</span><input v-model="f.q" placeholder="按用户名或记录内容模糊搜索" @keydown.enter="doSearch"></label>
       </div>
       <div class="field date">
         <label><span>起始日期</span><input v-model="f.from" type="date"></label>

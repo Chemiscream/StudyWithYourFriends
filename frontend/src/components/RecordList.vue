@@ -2,6 +2,9 @@
 import { computed, reactive } from "vue";
 import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail } from "../store.js";
 import { renderMention } from "../utils/md.js";
+import { useMention } from "../useMention.js";
+
+const mention = useMention(); // 留言 @提及自动补全（全部输入框共用一个弹层状态）
 
 const countInfo = computed(() => (state.records.length ? `共 ${state.records.length} 条` : ""));
 
@@ -28,6 +31,7 @@ function commentPlaceholder(r) {
 }
 
 function onSend(r) {
+  if (mention.takeEnterGuard()) return; // Enter 用于补全时吞掉本次发送
   const d = commentDrafts[r.id];
   const text = d && d.text.trim();
   if (!text) return;
@@ -130,8 +134,20 @@ function onRecordClick(r, e) {
                 v-model="draft(r).text"
                 :placeholder="commentPlaceholder(r)"
                 maxlength="2000"
+                @input="mention.onInput"
+                @keydown="mention.onKeydown"
+                @blur="mention.onBlur"
                 @keydown.enter="onSend(r)"
               >
+              <div v-if="mention.open" class="mention-pop">
+                <button
+                  v-for="(u, i) in mention.items" :key="u.username" type="button"
+                  :class="{ active: i === mention.index }"
+                  @mousedown.prevent="mention.pick(u)"
+                >
+                  <span class="role-tag" :style="{ background: '#' + (u.color || '4a90d9') + '22', color: '#' + (u.color || '4a90d9') }">@{{ u.username }}</span>
+                </button>
+              </div>
               <button class="btn ghost emoji-open" type="button" title="插入 emoji" @click="openCommentEmoji(r, $event)">😀</button>
               <button class="btn" type="button" @click="onSend(r)">留言</button>
             </div>

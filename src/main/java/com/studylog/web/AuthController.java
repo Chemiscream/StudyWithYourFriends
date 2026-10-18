@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,6 +109,20 @@ public class AuthController {
             m.put("is_admin", user != null && user.isAdmin());
         }
         return m;
+    }
+
+    /** 用户列表（登录用户可见，供留言 @提及自动补全）。 */
+    @GetMapping("/users")
+    Map<String, Object> listUsers(HttpServletRequest req) {
+        if (tokens.currentUser(req) == null) throw new BizException(HttpStatus.UNAUTHORIZED, "未登录");
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (User u : users.findAllByOrderByUsername()) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("username", u.getUsername());
+            m.put("color", u.getColor() == null ? DEFAULT_COLOR : u.getColor());
+            items.add(m);
+        }
+        return Map.of("ok", true, "users", items);
     }
 
     /**
