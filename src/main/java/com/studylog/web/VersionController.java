@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.7.3";
+    public static final String VERSION = "1.7.4";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.7.4", List.of(
+                    "确认弹窗按钮顺序调整：「确定」放左边、「取消」放右边，删除/清空等操作确认更顺手。"
+            )),
             new ReleaseNote("1.7.3", List.of(
                     "AI 对话具备时间感知：AI 现在知道当前日期和星期，问「今天/昨天学了什么」等时间相关问题时回答更准确。"
             )),

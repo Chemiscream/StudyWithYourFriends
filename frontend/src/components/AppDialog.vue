@@ -3,10 +3,10 @@
     <div class="modal-card dialog-card" role="dialog" aria-modal="true">
       <p class="dialog-text">{{ state.dialog.text }}</p>
       <div class="dialog-actions">
-        <button v-if="state.dialog.confirmMode" class="btn ghost" type="button" @click="closeDialog(false)">取消</button>
         <button class="btn" :class="{ ghost: !state.dialog.confirmMode }" type="button" @click="closeDialog(true)">
           {{ state.dialog.confirmMode ? "确定" : "知道了" }}
         </button>
+        <button v-if="state.dialog.confirmMode" class="btn ghost" type="button" @click="closeDialog(false)">取消</button>
       </div>
     </div>
   </div>
