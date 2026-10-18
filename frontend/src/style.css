@@ -337,15 +337,15 @@ html[data-theme="dark"] .editor { background: #0d1726; }
 }
 /* 消息弹窗：头部固定，列表超长时滚轮滚动 */
 .notif-modal-card {
-  width: min(420px, 94vw); padding: 0; overflow: hidden;
+  width: min(360px, 94vw); padding: 0; overflow: hidden;
   display: flex; flex-direction: column;
 }
 .notif-modal-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 18px; border-bottom: 1px solid var(--line); flex: none;
+  padding: 12px 14px; border-bottom: 1px solid var(--line); flex: none;
 }
-.notif-modal-head h2 { margin: 0; font-size: 16px; }
-.notif-head-actions { display: flex; align-items: center; gap: 8px; }
+.notif-modal-head h2 { margin: 0; font-size: 14.5px; }
+.notif-head-actions { display: flex; align-items: center; gap: 6px; }
 .notif-modal-card .btn { width: auto; }
 .notif-list { overflow-y: auto; max-height: 60vh; display: grid; }
 .notif-clear {
@@ -354,10 +354,10 @@ html[data-theme="dark"] .editor { background: #0d1726; }
   white-space: nowrap; flex: none; /* 防止弹窗头部挤压时逐字竖排 */
 }
 .notif-clear:hover { background: var(--danger-soft); }
-.notif-empty { padding: 28px 12px; text-align: center; color: var(--muted); font-size: 13px; }
+.notif-empty { padding: 24px 12px; text-align: center; color: var(--muted); font-size: 13px; }
 .notif-item {
   display: grid; gap: 2px; text-align: left;
-  padding: 10px 12px; border: none; border-bottom: 1px solid var(--line);
+  padding: 8px 12px; border: none; border-bottom: 1px solid var(--line);
   background: none; cursor: pointer; font-size: 13px; color: var(--ink);
 }
 .notif-item:last-child { border-bottom: none; }
@@ -372,18 +372,18 @@ html[data-theme="dark"] .editor { background: #0d1726; }
 .notif-time { color: var(--muted); font-size: 11px; }
 /* 我的收藏弹窗：头部固定，列表超长时滚动 */
 .fav-modal-card {
-  width: min(460px, 94vw); padding: 0; overflow: hidden;
+  width: min(400px, 94vw); padding: 0; overflow: hidden;
   display: flex; flex-direction: column;
 }
 .fav-modal-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 18px; border-bottom: 1px solid var(--line); flex: none;
+  padding: 12px 14px; border-bottom: 1px solid var(--line); flex: none;
 }
-.fav-modal-head h2 { margin: 0; font-size: 16px; white-space: nowrap; }
+.fav-modal-head h2 { margin: 0; font-size: 14.5px; white-space: nowrap; }
 .fav-list { overflow-y: auto; max-height: 60vh; }
 .fav-item {
   display: grid; gap: 4px; width: 100%; text-align: left;
-  padding: 10px 14px; border: none; border-bottom: 1px solid var(--line);
+  padding: 8px 12px; border: none; border-bottom: 1px solid var(--line);
   background: none; cursor: pointer; color: var(--ink);
 }
 .fav-item:last-child { border-bottom: none; }
