@@ -129,14 +129,27 @@ public class AiAssistantService {
                 ctx.append("【学习记录】\n").append(truncate(plainOf(r.getContent()), MAX_RECORD_CHARS)).append("\n");
                 ctx.append("【该记录下的留言（旧→新）】\n");
                 List<Comment> list = comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid));
+                // 标注被回复者的最近一条留言，帮助 AI 理解「他」「这句话」等指代
+                String replyTarget = c.getReplyTo();
+                Long targetCommentId = null;
+                if (replyTarget != null && !replyTarget.isEmpty()) {
+                    for (Comment o : list) {
+                        if (replyTarget.equals(o.getUsername())) targetCommentId = o.getId();
+                    }
+                }
                 int shown = 0;
                 for (Comment o : list) {
                     if (o.getId().equals(cid)) continue; // 触发留言单独列出
                     if (shown++ >= MAX_COMMENTS_SHOWN) break;
-                    ctx.append("- ").append(o.getUsername()).append("：").append(oneLine(o.getContent())).append("\n");
+                    String tag = o.getId().equals(targetCommentId) ? "（" + asker + " 回复的对象）" : "";
+                    ctx.append("- ").append(o.getUsername()).append(tag).append("：").append(oneLine(o.getContent())).append("\n");
                 }
-                ctx.append("【").append(asker).append(" 刚刚留言 @ 了你】\n").append(oneLine(question)).append("\n");
-                ctx.append("请直接回复这条留言。");
+                ctx.append("【").append(asker).append(" 刚刚留言 @ 了你】");
+                if (replyTarget != null && !replyTarget.isEmpty()) {
+                    ctx.append("（这条留言是在回复「").append(replyTarget).append("」的留言）");
+                }
+                ctx.append("\n").append(oneLine(question)).append("\n");
+                ctx.append("请直接回复这条留言。如果用户提到「他」「这句话」「这条记录」等，请结合上文判断具体指代。");
                 String reply = chatOnce(SYSTEM_PROMPT, ctx.toString());
                 if (reply == null) return;
                 insertComment(rid, asker, reply, asker, cid);

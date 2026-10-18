@@ -13,6 +13,8 @@ import FilterBar from "./components/FilterBar.vue";
 import RecordList from "./components/RecordList.vue";
 import DetailView from "./components/DetailView.vue";
 import ProfileModal from "./components/ProfileModal.vue";
+import SettingsModal from "./components/SettingsModal.vue";
+import ChangelogModal from "./components/ChangelogModal.vue";
 import NotifModal from "./components/NotifModal.vue";
 import FavoriteModal from "./components/FavoriteModal.vue";
 import UpdateModal from "./components/UpdateModal.vue";
@@ -51,6 +53,8 @@ onUnmounted(() => window.removeEventListener("hashchange", onHash));
   <NotifModal v-if="state.notif.open" />
   <FavoriteModal v-if="state.favorites.open" />
   <ProfileModal v-if="state.profileOpen" />
+  <SettingsModal v-if="state.settingsOpen" />
+  <ChangelogModal v-if="state.changelogOpen" />
   <UpdateModal v-if="state.update" />
   <DailyReportListModal v-if="state.daily.listOpen" />
   <DailyReportDetailModal v-if="state.daily.detailOpen" />

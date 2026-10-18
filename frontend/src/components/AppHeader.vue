@@ -54,7 +54,7 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
         :title="state.isAdmin ? '管理员（可删除任意记录/留言）' : ''"
         :style="{ background: '#' + myColor + '22', color: '#' + myColor }"
       >{{ state.isAdmin ? "👑 " : "" }}{{ state.user }}</span>
-      <button v-if="loggedIn" class="icon-btn" type="button" title="修改个人信息" @click="state.profileOpen = true">✏️</button>
+      <button v-if="loggedIn" class="icon-btn" type="button" title="设置" @click="state.settingsOpen = true">⚙️</button>
       <button v-if="loggedIn" class="icon-btn" type="button" title="我的收藏" @click="openFavorites">
         ⭐
       </button>

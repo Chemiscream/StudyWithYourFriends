@@ -51,6 +51,8 @@ export const state = reactive({
   // emoji 面板（全站单例）
   emoji: { visible: false, kind: null, inputEl: null, savedRange: null, anchorEl: null },
   profileOpen: false,
+  settingsOpen: false, // ⚙️ 设置面板（修改个人信息 / 查看更新日志入口）
+  changelogOpen: false, // 历史更新日志弹窗
   // AI 日报
   daily: {
     listOpen: false,

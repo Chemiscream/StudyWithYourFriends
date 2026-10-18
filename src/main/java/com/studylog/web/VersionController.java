@@ -14,10 +14,15 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.9.0";
+    public static final String VERSION = "1.9.1";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.9.1", List.of(
+                    "✏️ 按钮升级为 ⚙️ 设置面板：集中入口包含「修改个人信息」和「查看更新日志」。",
+                    "新增历史更新日志浏览：设置 → 查看更新日志，可查看从 1.0.0 至今每个版本的更新内容。",
+                    "AI 助手语境理解增强：回复留言时 AI 能理解「他」「这句话」指的是谁/哪条内容。"
+            )),
             new ReleaseNote("1.9.0", List.of(
                     "新增转发功能：点击记录下方 🔁 可引用该记录发布新记录，转发卡片点击直达原记录详情；原作者会收到转发通知。"
             )),
@@ -118,6 +123,17 @@ public class VersionController {
         m.put("ok", true);
         m.put("version", latest.version());
         m.put("notes", latest.notes());
+        return m;
+    }
+
+    /** 全部历史版本（最新在前），供「查看更新日志」弹窗展示。 */
+    @GetMapping("/versions")
+    Map<String, Object> versions() {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("ok", true);
+        m.put("versions", NOTES.stream()
+                .map(n -> Map.of("version", n.version(), "notes", n.notes()))
+                .toList());
         return m;
     }
 
