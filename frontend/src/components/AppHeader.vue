@@ -54,6 +54,7 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
         :title="state.isAdmin ? '管理员（可删除任意记录/留言）' : ''"
         :style="{ background: '#' + myColor + '22', color: '#' + myColor }"
       >{{ state.isAdmin ? "👑 " : "" }}{{ state.user }}</span>
+      <button v-if="loggedIn" class="icon-btn" type="button" title="修改个人信息" @click="state.profileOpen = true">✏️</button>
       <button v-if="loggedIn" class="icon-btn" type="button" title="我的收藏" @click="openFavorites">
         ⭐
       </button>
@@ -61,7 +62,6 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
         🔔
         <span v-if="state.notif.unread > 0" class="notif-badge">{{ state.notif.unread > 99 ? "99+" : state.notif.unread }}</span>
       </button>
-      <button v-if="loggedIn" class="icon-btn" type="button" title="修改个人信息" @click="state.profileOpen = true">✏️</button>
       <a v-if="!loggedIn" class="btn primary login-link" href="#login" style="min-height:36px;padding:0 16px;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;">登录</a>
       <button class="icon-btn" type="button" title="切换主题" @click="toggleTheme">🌓</button>
       <button v-if="loggedIn" class="btn ghost logout-btn" type="button" title="退出登录" style="min-height:36px;padding:0 14px;font-size:13px;" @click="logout">退出</button>
