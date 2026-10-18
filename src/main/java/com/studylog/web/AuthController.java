@@ -111,12 +111,12 @@ public class AuthController {
         return m;
     }
 
-    /** 用户列表（登录用户可见，供留言 @提及自动补全）。 */
+    /** 用户列表（登录用户可见，供留言 @提及自动补全；管理员账号对普通用户隐藏）。 */
     @GetMapping("/users")
     Map<String, Object> listUsers(HttpServletRequest req) {
         if (tokens.currentUser(req) == null) throw new BizException(HttpStatus.UNAUTHORIZED, "未登录");
         List<Map<String, Object>> items = new ArrayList<>();
-        for (User u : users.findAllByOrderByUsername()) {
+        for (User u : users.findAllByAdminFalseOrderByUsername()) {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("username", u.getUsername());
             m.put("color", u.getColor() == null ? DEFAULT_COLOR : u.getColor());

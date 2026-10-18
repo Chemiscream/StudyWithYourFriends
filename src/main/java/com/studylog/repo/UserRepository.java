@@ -11,4 +11,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
     Optional<User> findFirstByAdminTrue();
     List<User> findAllByOrderByUsername();
+    // 管理员账号对普通用户隐藏（@提及不出现、不通知）
+    List<User> findAllByAdminFalseOrderByUsername();
+    boolean existsByUsernameAndAdminTrue(String username);
 }

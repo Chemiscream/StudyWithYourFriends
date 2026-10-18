@@ -470,6 +470,7 @@ public class RecordController {
         while (m.find() && mentioned < MAX_MENTIONS) {
             String u = m.group(1);
             if (u.equals(me) || notified.contains(u) || !users.existsByUsername(u)) continue;
+            if (users.existsByUsernameAndAdminTrue(u)) continue; // 管理员对普通用户隐藏，@管理员不通知
             saveNotification(u, me, "mention", record.getId(), c.getId(), preview);
             notified.add(u);
             mentioned++;
