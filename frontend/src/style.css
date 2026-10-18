@@ -250,7 +250,7 @@ html[data-theme="dark"] .editor { background: #0d1726; }
 .record-time { color: var(--muted); font-size: 12px; }
 .record-content {
   color: var(--ink); line-height: 1.7; font-size: 14px;
-  white-space: pre-wrap; word-break: break-word;
+  word-break: break-word;
 }
 .record-content img {
   max-width: 100%; max-height: 360px;
@@ -557,6 +557,7 @@ html[data-theme="light"] .chat-bubble .md-code { background: #1f2937; }
   padding: 14px 16px; font-size: 14px; line-height: 1.75; color: var(--ink);
   margin-bottom: 16px;
 }
+.md-br { height: 8px; } /* 段落空行的紧凑间隔（替代原整行高的空白 div） */
 .daily-no-summary { color: var(--muted); font-size: 13px; padding: 10px 0; margin-bottom: 12px; }
 .daily-stat-block { margin-bottom: 16px; }
 .daily-stat-block h3 { font-size: 14px; margin-bottom: 8px; }

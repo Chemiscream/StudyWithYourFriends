@@ -45,7 +45,7 @@ export function mdRender(src) {
       out += "<li>" + m[1] + "</li>";
     }
     else if (/^\u0000\d+\u0000$/.test(t)) { closeLists(); out += t; }
-    else if (t === "") { closeLists(); out += "<div><br></div>"; }
+    else if (t === "") { closeLists(); if (!out.endsWith('<div class="md-br"></div>')) out += '<div class="md-br"></div>'; }
     else { closeLists(); out += "<div>" + t + "</div>"; }
   }
   closeLists();
