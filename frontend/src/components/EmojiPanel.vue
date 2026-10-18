@@ -15,6 +15,8 @@ function pick(e) {
     const s = el.selectionStart ?? el.value.length;
     const t = el.selectionEnd ?? el.value.length;
     el.value = el.value.slice(0, s) + emoji + el.value.slice(t);
+    // 手动触发 input 事件：v-model 监听该事件，否则直接赋 value 不会同步到组件数据
+    el.dispatchEvent(new Event("input", { bubbles: true }));
     el.focus();
     el.setSelectionRange(s + emoji.length, s + emoji.length);
   }

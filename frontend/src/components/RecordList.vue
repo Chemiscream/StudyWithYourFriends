@@ -29,8 +29,9 @@ function onSend(r) {
 function onReply(r, c) {
   startReply(r.id, c.username);
 }
-function openCommentEmoji(r) {
-  toggleEmoji("input", commentInputs[r.id], null, null);
+function openCommentEmoji(r, e) {
+  // 传入被点击的按钮作为定位锚点，否则面板没有位置会出现在视口外
+  toggleEmoji("input", commentInputs[r.id], null, e.currentTarget);
 }
 function registerInput(r, el) {
   if (el) commentInputs[r.id] = el;
@@ -86,7 +87,7 @@ function registerInput(r, el) {
                 maxlength="2000"
                 @keydown.enter="onSend(r)"
               >
-              <button class="btn ghost emoji-open" type="button" title="插入 emoji" @click="openCommentEmoji(r)">😀</button>
+              <button class="btn ghost emoji-open" type="button" title="插入 emoji" @click="openCommentEmoji(r, $event)">😀</button>
               <button class="btn" type="button" @click="onSend(r)">留言</button>
             </div>
           </template>
