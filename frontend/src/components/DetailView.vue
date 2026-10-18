@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref, computed } from "vue";
-import { state, fmtTime, fmtComment, closeDetail, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike } from "../store.js";
+import { state, fmtTime, fmtComment, closeDetail, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail } from "../store.js";
 import { renderMention } from "../utils/md.js";
 import { useMention } from "../useMention.js";
 
@@ -41,6 +41,11 @@ function onEdit() {
 function onDelete() {
   delRecord(r.value.id); // 删除成功后 store 会自动关闭详情页
 }
+function onQuote() {
+  const rec = r.value;
+  closeDetail();
+  startQuote(rec); // 回主页顶部编辑器以转发模式打开
+}
 </script>
 
 <template>
@@ -66,6 +71,13 @@ function onDelete() {
         </span>
       </div>
       <div class="record-content" v-html="r.content || ''"></div>
+      <div v-if="r.quote" class="quote-card" type="button" @click="openDetail(r.quote.id)">
+        <template v-if="!r.quote.deleted">
+          <span class="quote-line">↪ 转发自 <b :style="{ color: '#' + (r.quote.color || '4a90d9') }">{{ r.quote.username }}</b></span>
+          <span class="quote-preview">{{ r.quote.preview || "（无文字内容）" }}</span>
+        </template>
+        <span v-else class="quote-preview deleted">↪ 原记录已删除</span>
+      </div>
       <div class="record-foot">
         <div class="foot-left">
           <button
@@ -78,6 +90,7 @@ function onDelete() {
             :title="state.token ? (r.favorited ? '取消收藏' : '收藏') : '登录后可收藏'"
             @click="toggleFavorite(r.id)"
           >{{ r.favorited ? "⭐" : "☆" }}</button>
+          <button class="quote-btn" type="button" title="转发这条记录" @click="onQuote">🔁</button>
         </div>
         <div v-if="(r.mine || state.isAdmin) && state.token" class="record-actions">
           <button v-if="r.mine" class="edit-btn" type="button" @click="onEdit">编辑</button>

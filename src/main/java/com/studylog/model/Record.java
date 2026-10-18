@@ -26,6 +26,10 @@ public class Record {
     @Column(columnDefinition = "TEXT")
     private String image;
 
+    /** 引用/转发指向的原记录 id；null=普通记录。原记录被删后保留 id，前端显示「原记录已删除」。 */
+    @Column(name = "quoted_record_id")
+    private Long quotedRecordId;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
@@ -42,6 +46,8 @@ public class Record {
     public void setContent(String content) { this.content = content; }
     public String getImage() { return image; }
     public void setImage(String image) { this.image = image; }
+    public Long getQuotedRecordId() { return quotedRecordId; }
+    public void setQuotedRecordId(Long quotedRecordId) { this.quotedRecordId = quotedRecordId; }
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
     public OffsetDateTime getUpdatedAt() { return updatedAt; }

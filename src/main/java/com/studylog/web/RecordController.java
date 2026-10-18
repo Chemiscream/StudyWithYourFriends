@@ -89,7 +89,7 @@ public class RecordController {
         dateTo = dateTo.trim();
 
         StringBuilder sql = new StringBuilder(
-                "SELECT r.id, r.username, r.content, r.created_at, r.updated_at, COALESCE(u.color, '4a90d9') " +
+                "SELECT r.id, r.username, r.content, r.created_at, r.updated_at, COALESCE(u.color, '4a90d9'), r.quoted_record_id " +
                 "FROM records r LEFT JOIN users u ON u.username = r.username WHERE 1=1");
         Map<String, Object> params = new HashMap<>();
         // q：角色名或记录内容模糊搜索（不区分大小写，参数化绑定，通配符转义）
@@ -156,6 +156,9 @@ public class RecordController {
             }
         }
 
+        // 引用/转发信息（原记录摘要，不含大体积 base64 正文）；SELECT 第 7 列为 quoted_record_id
+        Map<Long, Map<String, Object>> quoteMap = quoteMapOf(rows, 6);
+
         List<Map<String, Object>> out = new ArrayList<>();
         for (Object[] r : rows) {
             long rid = ((Number) r[0]).longValue();
@@ -172,6 +175,8 @@ public class RecordController {
             m.put("like_count", likeCounts.getOrDefault(rid, 0L));
             m.put("liked", likedIds.contains(rid));
             m.put("favorited", favoritedIds.contains(rid));
+            Object qref = r[6];
+            m.put("quote", qref == null ? null : quoteMap.get(((Number) qref).longValue()));
             out.add(m);
         }
 
@@ -210,6 +215,9 @@ public class RecordController {
         m.put("like_count", likes.countByRecordId(rid));
         m.put("liked", me != null && likes.findByRecordIdAndUsername(rid, me).isPresent());
         m.put("favorited", me != null && favorites.findByRecordIdAndUsername(rid, me).isPresent());
+        if (r.getQuotedRecordId() != null) {
+            m.put("quote", quoteInfo(r.getQuotedRecordId()));
+        }
         Map<String, Object> res = new LinkedHashMap<>();
         res.put("ok", true);
         res.put("record", m);
@@ -343,9 +351,31 @@ public class RecordController {
         r.setUsername(me);
         r.setContent(content);
         r.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+        // 引用/转发：quote_id 指向被引用记录（必须存在）
+        String quoteRaw = body.getOrDefault("quote_id", "").trim();
+        if (!quoteRaw.isEmpty()) {
+            long quoteId;
+            try {
+                quoteId = Long.parseLong(quoteRaw);
+            } catch (NumberFormatException e) {
+                throw new BizException(HttpStatus.BAD_REQUEST, "引用参数无效");
+            }
+            Record src = records.findById(quoteId)
+                    .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "被引用的记录不存在"));
+            r.setQuotedRecordId(src.getId());
+        }
         records.save(r);
         // 记录正文中的 @提及也推送通知（仅创建时解析，编辑不重复通知）
         notifyMentions(content, r, me, new HashSet<>());
+        // 转发通知：告诉原作者有人转发了他的记录（跳转到转发记录详情）
+        if (r.getQuotedRecordId() != null) {
+            Record src = records.findById(r.getQuotedRecordId()).orElse(null);
+            if (src != null && !src.getUsername().equals(me)) {
+                String plain = content.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+                if (plain.length() > 60) plain = plain.substring(0, 60) + "…";
+                saveNotification(src.getUsername(), me, "quote", r.getId(), null, plain);
+            }
+        }
         // 正文 @AI助手：AI 异步读取记录后留言回应（创建触发）
         aiAssistant.replyOnRecord(r, me);
         Map<String, Object> m = new LinkedHashMap<>();
@@ -506,6 +536,42 @@ public class RecordController {
             notified.add(u);
             mentioned++;
         }
+    }
+
+    // ---------- 引用/转发 ----------
+
+    /** 单条引用信息：原记录作者+纯文本摘要（≤120 字，剥离 HTML/base64）；原记录已删时 deleted=true。 */
+    private Map<String, Object> quoteInfo(Long quoteId) {
+        Map<String, Object> q = new LinkedHashMap<>();
+        q.put("id", quoteId);
+        var opt = records.findById(quoteId);
+        if (opt.isEmpty()) {
+            q.put("deleted", true);
+            return q;
+        }
+        Record src = opt.get();
+        q.put("deleted", false);
+        q.put("username", src.getUsername());
+        q.put("color", colorOf(src.getUsername()));
+        q.put("created_at", src.getCreatedAt());
+        String plain = src.getContent().replaceAll("(?i)<br\\s*/?>", "\n").replaceAll("<[^>]*>", " ")
+                .replace("&nbsp;", " ").replace("&amp;", "&").replace("&lt;", "<")
+                .replace("&gt;", ">").replace("&quot;", "\"").replace("&#39;", "'");
+        plain = plain.replaceAll("[ \\t\\x0B\\f\\r]+", " ").replaceAll("\\n{2,}", "\n").trim();
+        if (plain.length() > 120) plain = plain.substring(0, 120) + "…";
+        q.put("preview", plain);
+        return q;
+    }
+
+    /** 批量构建列表行（rows 第 idx 列为 quoted_record_id）的引用信息映射。 */
+    private Map<Long, Map<String, Object>> quoteMapOf(List<Object[]> rows, int idx) {
+        Set<Long> quoteIds = new HashSet<>();
+        for (Object[] r : rows) {
+            if (r[idx] != null) quoteIds.add(((Number) r[idx]).longValue());
+        }
+        Map<Long, Map<String, Object>> out = new HashMap<>();
+        for (Long qid : quoteIds) out.put(qid, quoteInfo(qid));
+        return out;
     }
 
     private void saveNotification(String recipient, String actor, String type, Long recordId, Long commentId, String preview) {

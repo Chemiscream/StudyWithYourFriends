@@ -38,6 +38,7 @@ export const state = reactive({
   // 编辑态
   editingId: null,
   editHtml: "",
+  quoteOf: null, // 待转发的原记录摘要 {id, username, preview}
   addMsg: { text: "", cls: "" },
   // 统计
   statsTotal: 0,
@@ -357,12 +358,32 @@ export async function search(f) {
 export function startEdit(rec) {
   state.editingId = rec.id;
   state.editHtml = rec.content || "";
+  state.quoteOf = null;
   state.addMsg = { text: "", cls: "" };
+}
+
+/** 转发：打开新增编辑器并带上被引用记录摘要（QQ 空间式转发）。 */
+export function startQuote(rec) {
+  if (!state.token) return showDialog("请先登录再转发");
+  state.editingId = null;
+  state.editHtml = "";
+  const box = document.createElement("div");
+  box.innerHTML = rec.content || "";
+  let text = (box.textContent || "").replace(/\s+/g, " ").trim();
+  if (text.length > 120) text = text.slice(0, 120) + "…";
+  state.quoteOf = { id: rec.id, username: rec.username, preview: text };
+  state.addMsg = { text: "", cls: "" };
+  window.scrollTo({ top: 0, behavior: "smooth" }); // 编辑器在页面顶部，滚上去输入
+}
+
+export function cancelQuote() {
+  state.quoteOf = null;
 }
 
 export function cancelEdit() {
   state.editingId = null;
   state.editHtml = "";
+  state.quoteOf = null;
   state.addMsg = { text: "", cls: "" };
 }
 
@@ -370,13 +391,16 @@ export async function submitRecord(html) {
   const editing = !!state.editingId;
   state.addMsg = { text: editing ? "保存中…" : "添加中…", cls: "" };
   try {
+    const payload = { content: html };
+    if (!editing && state.quoteOf) payload.quote_id = String(state.quoteOf.id);
     const res = await request(editing ? "/api/records/" + state.editingId : "/api/records", {
       method: editing ? "PUT" : "POST",
-      body: JSON.stringify({ content: html }),
+      body: JSON.stringify(payload),
     });
     if (res.ok) {
+      const quoted = !!state.quoteOf;
       cancelEdit();
-      state.addMsg = { text: editing ? "已更新" : "已添加", cls: "ok" };
+      state.addMsg = { text: quoted ? "转发成功" : editing ? "已更新" : "已添加", cls: "ok" };
       await loadRecords();
       return { ok: true };
     }

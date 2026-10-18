@@ -4,6 +4,7 @@ import { state, fmtComment, openNotification, clearNotifications, askConfirm } f
 function typeIcon(t) {
   if (t === "like_record" || t === "like_comment") return "👍";
   if (t === "mention") return "📣";
+  if (t === "quote") return "🔁";
   return "💬";
 }
 function typeText(t) {
@@ -11,6 +12,7 @@ function typeText(t) {
   if (t === "like_record") return "赞了你的记录";
   if (t === "like_comment") return "赞了你的留言";
   if (t === "mention") return "在留言中@了你";
+  if (t === "quote") return "转发了你的记录";
   return "评论了你的记录";
 }
 async function onClear() {

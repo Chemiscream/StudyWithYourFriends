@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
-import { state, submitRecord, cancelEdit, toggleEmoji, askConfirm, ensureUsers } from "../store.js";
+import { state, submitRecord, cancelEdit, cancelQuote, toggleEmoji, askConfirm, ensureUsers } from "../store.js";
 
 const editor = ref(null);      // contenteditable div
 const imgInput = ref(null);
@@ -279,8 +279,13 @@ onUnmounted(() => {
 <template>
   <section class="panel">
     <div class="panel-head">
-      <h2>{{ state.editingId ? "编辑记录" : "新增学习记录" }}</h2>
+      <h2>{{ state.editingId ? "编辑记录" : state.quoteOf ? "转发记录" : "新增学习记录" }}</h2>
       <button v-if="state.editingId" class="btn ghost" type="button" style="min-height:32px;padding:0 12px;font-size:13px;" @click="cancelEdit">取消编辑</button>
+    </div>
+    <div v-if="state.quoteOf && !state.editingId" class="quote-editing">
+      <span class="quote-line">↪ 转发自 <b>{{ state.quoteOf.username }}</b></span>
+      <span class="quote-preview">{{ state.quoteOf.preview || "（无文字内容）" }}</span>
+      <button class="quote-cancel" type="button" title="取消引用" @click="cancelQuote">✕</button>
     </div>
     <div class="field editor-wrap">
       <div
@@ -312,7 +317,7 @@ onUnmounted(() => {
         <button class="btn ghost" type="button" @click="pickImg">图片/视频</button>
         <button ref="pickEmojiBtn" id="pickEmojiBtn" class="btn ghost" type="button" title="插入 emoji" @click="pickEmoji">😀</button>
       </div>
-      <button class="btn primary" type="button" @click="submit">{{ state.editingId ? "保存修改" : "添加记录" }}</button>
+      <button class="btn primary" type="button" @click="submit">{{ state.editingId ? "保存修改" : state.quoteOf ? "发布转发" : "添加记录" }}</button>
     </div>
     <div class="msg" :class="state.addMsg.cls" style="text-align:right;">{{ state.addMsg.text }}</div>
   </section>

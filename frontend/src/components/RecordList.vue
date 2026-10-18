@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive } from "vue";
-import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail } from "../store.js";
+import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail } from "../store.js";
 import { renderMention } from "../utils/md.js";
 import { useMention } from "../useMention.js";
 
@@ -49,9 +49,9 @@ function registerInput(r, el) {
   if (el) commentInputs[r.id] = el;
 }
 
-// 点击记录正文区域进入详情页；链接/按钮/输入框/媒体/评论区不触发
+// 点击记录正文区域进入详情页；链接/按钮/输入框/媒体/评论区/引用卡片不触发
 function onRecordClick(r, e) {
-  if (e.target.closest("a, button, input, video, img, .comments, .record-foot")) return;
+  if (e.target.closest("a, button, input, video, img, .comments, .record-foot, .quote-card")) return;
   if (window.getSelection().toString()) return; // 正在选择文本时不跳转
   openDetail(r.id);
 }
@@ -81,6 +81,13 @@ function onRecordClick(r, e) {
           </span>
         </div>
         <div class="record-content clickable" v-html="r.content || ''" title="点击查看详情"></div>
+        <div v-if="r.quote" class="quote-card" type="button" @click.stop="openDetail(r.quote.id)">
+          <template v-if="!r.quote.deleted">
+            <span class="quote-line">↪ 转发自 <b :style="{ color: '#' + (r.quote.color || '4a90d9') }">{{ r.quote.username }}</b></span>
+            <span class="quote-preview">{{ r.quote.preview || "（无文字内容）" }}</span>
+          </template>
+          <span v-else class="quote-preview deleted">↪ 原记录已删除</span>
+        </div>
         <div class="record-foot">
           <div class="foot-left">
             <button
@@ -93,6 +100,7 @@ function onRecordClick(r, e) {
               :title="state.token ? (r.favorited ? '取消收藏' : '收藏') : '登录后可收藏'"
               @click="toggleFavorite(r.id)"
             >{{ r.favorited ? "⭐" : "☆" }}</button>
+            <button class="quote-btn" type="button" title="转发这条记录" @click="startQuote(r)">🔁</button>
           </div>
           <div v-if="(r.mine || state.isAdmin) && state.token" class="record-actions">
             <button v-if="r.mine" class="edit-btn" type="button" @click="startEdit(r)">编辑</button>
