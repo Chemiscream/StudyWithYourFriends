@@ -2,7 +2,7 @@
 import { state, fmtComment, openNotification, clearNotifications } from "../store.js";
 
 function typeIcon(t) {
-  return t === "like_record" || t === "like_comment" ? "❤️" : "💬";
+  return t === "like_record" || t === "like_comment" ? "👍" : "💬";
 }
 function typeText(t) {
   if (t === "reply") return "回复了你的留言";

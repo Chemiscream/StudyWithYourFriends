@@ -82,7 +82,7 @@ function onRecordClick(r, e) {
               class="like-btn" :class="{ liked: r.liked }" type="button"
               :title="state.token ? (r.liked ? '取消点赞' : '点赞') : '登录后可点赞'"
               @click="toggleLike(r.id)"
-            >{{ r.liked ? "❤️" : "🤍" }} {{ r.like_count || 0 }}</button>
+            >👍 {{ r.like_count || 0 }}</button>
             <button
               class="fav-btn" :class="{ favored: r.favorited }" type="button"
               :title="state.token ? (r.favorited ? '取消收藏' : '收藏') : '登录后可收藏'"
@@ -104,7 +104,7 @@ function onRecordClick(r, e) {
               class="comment-like" :class="{ liked: c.liked }" type="button"
               :title="state.token ? (c.liked ? '取消点赞' : '点赞') : '登录后可点赞'"
               @click="toggleCommentLike(c.id)"
-            >{{ c.liked ? "❤️" : "🤍" }}{{ c.like_count ? " " + c.like_count : "" }}</button>
+            >👍{{ c.like_count ? " " + c.like_count : "" }}</button>
             <button v-if="(c.mine || state.isAdmin) && state.token" class="comment-del" type="button" title="删除留言" @click="delComment(c.id)">删除</button>
             <button v-if="state.token && !c.mine" class="comment-reply" type="button" title="回复这条留言" @click="onReply(r, c)">回复</button>
           </div>
