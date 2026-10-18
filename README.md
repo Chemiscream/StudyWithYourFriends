@@ -7,8 +7,12 @@
 - 用户注册 / 登录（token 长期有效，免频繁登录）
 - 发布富文本学习记录：emoji 表情、图片（≤5MB）、视频（≤40MB，mp4/webm/mov）
 - 记录搜索：一个关键词同时模糊匹配角色名和正文，支持日期区间筛选
-- 留言与回复：任何记录下都可留言，支持回复他人留言
+- 留言与回复：任何记录下都可留言，支持回复他人留言；留言超过 3 条自动折叠可展开
+- 点赞：记录和留言均可点赞/取消，显示点赞数
+- 消息中心（顶栏 🔔）：评论、回复、点赞都会产生通知，红点显示未读数；点击通知直达记录详情页；支持一键清除；取消点赞自动撤回对应通知
+- 记录详情页：点击记录进入占满页面的详情（`#record/id`，可收藏刷新），从动态进入返回时恢复滚动位置，从消息进入返回时回到顶部
 - 词云统计面板：按人统计学习频率、全员学习关键词词云（jieba 分词），面板可折叠
+- AI 日报：每天 0 点自动生成前一天的全站学习日报（含当天留言互动），模型离线时每 5 分钟自动排队补生成
 - AI 问答（登录可用）：默认接本机 LM Studio（OpenAI 兼容，免 Key），可切换任意 OpenAI 兼容 API（DeepSeek、GPT 等）；AI 参考全站学习记录作答，回答逐字流式输出，支持多轮对话（记忆存服务端、每账号最多 10 轮、可清空），多人并发自动排队
 - 管理员：可删除任意记录与留言（凭据见下文「本地配置」，不入库）
 - 深浅色主题切换、版本更新日志弹窗
@@ -66,11 +70,16 @@ npm run build   # 产物输出到 ../src/main/resources/static（会清空旧产
 | GET | `/api/me` | 当前用户 |
 | GET | `/api/records?username=&from=&to=` | 记录列表（角色/内容联合模糊搜索 + 日期） |
 | POST | `/api/records` | 发布记录 |
+| GET | `/api/records/{id}` | 单条记录详情（含全部留言与点赞信息） |
 | PUT / DELETE | `/api/records/{id}` | 编辑 / 删除（作者或管理员） |
+| POST | `/api/records/{id}/like` | 记录点赞切换 |
 | POST | `/api/records/{id}/comments` | 留言（支持 reply_to 回复） |
 | DELETE | `/api/comments/{id}` | 删除留言（作者或管理员） |
+| POST | `/api/comments/{id}/like` | 留言点赞切换 |
+| GET | `/api/notifications` | 消息列表与未读数（登录） |
+| POST | `/api/notifications/{id}/read` `/api/notifications/clear` | 单条已读 / 一键清除（登录） |
 | PUT | `/api/users/color` | 修改头像颜色 |
-| PUT | `/api/users/rename` | 修改用户名（事务内级联更新 records/comments/ai_messages 并重签 token） |
+| PUT | `/api/users/rename` | 修改用户名（事务内级联更新全部含 username 的表并重签 token） |
 | PUT | `/api/users/password` | 修改密码（需验证原密码） |
 | GET | `/api/stats` | 词云与统计 |
 | POST | `/api/ai/chat` | AI 问答（登录；body 可带 `settings` 覆盖模型提供方） |

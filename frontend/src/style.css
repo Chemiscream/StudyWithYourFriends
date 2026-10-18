@@ -331,6 +331,7 @@ html[data-theme="dark"] .editor { background: #0d1726; }
 .notif-clear {
   border: none; background: none; cursor: pointer;
   color: var(--danger); font-size: 12px; font-weight: 700; padding: 2px 6px; border-radius: 6px;
+  white-space: nowrap; flex: none; /* 防止弹窗头部挤压时逐字竖排 */
 }
 .notif-clear:hover { background: var(--danger-soft); }
 .notif-empty { padding: 28px 12px; text-align: center; color: var(--muted); font-size: 13px; }
