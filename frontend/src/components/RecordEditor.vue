@@ -198,7 +198,12 @@ async function submit() {
   if (!hasText && !hasImg) {
     setMsg("内容不能为空", "err"); return;
   }
-  await submitRecord(sanitizeHtml(editor.value.innerHTML));
+  const res = await submitRecord(sanitizeHtml(editor.value.innerHTML));
+  // 新增场景 editingId 一直是 null，watch 不会触发，需手动清空编辑器
+  if (res && res.ok) {
+    editor.value.innerHTML = "";
+    lastEditorRange = null;
+  }
 }
 
 onMounted(() => {
