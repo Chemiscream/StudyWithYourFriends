@@ -626,18 +626,24 @@ html[data-theme="light"] .chat-bubble .md-code { background: #1f2937; }
   .app-bar .brand-mark { width: 34px; height: 34px; font-size: 16px; }
   .app-bar h1 { font-size: 17px; }
   .app-bar .sub { display: none; }
-  .user-area { flex: 1 1 100%; justify-content: flex-end; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .user-tag { font-size: 12px; padding: 0 10px; min-height: 32px; max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #colorBtn { width: 32px; height: 32px; min-height: 32px; }
-  #colorDot { width: 26px; height: 26px; }
+  /* 顶栏按钮区：不再换行，压缩尺寸保证 7 个元素一行放下（含退出） */
+  .user-area { flex: 1 1 100%; justify-content: flex-end; flex-wrap: nowrap; gap: 4px; align-items: center; }
+  .user-tag { font-size: 12px; padding: 0 8px; min-height: 30px; max-width: 30vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #colorBtn { width: 30px; height: 30px; min-height: 30px; }
+  #colorDot { width: 24px; height: 24px; }
+  .icon-btn { width: 30px; height: 30px; min-height: 30px; font-size: 14px; }
+  /* 评论/留言行：内容独占一行，避免被 flex 压缩成逐字竖排；操作按钮移到内容下方 */
+  .comment-item { row-gap: 3px; }
+  .comment-text { flex: 1 1 100%; order: 5; }
+  .comment-time { margin-left: auto; }
+  .comment-like, .comment-del, .comment-reply { order: 6; }
   .filter-bar .field { flex: 1 1 100%; }
   .btn { min-height: 40px; white-space: nowrap; }
-  .icon-btn { width: 32px; height: 32px; min-height: 32px; }
   .panel { padding: 14px; margin-bottom: 12px; }
   .record { padding: 14px; }
   .record-content { font-size: 15px; }
   .record-image { max-height: 260px; }
-  .login-link, .logout-btn { min-height: 32px; padding: 0 12px; font-size: 13px; }
+  .login-link, .logout-btn { min-height: 30px; padding: 0 10px; font-size: 12px; }
   .auth-wrap { padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
   .auth-card { padding: 22px 18px; }
   .auth-logo { width: 48px; height: 48px; font-size: 22px; }
@@ -650,7 +656,10 @@ html[data-theme="light"] .chat-bubble .md-code { background: #1f2937; }
 @media (max-width: 380px) {
   .shell { padding: 12px 10px calc(32px + env(safe-area-inset-bottom)); }
   .app-bar h1 { font-size: 16px; }
-  .user-tag { font-size: 12px; padding: 0 10px; }
+  /* 超窄屏：用户名与按钮再压缩，保证顶栏一行放下 */
+  .user-tag { font-size: 11px; padding: 0 6px; max-width: 26vw; }
+  .icon-btn, #colorBtn { width: 28px; height: 28px; min-height: 28px; }
+  .logout-btn { padding: 0 8px; }
   .panel-head h2 { font-size: 15px; }
 }
 
