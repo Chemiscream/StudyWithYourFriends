@@ -17,6 +17,7 @@ import NotifModal from "./components/NotifModal.vue";
 import FavoriteModal from "./components/FavoriteModal.vue";
 import UpdateModal from "./components/UpdateModal.vue";
 import EmojiPanel from "./components/EmojiPanel.vue";
+import AppDialog from "./components/AppDialog.vue";
 
 // hash ↔ 视图双向同步（#login 为登录视图，兼容旧 /login.html 跳转；#record/id 为详情页）
 function onHash() {
@@ -53,4 +54,5 @@ onUnmounted(() => window.removeEventListener("hashchange", onHash));
   <UpdateModal v-if="state.update" />
   <DailyReportListModal v-if="state.daily.listOpen" />
   <DailyReportDetailModal v-if="state.daily.detailOpen" />
+  <AppDialog />
 </template>

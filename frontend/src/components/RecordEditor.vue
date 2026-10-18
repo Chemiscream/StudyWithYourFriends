@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
-import { state, submitRecord, cancelEdit, toggleEmoji } from "../store.js";
+import { state, submitRecord, cancelEdit, toggleEmoji, askConfirm } from "../store.js";
 
 const editor = ref(null);      // contenteditable div
 const imgInput = ref(null);
@@ -167,12 +167,12 @@ function onPaste(e) {
 }
 
 // 点击编辑器内图片/视频删除（视频点击会触发播放控制，需按住 Alt 点击删除）
-function onEditorClick(e) {
+async function onEditorClick(e) {
   const t = e.target;
   if (t.tagName === "IMG" && t.closest(".editor")) {
-    if (confirm("删除这张图片？")) t.remove();
+    if (await askConfirm("删除这张图片？")) t.remove();
   } else if (t.tagName === "VIDEO" && t.closest(".editor") && e.altKey) {
-    if (confirm("删除这个视频？")) t.remove();
+    if (await askConfirm("删除这个视频？")) t.remove();
   }
 }
 

@@ -33,6 +33,8 @@ export const state = reactive({
   favorites: { open: false, items: [], loading: false, msg: "" },
   // 用户列表（留言 @提及补全用，登录后拉取）
   users: [],
+  // 通用提示/确认弹窗（替代原生 alert/confirm，与项目风格一致）
+  dialog: { open: false, text: "", confirmMode: false, resolve: null },
   // 编辑态
   editingId: null,
   editHtml: "",
@@ -133,10 +135,10 @@ export async function loadDetail() {
 
 // ---------- 点赞 ----------
 export async function toggleLike(rid) {
-  if (!state.token) { alert("请先登录再点赞"); return; }
+  if (!state.token) { showDialog("请先登录再点赞"); return; }
   try {
     const res = await request(`/api/records/${rid}/like`, { method: "POST" });
-    if (!res.ok) { alert(res.message || "操作失败"); return; }
+    if (!res.ok) { showDialog(res.message || "操作失败"); return; }
     const rec = state.records.find((r) => r.id === rid);
     if (rec) { rec.like_count = res.like_count; rec.liked = res.liked; }
     if (state.detailRecord && state.detailRecord.id === rid) {
@@ -148,10 +150,10 @@ export async function toggleLike(rid) {
 
 // ---------- 收藏 ----------
 export async function toggleFavorite(rid) {
-  if (!state.token) { alert("请先登录再收藏"); return; }
+  if (!state.token) { showDialog("请先登录再收藏"); return; }
   try {
     const res = await request(`/api/records/${rid}/favorite`, { method: "POST" });
-    if (!res.ok) { alert(res.message || "操作失败"); return; }
+    if (!res.ok) { showDialog(res.message || "操作失败"); return; }
     const rec = state.records.find((r) => r.id === rid);
     if (rec) rec.favorited = res.favorited;
     if (state.detailRecord && state.detailRecord.id === rid) state.detailRecord.favorited = res.favorited;
@@ -185,10 +187,10 @@ export async function loadFavorites() {
 
 // ---------- 留言点赞 ----------
 export async function toggleCommentLike(cid) {
-  if (!state.token) { alert("请先登录再点赞"); return; }
+  if (!state.token) { showDialog("请先登录再点赞"); return; }
   try {
     const res = await request(`/api/comments/${cid}/like`, { method: "POST" });
-    if (!res.ok) { alert(res.message || "操作失败"); return; }
+    if (!res.ok) { showDialog(res.message || "操作失败"); return; }
     const apply = (cs) => {
       const c = (cs || []).find((x) => x.id === cid);
       if (c) { c.like_count = res.like_count; c.liked = res.liked; }
@@ -387,13 +389,13 @@ export async function submitRecord(html) {
 }
 
 export async function delRecord(id) {
-  if (!confirm("确定删除这条记录？")) return;
+  if (!(await askConfirm("确定删除这条记录？"))) return;
   const res = await request("/api/records/" + id, { method: "DELETE" });
   if (res.ok) {
     if (state.detailId === id) closeDetail(); // 详情页正开着被删的记录时退回主页
     loadRecords();
   }
-  else alert(res.message || "删除失败");
+  else showDialog(res.message || "删除失败");
 }
 
 // ---------- 评论 ----------
@@ -407,7 +409,7 @@ export async function sendComment(rid, content) {
     loadRecords();
     if (state.detailId === rid) loadDetail();
   } else {
-    alert(res.message || "留言失败");
+    showDialog(res.message || "留言失败");
   }
 }
 
@@ -420,13 +422,13 @@ export function cancelReply() {
 }
 
 export async function delComment(cid) {
-  if (!confirm("确定删除这条留言？")) return;
+  if (!(await askConfirm("确定删除这条留言？"))) return;
   const res = await request(`/api/comments/${cid}`, { method: "DELETE" });
   if (res.ok) {
     loadRecords();
     if (state.detailId) loadDetail();
   }
-  else alert(res.message || "删除失败");
+  else showDialog(res.message || "删除失败");
 }
 
 // ---------- 统计 ----------
@@ -527,6 +529,29 @@ export async function openDailyDetail(date) {
   }
 }
 export function closeDailyDetail() { state.daily.detailOpen = false; state.daily.detail = null; }
+
+// ---------- 通用提示/确认弹窗 ----------
+// 纯提示（替代 alert）
+export function showDialog(text) {
+  state.dialog.open = true;
+  state.dialog.text = text;
+  state.dialog.confirmMode = false;
+  state.dialog.resolve = null;
+}
+// 确认（替代 confirm）：确定 resolve(true)，取消/遮罩关闭 resolve(false)
+export function askConfirm(text) {
+  return new Promise((resolve) => {
+    state.dialog.open = true;
+    state.dialog.text = text;
+    state.dialog.confirmMode = true;
+    state.dialog.resolve = resolve;
+  });
+}
+export function closeDialog(val) {
+  if (state.dialog.confirmMode && state.dialog.resolve) state.dialog.resolve(val);
+  state.dialog.open = false;
+  state.dialog.resolve = null;
+}
 
 // ---------- 用户列表（@提及补全） ----------
 export async function ensureUsers() {

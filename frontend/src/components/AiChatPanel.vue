@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onUnmounted } from "vue";
 import { ai, send, clearHistory, setProvider, setLocalModel, saveAiCfgFields, loadModels, ensureAiLoaded } from "../useAiChat.js";
+import { askConfirm } from "../store.js";
 import { mdRender, esc } from "../utils/md.js";
 
 const collapsed = ref(localStorage.getItem("studylog_collapse_ai") === "1");
@@ -38,7 +39,7 @@ async function doSend() {
 
 async function doClear(e) {
   e.stopPropagation();
-  if (!confirm("确定清空你的全部 AI 对话记录？")) return;
+  if (!(await askConfirm("确定清空你的全部 AI 对话记录？"))) return;
   await clearHistory();
 }
 

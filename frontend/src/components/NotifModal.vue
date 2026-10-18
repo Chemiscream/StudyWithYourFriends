@@ -1,5 +1,5 @@
 <script setup>
-import { state, fmtComment, openNotification, clearNotifications } from "../store.js";
+import { state, fmtComment, openNotification, clearNotifications, askConfirm } from "../store.js";
 
 function typeIcon(t) {
   if (t === "like_record" || t === "like_comment") return "👍";
@@ -13,9 +13,9 @@ function typeText(t) {
   if (t === "mention") return "在留言中@了你";
   return "评论了你的记录";
 }
-function onClear() {
+async function onClear() {
   if (!state.notif.items.length) return;
-  if (!confirm("确定清除全部消息？")) return;
+  if (!(await askConfirm("确定清除全部消息？"))) return;
   clearNotifications();
 }
 function close() {
