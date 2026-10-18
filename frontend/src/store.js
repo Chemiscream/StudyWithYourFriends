@@ -1,5 +1,5 @@
 // 全局状态（单例 reactive，等价于原 index.html 的全局变量 + 函数集合）
-import { reactive } from "vue";
+import { reactive, nextTick } from "vue";
 import { request, getToken, setToken, authHeaders } from "./api.js";
 
 export const PALETTE = ["4a90d9","e74c3c","27ae60","f39c12","9b59b6","1abc9c","e67e22","34495e","d35400","8e44ad","16a085","c0392b","2980b9","f1c40f","7f8c8d"];
@@ -26,6 +26,7 @@ export const state = reactive({
   detailRecord: null,
   detailLoading: false,
   detailMsg: "",
+  detailReturnScroll: null, // 从动态列表进入详情时记住的滚动位置；null 表示返回时回顶部（如从消息进入）
   // 通知
   notif: { open: false, unread: 0, items: [], loading: false },
   // 编辑态
@@ -72,8 +73,10 @@ export function parseDetailHash() {
   return m ? Number(m[1]) : null;
 }
 
-export function openDetail(id) {
-  if (state.detailId === id && state.detailRecord) return;
+export function openDetail(id, fromNotif = false) {
+  // 从动态列表进入时记住滚动位置，返回时恢复；从消息进入时返回首页顶部
+  state.detailReturnScroll = fromNotif ? null : window.scrollY;
+  if (state.detailId === id && state.detailRecord) { window.scrollTo(0, 0); return; }
   location.hash = "#record/" + id; // hashchange 里统一加载
 }
 
@@ -86,6 +89,10 @@ export function closeDetail() {
     // 用 replaceState 去掉 hash，避免回退键落回详情页
     history.replaceState(null, "", location.pathname + location.search);
   }
+  // 从动态列表进入的返回原滚动位置，从消息进入的（null）回首页顶部；等主页重新渲染后再滚动
+  const s = state.detailReturnScroll;
+  state.detailReturnScroll = null;
+  nextTick(() => window.scrollTo(0, s == null ? 0 : s));
 }
 
 /** hash 变化时同步详情页状态并加载数据（初始加载也调用一次）。 */
@@ -96,6 +103,7 @@ export function syncDetailFromHash() {
     state.detailRecord = null;
     state.detailMsg = "";
     state.activeReply = null;
+    if (id) window.scrollTo(0, 0); // 进入详情页从顶部开始看
   }
   if (id) loadDetail();
 }
@@ -134,6 +142,21 @@ export async function toggleLike(rid) {
   } catch (e) { /* 网络错误不打断 */ }
 }
 
+// ---------- 留言点赞 ----------
+export async function toggleCommentLike(cid) {
+  if (!state.token) { alert("请先登录再点赞"); return; }
+  try {
+    const res = await request(`/api/comments/${cid}/like`, { method: "POST" });
+    if (!res.ok) { alert(res.message || "操作失败"); return; }
+    const apply = (cs) => {
+      const c = (cs || []).find((x) => x.id === cid);
+      if (c) { c.like_count = res.like_count; c.liked = res.liked; }
+    };
+    for (const rec of state.records) apply(rec.comments);
+    if (state.detailRecord) apply(state.detailRecord.comments);
+  } catch (e) { /* 网络错误不打断 */ }
+}
+
 // ---------- 通知 ----------
 let notifTimer = null;
 export async function loadNotifications() {
@@ -152,13 +175,13 @@ export function startNotifPoll() {
 export function stopNotifPoll() {
   if (notifTimer) { clearInterval(notifTimer); notifTimer = null; }
 }
-/** 点击通知：标记已读并跳转对应记录详情页。 */
+/** 点击通知：标记已读并跳转对应记录详情页（返回时回首页顶部）。 */
 export async function openNotification(n) {
   state.notif.open = false;
   if (!n.read) {
     request(`/api/notifications/${n.id}/read`, { method: "POST" }).then(loadNotifications);
   }
-  openDetail(n.record_id);
+  openDetail(n.record_id, true);
 }
 export async function clearNotifications() {
   try {

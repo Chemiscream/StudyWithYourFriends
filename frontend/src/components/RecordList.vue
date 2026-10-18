@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive } from "vue";
-import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, openDetail } from "../store.js";
+import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, toggleCommentLike, openDetail } from "../store.js";
 
 const countInfo = computed(() => (state.records.length ? `共 ${state.records.length} 条` : ""));
 
@@ -93,6 +93,11 @@ function onRecordClick(r, e) {
             <span v-if="c.reply_to" class="reply-badge">回复 <b>@{{ c.reply_to }}</b></span>
             <span class="comment-text">{{ c.content }}</span>
             <span class="comment-time">{{ fmtComment(c.created_at) }}</span>
+            <button
+              class="comment-like" :class="{ liked: c.liked }" type="button"
+              :title="state.token ? (c.liked ? '取消点赞' : '点赞') : '登录后可点赞'"
+              @click="toggleCommentLike(c.id)"
+            >{{ c.liked ? "❤️" : "🤍" }}{{ c.like_count ? " " + c.like_count : "" }}</button>
             <button v-if="(c.mine || state.isAdmin) && state.token" class="comment-del" type="button" title="删除留言" @click="delComment(c.id)">删除</button>
             <button v-if="state.token && !c.mine" class="comment-reply" type="button" title="回复这条留言" @click="onReply(r, c)">回复</button>
           </div>

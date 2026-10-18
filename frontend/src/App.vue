@@ -13,6 +13,7 @@ import FilterBar from "./components/FilterBar.vue";
 import RecordList from "./components/RecordList.vue";
 import DetailView from "./components/DetailView.vue";
 import ProfileModal from "./components/ProfileModal.vue";
+import NotifModal from "./components/NotifModal.vue";
 import UpdateModal from "./components/UpdateModal.vue";
 import EmojiPanel from "./components/EmojiPanel.vue";
 
@@ -45,6 +46,7 @@ onUnmounted(() => window.removeEventListener("hashchange", onHash));
     <span v-if="state.version" class="ver-tag">v{{ state.version }}</span>
   </div>
   <EmojiPanel />
+  <NotifModal v-if="state.notif.open" />
   <ProfileModal v-if="state.profileOpen" />
   <UpdateModal v-if="state.update" />
   <DailyReportListModal v-if="state.daily.listOpen" />

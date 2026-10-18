@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref, computed } from "vue";
-import { state, fmtTime, fmtComment, closeDetail, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike } from "../store.js";
+import { state, fmtTime, fmtComment, closeDetail, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, toggleCommentLike } from "../store.js";
 
 const r = computed(() => state.detailRecord);
 
@@ -29,9 +29,9 @@ function openCommentEmoji(e) {
 }
 function onEdit() {
   const rec = r.value;
+  state.detailReturnScroll = null; // 编辑回主页编辑器顶部，不恢复列表滚动位置
   closeDetail();
   startEdit(rec);
-  window.scrollTo(0, 0);
 }
 function onDelete() {
   delRecord(r.value.id); // 删除成功后 store 会自动关闭详情页
@@ -79,6 +79,11 @@ function onDelete() {
           <span v-if="c.reply_to" class="reply-badge">回复 <b>@{{ c.reply_to }}</b></span>
           <span class="comment-text">{{ c.content }}</span>
           <span class="comment-time">{{ fmtComment(c.created_at) }}</span>
+          <button
+            class="comment-like" :class="{ liked: c.liked }" type="button"
+            :title="state.token ? (c.liked ? '取消点赞' : '点赞') : '登录后可点赞'"
+            @click="toggleCommentLike(c.id)"
+          >{{ c.liked ? "❤️" : "🤍" }}{{ c.like_count ? " " + c.like_count : "" }}</button>
           <button v-if="(c.mine || state.isAdmin) && state.token" class="comment-del" type="button" title="删除留言" @click="delComment(c.id)">删除</button>
           <button v-if="state.token && !c.mine" class="comment-reply" type="button" title="回复这条留言" @click="onReply(c)">回复</button>
         </div>

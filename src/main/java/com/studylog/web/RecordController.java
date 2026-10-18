@@ -1,10 +1,12 @@
 package com.studylog.web;
 
 import com.studylog.model.Comment;
+import com.studylog.model.CommentLike;
 import com.studylog.model.Notification;
 import com.studylog.model.Record;
 import com.studylog.model.RecordLike;
 import com.studylog.model.User;
+import com.studylog.repo.CommentLikeRepository;
 import com.studylog.repo.CommentRepository;
 import com.studylog.repo.NotificationRepository;
 import com.studylog.repo.RecordLikeRepository;
@@ -34,18 +36,21 @@ public class RecordController {
     private final CommentRepository comments;
     private final UserRepository users;
     private final RecordLikeRepository likes;
+    private final CommentLikeRepository commentLikes;
     private final NotificationRepository notifications;
     private final Tokens tokens;
     private final EntityManager em;
 
     public RecordController(RecordRepository records, CommentRepository comments,
                             UserRepository users, RecordLikeRepository likes,
+                            CommentLikeRepository commentLikes,
                             NotificationRepository notifications,
                             Tokens tokens, EntityManager em) {
         this.records = records;
         this.comments = comments;
         this.users = users;
         this.likes = likes;
+        this.commentLikes = commentLikes;
         this.notifications = notifications;
         this.tokens = tokens;
         this.em = em;
@@ -97,12 +102,22 @@ public class RecordController {
         String me = tokens.currentUser(req);
         List<Long> ids = rows.stream().map(r -> ((Number) r[0]).longValue()).toList();
 
-        // 留言
+        // 留言（含每条留言的点赞数与当前用户是否已赞）
         Map<Long, List<Map<String, Object>>> commentsMap = new HashMap<>();
         if (!ids.isEmpty()) {
             List<Comment> cs = comments.findByRecordIdInOrderByCreatedAtAsc(ids);
+            List<Long> cids = cs.stream().map(Comment::getId).toList();
+            Map<Long, Long> cLikeCounts = new HashMap<>();
+            Set<Long> cLikedIds = new HashSet<>();
+            if (!cids.isEmpty()) {
+                for (Object[] row : commentLikes.countByCommentIds(cids)) {
+                    cLikeCounts.put(((Number) row[0]).longValue(), ((Number) row[1]).longValue());
+                }
+                if (me != null) cLikedIds.addAll(commentLikes.findLikedCommentIds(cids, me));
+            }
             for (Comment c : cs) {
-                commentsMap.computeIfAbsent(c.getRecordId(), k -> new ArrayList<>()).add(commentMap(c, me));
+                commentsMap.computeIfAbsent(c.getRecordId(), k -> new ArrayList<>())
+                        .add(commentMap(c, me, cLikeCounts, cLikedIds));
             }
         }
 
@@ -151,9 +166,19 @@ public class RecordController {
         m.put("created_at", r.getCreatedAt());
         m.put("updated_at", r.getUpdatedAt());
         m.put("mine", r.getUsername().equals(me));
+        List<Comment> cs = comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid));
+        List<Long> cids = cs.stream().map(Comment::getId).toList();
+        Map<Long, Long> cLikeCounts = new HashMap<>();
+        Set<Long> cLikedIds = new HashSet<>();
+        if (!cids.isEmpty()) {
+            for (Object[] row : commentLikes.countByCommentIds(cids)) {
+                cLikeCounts.put(((Number) row[0]).longValue(), ((Number) row[1]).longValue());
+            }
+            if (me != null) cLikedIds.addAll(commentLikes.findLikedCommentIds(cids, me));
+        }
         List<Map<String, Object>> cms = new ArrayList<>();
-        for (Comment c : comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid))) {
-            cms.add(commentMap(c, me));
+        for (Comment c : cs) {
+            cms.add(commentMap(c, me, cLikeCounts, cLikedIds));
         }
         m.put("comments", cms);
         m.put("like_count", likes.countByRecordId(rid));
@@ -168,12 +193,15 @@ public class RecordController {
     @PostMapping("/records/{rid}/like")
     Map<String, Object> toggleLike(HttpServletRequest req, @PathVariable Long rid) {
         String me = requireLogin(req);
-        if (!records.existsById(rid)) throw new BizException(HttpStatus.NOT_FOUND, "记录不存在");
+        Record r = records.findById(rid)
+                .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "记录不存在"));
         boolean liked;
         var existing = likes.findByRecordIdAndUsername(rid, me);
         if (existing.isPresent()) {
             likes.delete(existing.get());
             liked = false;
+            // 取消点赞时撤回未处理的点赞通知，避免反复点赞刷通知
+            notifications.deleteByRecipientAndActorAndTypeAndRecordId(r.getUsername(), me, "like_record", rid);
         } else {
             RecordLike l = new RecordLike();
             l.setRecordId(rid);
@@ -181,11 +209,45 @@ public class RecordController {
             l.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
             likes.save(l);
             liked = true;
+            if (!r.getUsername().equals(me)) {
+                saveNotification(r.getUsername(), me, "like_record", rid, null, plainText(r.getContent()));
+            }
         }
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("ok", true);
         m.put("liked", liked);
         m.put("like_count", likes.countByRecordId(rid));
+        return m;
+    }
+
+    // ---------- 留言点赞（切换） ----------
+    @PostMapping("/comments/{cid}/like")
+    Map<String, Object> toggleCommentLike(HttpServletRequest req, @PathVariable Long cid) {
+        String me = requireLogin(req);
+        Comment c = comments.findById(cid)
+                .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "留言不存在"));
+        boolean liked;
+        var existing = commentLikes.findByCommentIdAndUsername(cid, me);
+        if (existing.isPresent()) {
+            commentLikes.delete(existing.get());
+            liked = false;
+            notifications.deleteByRecipientAndActorAndTypeAndCommentId(c.getUsername(), me, "like_comment", cid);
+        } else {
+            CommentLike l = new CommentLike();
+            l.setCommentId(cid);
+            l.setUsername(me);
+            l.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+            commentLikes.save(l);
+            liked = true;
+            if (!c.getUsername().equals(me)) {
+                String preview = c.getContent().length() > 60 ? c.getContent().substring(0, 60) + "…" : c.getContent();
+                saveNotification(c.getUsername(), me, "like_comment", c.getRecordId(), cid, preview);
+            }
+        }
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("ok", true);
+        m.put("liked", liked);
+        m.put("like_count", commentLikes.countByCommentId(cid));
         return m;
     }
 
@@ -221,6 +283,9 @@ public class RecordController {
         if (!r.getUsername().equals(me) && !isAdmin(me)) {
             throw new BizException(HttpStatus.FORBIDDEN, "只能删除自己的记录");
         }
+        List<Long> cids = comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid))
+                .stream().map(Comment::getId).toList();
+        if (!cids.isEmpty()) commentLikes.deleteByCommentIdIn(cids);
         comments.deleteByRecordId(rid);
         likes.deleteByRecordId(rid);
         notifications.deleteByRecordId(rid);
@@ -292,13 +357,14 @@ public class RecordController {
         if (!c.getUsername().equals(me) && !isAdmin(me)) {
             throw new BizException(HttpStatus.FORBIDDEN, "只能删除自己的留言");
         }
+        commentLikes.deleteByCommentId(cid);
         notifications.deleteByCommentId(cid);
         comments.delete(c);
         return Map.of("ok", true, "message", "已删除");
     }
 
     // ---------- 工具 ----------
-    private Map<String, Object> commentMap(Comment c, String me) {
+    private Map<String, Object> commentMap(Comment c, String me, Map<Long, Long> likeCounts, Set<Long> likedIds) {
         Map<String, Object> cm = new LinkedHashMap<>();
         cm.put("id", c.getId());
         cm.put("username", c.getUsername());
@@ -307,6 +373,8 @@ public class RecordController {
         cm.put("color", colorOf(c.getUsername()));
         cm.put("created_at", c.getCreatedAt());
         cm.put("mine", c.getUsername().equals(me));
+        cm.put("like_count", likeCounts.getOrDefault(c.getId(), 0L));
+        cm.put("liked", likedIds.contains(c.getId()));
         return cm;
     }
 
@@ -348,6 +416,13 @@ public class RecordController {
 
     private boolean isAdmin(String username) {
         return users.findByUsername(username).map(User::isAdmin).orElse(false);
+    }
+
+    /** 记录 HTML 内容转纯文本摘要（用于点赞通知预览）。 */
+    private static String plainText(String html) {
+        if (html == null) return "";
+        String t = html.replaceAll("<[^>]+>", " ").replace("&nbsp;", " ").replaceAll("\\s+", " ").trim();
+        return t.length() > 60 ? t.substring(0, 60) + "…" : t;
     }
 
     /** 转义 LIKE 通配符（配合 SQL 中的 ESCAPE '\\'）。 */

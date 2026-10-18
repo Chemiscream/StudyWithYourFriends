@@ -23,4 +23,12 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     @Transactional
     void deleteByCommentId(Long commentId);
+
+    /** 取消记录点赞时撤回对应的点赞通知（避免点赞/取消/再点赞刷通知）。 */
+    @Transactional
+    void deleteByRecipientAndActorAndTypeAndRecordId(String recipient, String actor, String type, Long recordId);
+
+    /** 取消留言点赞时撤回对应的点赞通知。 */
+    @Transactional
+    void deleteByRecipientAndActorAndTypeAndCommentId(String recipient, String actor, String type, Long commentId);
 }

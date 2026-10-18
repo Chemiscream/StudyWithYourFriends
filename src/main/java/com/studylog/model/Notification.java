@@ -29,7 +29,8 @@ public class Notification {
     @Column(name = "record_id", nullable = false)
     private Long recordId;
 
-    @Column(name = "comment_id", nullable = false)
+    /** 关联留言；记录点赞通知（like_record）无关联留言，为 null。 */
+    @Column(name = "comment_id")
     private Long commentId;
 
     /** 留言内容摘要（截断），便于列表直接展示。 */
