@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, ref, computed } from "vue";
 import { state, fmtTime, fmtComment, closeDetail, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike } from "../store.js";
+import { renderMention } from "../utils/md.js";
 
 const r = computed(() => state.detailRecord);
 
@@ -84,7 +85,7 @@ function onDelete() {
         <div v-for="c in r.comments || []" :key="c.id" class="comment-item">
           <span class="role-tag" :style="{ background: '#' + c.color + '22', color: '#' + c.color }">{{ c.username }}</span>
           <span v-if="c.reply_to" class="reply-badge">回复 <b>@{{ c.reply_to }}</b></span>
-          <span class="comment-text">{{ c.content }}</span>
+          <span class="comment-text" v-html="renderMention(c.content)"></span>
           <span class="comment-time">{{ fmtComment(c.created_at) }}</span>
           <button
             class="comment-like" :class="{ liked: c.liked }" type="button"

@@ -2,12 +2,15 @@
 import { state, fmtComment, openNotification, clearNotifications } from "../store.js";
 
 function typeIcon(t) {
-  return t === "like_record" || t === "like_comment" ? "👍" : "💬";
+  if (t === "like_record" || t === "like_comment") return "👍";
+  if (t === "mention") return "📣";
+  return "💬";
 }
 function typeText(t) {
   if (t === "reply") return "回复了你的留言";
   if (t === "like_record") return "赞了你的记录";
   if (t === "like_comment") return "赞了你的留言";
+  if (t === "mention") return "在留言中@了你";
   return "评论了你的记录";
 }
 function onClear() {

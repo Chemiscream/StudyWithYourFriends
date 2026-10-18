@@ -1,6 +1,7 @@
 <script setup>
 import { computed, reactive } from "vue";
 import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail } from "../store.js";
+import { renderMention } from "../utils/md.js";
 
 const countInfo = computed(() => (state.records.length ? `共 ${state.records.length} 条` : ""));
 
@@ -98,7 +99,7 @@ function onRecordClick(r, e) {
           <div v-for="c in visibleComments(r)" :key="c.id" class="comment-item">
             <span class="role-tag" :style="{ background: '#' + c.color + '22', color: '#' + c.color }">{{ c.username }}</span>
             <span v-if="c.reply_to" class="reply-badge">回复 <b>@{{ c.reply_to }}</b></span>
-            <span class="comment-text">{{ c.content }}</span>
+            <span class="comment-text" v-html="renderMention(c.content)"></span>
             <span class="comment-time">{{ fmtComment(c.created_at) }}</span>
             <button
               class="comment-like" :class="{ liked: c.liked }" type="button"

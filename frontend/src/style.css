@@ -453,6 +453,8 @@ html[data-theme="dark"] .editor { background: #0d1726; }
 .comment-empty { font-size: 12px; color: var(--muted); }
 .reply-badge { font-size: 12px; color: var(--muted); }
 .reply-badge b { color: var(--primary-dark); font-weight: 700; }
+/* 留言正文中的 @提及 高亮 */
+.comment-text .mention { color: var(--primary-dark); font-weight: 700; }
 .comment-reply { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0 2px; border-radius: 4px; }
 .comment-reply:hover { color: var(--primary-dark); background: var(--primary-soft); }
 .comment-like { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0 2px; border-radius: 4px; white-space: nowrap; }

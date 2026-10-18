@@ -20,6 +20,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -36,6 +39,11 @@ public class RecordController {
     private static final int MAX_CONTENT = 70_000_000;
     // 「我的收藏」弹窗最多返回的条数
     private static final int MAX_FAVORITES = 200;
+    // 一条留言最多通知的 @提及人数
+    private static final int MAX_MENTIONS = 5;
+    // @提及解析：@用户名（截到空白、@ 或常见中英文标点为止，最长 32 字符）
+    private static final Pattern MENTION_RE =
+            Pattern.compile("@([^\\s@，。！？、,.!?~；;：:\"'“”()（）\\[\\]【】]{1,32})");
 
     private final RecordRepository records;
     private final CommentRepository comments;
@@ -446,8 +454,8 @@ public class RecordController {
     }
 
     /**
-     * 留言产生两类通知：回复了你的评论（reply）、评论了你的记录（comment）。
-     * 自己操作自己不通知；同一接收人只发一条（回复记录作者自己的评论时按 reply 通知一次）。
+     * 留言产生三类通知：回复了你的评论（reply）、评论了你的记录（comment）、@提及（mention）。
+     * 自己操作自己不通知；同一接收人只发一条（被回复者/被提及者不重复通知，作者被提及则不再发 comment）。
      */
     private void createNotifications(Record record, Comment c, String me) {
         String preview = c.getContent().length() > 60 ? c.getContent().substring(0, 60) + "…" : c.getContent();
@@ -455,6 +463,16 @@ public class RecordController {
         if (c.getReplyTo() != null && !c.getReplyTo().equals(me)) {
             saveNotification(c.getReplyTo(), me, "reply", record.getId(), c.getId(), preview);
             notified.add(c.getReplyTo());
+        }
+        // @提及：解析正文中的 @用户名，存在且非自己才通知，去重后上限 5 人
+        Matcher m = MENTION_RE.matcher(c.getContent());
+        int mentioned = 0;
+        while (m.find() && mentioned < MAX_MENTIONS) {
+            String u = m.group(1);
+            if (u.equals(me) || notified.contains(u) || !users.existsByUsername(u)) continue;
+            saveNotification(u, me, "mention", record.getId(), c.getId(), preview);
+            notified.add(u);
+            mentioned++;
         }
         String owner = record.getUsername();
         if (!owner.equals(me) && !notified.contains(owner)) {

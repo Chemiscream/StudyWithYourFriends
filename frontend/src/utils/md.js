@@ -6,6 +6,13 @@ export function esc(s) {
   return d.innerHTML;
 }
 
+// @提及高亮：先整体转义防 XSS，再把正文里的 @用户名 包上高亮标记（用户名截到空白或常见标点为止）。
+const MENTION_RE = /@([^\s@，。！？、,.!?~；;：:"'“”()（）\[\]【】]{1,32})/g;
+export function renderMention(text) {
+  if (!text) return "";
+  return esc(text).replace(MENTION_RE, '<span class="mention">@$1</span>');
+}
+
 export function mdRender(src) {
   src = src.replace(/\s+$/, ""); // 尾部空白不渲染，避免流式输出时出现多余空行
   const blocks = [], spans = [];
