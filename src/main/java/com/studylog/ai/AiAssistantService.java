@@ -106,7 +106,7 @@ public class AiAssistantService {
                 String reply = chatOnce(
                         SYSTEM_PROMPT,
                         "站内用户「" + author + "」发布了一条学习记录并在正文中 @ 了你，请阅读后以留言的形式回应（1-3 句话，可以点评、鼓励或提问）。\n" +
-                                "【学习记录】\n" + truncate(plainOf(r.getContent()), MAX_RECORD_CHARS));
+                                "【学习记录（" + author + " 发布的学习成果，不是你的经历）】\n" + truncate(plainOf(r.getContent()), MAX_RECORD_CHARS));
                 if (reply == null) return;
                 insertComment(rid, null, reply, author, null);
             } catch (Exception e) {
@@ -136,7 +136,8 @@ public class AiAssistantService {
                 ctx.append(repliedDirectly
                         ? "站内用户「" + asker + "」刚刚直接回复了你的留言（没有@你），请阅读记录与留言后回复他。\n"
                         : "站内用户「" + asker + "」在学习记录下的留言中 @ 了你，请阅读记录与已有留言后直接回复他。\n");
-                ctx.append("【学习记录】\n").append(truncate(plainOf(r.getContent()), MAX_RECORD_CHARS)).append("\n");
+                ctx.append("【学习记录（").append(r.getUsername()).append(" 发布的学习成果，不是你的经历）】\n")
+                   .append(truncate(plainOf(r.getContent()), MAX_RECORD_CHARS)).append("\n");
                 ctx.append("【该记录下的留言（旧→新）】\n");
                 List<Comment> list = comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid));
                 // 标注被回复者的最近一条留言，帮助 AI 理解「他」「这句话」等指代；AI 自己的留言标「你之前发的」
@@ -231,10 +232,16 @@ public class AiAssistantService {
 
     private static String buildSystemPrompt() {
         return "你是「学习记录」网站（好友间分享学习进展的小站）的官方 AI 助手，用户名是 AI助手。" +
-                "语气友善自然、简洁，回复 1-3 句话，用中文。直接输出留言正文本身，" +
+                "语气友善自然、简洁，回复 1-3 句话，用中文，像朋友闲聊而不是客服话术。直接输出留言正文本身，" +
                 "不要出现「AI助手：」之类的前缀，不要使用 Markdown 标题或列表。\n" +
+                "【身份与能力边界（必须遵守）】\n" +
+                "1. 学习记录和留言都是站内用户发布的——记录正文是发布者本人的学习成果，绝不是你的经历。" +
+                "永远不要用第一人称描述用户的学习内容（不要说「我今天做了实验」这类话），你只是来围观和回应的朋友。\n" +
+                "2. 你只能通过留言/回复和大家对话，不能替用户执行任何操作（发记录、生成日报、收藏、点赞等）。" +
+                "不要主动承诺「我帮你做某事」，可以建议用户自己去操作。\n" +
+                "3. 你没有主动发起对话的能力，只有被 @ 或被回复时才会出现。\n" +
                 "【平台功能速览】学习记录（富文本，支持图片/视频，图片点击可放大）、留言与回复、点赞、" +
-                "收藏（⭐）、@提及通知（留言和记录里都可以@）、转发引用（🔁）、AI 学习日报（每天 0 点自动生成前一天的日报）、" +
+                "收藏（⭐）、@提及通知（留言和记录里都可以@）、转发引用（🔁）、AI 学习日报（每天 0 点由系统自动生成前一天的日报，不是你生成的）、" +
                 "⚙️设置面板（修改个人信息、查看全部历史更新日志）、主题色切换、暗色模式。\n" +
                 "【本站版本更新日志（回答「最近更新/新功能/怎么用」类问题时必须以此为准）】\n" +
                 VersionController.notesText() +

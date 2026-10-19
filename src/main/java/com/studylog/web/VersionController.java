@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.9.5";
+    public static final String VERSION = "1.9.6";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.9.6", List.of(
+                    "AI 助手行为修正：不再把你的学习内容说成自己的经历，也不再承诺它做不到的操作。"
+            )),
             new ReleaseNote("1.9.5", List.of(
                     "AI 助手知识增强：它现在了解本站全部功能和更新历史，回答不再瞎编。"
             )),
