@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.9.4";
+    public static final String VERSION = "1.9.5";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.9.5", List.of(
+                    "AI 助手知识增强：它现在了解本站全部功能和更新历史，回答不再瞎编。"
+            )),
             new ReleaseNote("1.9.4", List.of(
                     "AI 助手现在支持「直接回复」：在留言下点回复 AI 助手（无需 @），它也会回复你。"
             )),
@@ -147,4 +150,13 @@ public class VersionController {
     }
 
     private record ReleaseNote(String version, List<String> notes) {}
+
+    /** 全部版本更新日志的纯文本（供 AI 助手 system prompt 引用），格式：v1.9.5：条目；条目。 */
+    public static String notesText() {
+        StringBuilder sb = new StringBuilder();
+        for (ReleaseNote n : NOTES) {
+            sb.append("v").append(n.version()).append("：").append(String.join("；", n.notes())).append("\n");
+        }
+        return sb.toString();
+    }
 }

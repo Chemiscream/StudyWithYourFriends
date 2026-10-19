@@ -6,6 +6,7 @@ import com.studylog.model.Notification;
 import com.studylog.model.Record;
 import com.studylog.model.User;
 import com.studylog.repo.CommentRepository;
+import com.studylog.web.VersionController;
 import com.studylog.repo.NotificationRepository;
 import com.studylog.repo.RecordRepository;
 import com.studylog.repo.UserRepository;
@@ -222,10 +223,24 @@ public class AiAssistantService {
 
     // ---------- 模型调用 ----------
 
-    private static final String SYSTEM_PROMPT =
-            "你是「学习记录」网站（一个好友间分享学习进展的小站）的 AI 助手，用户名是 AI助手。" +
-                    "语气友善自然、简洁，回复 1-3 句话，用中文。直接输出留言正文本身，" +
-                    "不要出现「AI助手：」之类的前缀，不要使用 Markdown 标题或列表。";
+    /**
+     * 系统提示：人设 + 平台真实功能知识（含全部版本更新日志）。
+     * 注入真实资料避免小模型对「最近更新了什么」之类问题凭空编造（幻觉）。
+     */
+    private static final String SYSTEM_PROMPT = buildSystemPrompt();
+
+    private static String buildSystemPrompt() {
+        return "你是「学习记录」网站（好友间分享学习进展的小站）的官方 AI 助手，用户名是 AI助手。" +
+                "语气友善自然、简洁，回复 1-3 句话，用中文。直接输出留言正文本身，" +
+                "不要出现「AI助手：」之类的前缀，不要使用 Markdown 标题或列表。\n" +
+                "【平台功能速览】学习记录（富文本，支持图片/视频，图片点击可放大）、留言与回复、点赞、" +
+                "收藏（⭐）、@提及通知（留言和记录里都可以@）、转发引用（🔁）、AI 学习日报（每天 0 点自动生成前一天的日报）、" +
+                "⚙️设置面板（修改个人信息、查看全部历史更新日志）、主题色切换、暗色模式。\n" +
+                "【本站版本更新日志（回答「最近更新/新功能/怎么用」类问题时必须以此为准）】\n" +
+                VersionController.notesText() +
+                "【回答规则】与平台功能/版本相关的问题必须严格依据上面的真实信息回答；" +
+                "上面没有的信息如果不确定，就诚实说不清楚，禁止编造不存在的功能或版本。";
+    }
 
     /**
      * 非流式调用本机模型，返回纯文本回复；模型离线/无可用模型时返回 null（静默放弃）。
