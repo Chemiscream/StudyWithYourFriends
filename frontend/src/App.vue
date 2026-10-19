@@ -15,6 +15,7 @@ import DetailView from "./components/DetailView.vue";
 import ProfileModal from "./components/ProfileModal.vue";
 import SettingsModal from "./components/SettingsModal.vue";
 import ChangelogModal from "./components/ChangelogModal.vue";
+import ImageLightbox from "./components/ImageLightbox.vue";
 import NotifModal from "./components/NotifModal.vue";
 import FavoriteModal from "./components/FavoriteModal.vue";
 import UpdateModal from "./components/UpdateModal.vue";
@@ -55,6 +56,7 @@ onUnmounted(() => window.removeEventListener("hashchange", onHash));
   <ProfileModal v-if="state.profileOpen" />
   <SettingsModal v-if="state.settingsOpen" />
   <ChangelogModal v-if="state.changelogOpen" />
+  <ImageLightbox v-if="state.lightbox" />
   <UpdateModal v-if="state.update" />
   <DailyReportListModal v-if="state.daily.listOpen" />
   <DailyReportDetailModal v-if="state.daily.detailOpen" />

@@ -51,6 +51,7 @@ export const state = reactive({
   // emoji 面板（全站单例）
   emoji: { visible: false, kind: null, inputEl: null, savedRange: null, anchorEl: null },
   profileOpen: false,
+  lightbox: null, // 图片放大预览 {src}
   settingsOpen: false, // ⚙️ 设置面板（修改个人信息 / 查看更新日志入口）
   changelogOpen: false, // 历史更新日志弹窗
   // AI 日报
@@ -380,6 +381,14 @@ export function startQuote(rec) {
 
 export function cancelQuote() {
   state.quoteOf = null;
+}
+
+/** 点击富文本里的图片 → 全屏放大预览。 */
+export function openImage(src) {
+  if (src) state.lightbox = { src };
+}
+export function closeImage() {
+  state.lightbox = null;
 }
 
 export function cancelEdit() {

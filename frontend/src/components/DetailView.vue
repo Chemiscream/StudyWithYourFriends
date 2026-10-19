@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref, computed } from "vue";
-import { state, fmtTime, fmtComment, closeDetail, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail } from "../store.js";
+import { state, fmtTime, fmtComment, closeDetail, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImage } from "../store.js";
 import { renderMention } from "../utils/md.js";
 import { useMention } from "../useMention.js";
 
@@ -46,6 +46,10 @@ function onQuote() {
   closeDetail();
   startQuote(rec); // 回主页顶部编辑器以转发模式打开
 }
+// 详情页点击图片 → 放大预览
+function onContentClick(e) {
+  if (e.target.tagName === "IMG") openImage(e.target.src);
+}
 </script>
 
 <template>
@@ -70,7 +74,7 @@ function onQuote() {
           {{ fmtTime(r.created_at) }}<template v-if="r.updated_at">（编辑于 {{ fmtTime(r.updated_at) }}）</template>
         </span>
       </div>
-      <div class="record-content" v-html="r.content || ''"></div>
+      <div class="record-content" v-html="r.content || ''" @click="onContentClick"></div>
       <div v-if="r.quote" class="quote-card" type="button" @click="openDetail(r.quote.id)">
         <template v-if="!r.quote.deleted">
           <span class="quote-line">↪ 转发自 <b :style="{ color: '#' + (r.quote.color || '4a90d9') }">{{ r.quote.username }}</b></span>

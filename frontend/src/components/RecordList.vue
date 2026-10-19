@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive } from "vue";
-import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail } from "../store.js";
+import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImage } from "../store.js";
 import { renderMention } from "../utils/md.js";
 import { useMention } from "../useMention.js";
 
@@ -49,9 +49,10 @@ function registerInput(r, el) {
   if (el) commentInputs[r.id] = el;
 }
 
-// 点击记录正文区域进入详情页；链接/按钮/输入框/媒体/评论区/引用卡片不触发
+// 点击记录正文区域进入详情页；链接/按钮/输入框/媒体/评论区/引用卡片不触发；点击图片放大预览
 function onRecordClick(r, e) {
-  if (e.target.closest("a, button, input, video, img, .comments, .record-foot, .quote-card")) return;
+  if (e.target.tagName === "IMG") return openImage(e.target.src);
+  if (e.target.closest("a, button, input, video, .comments, .record-foot, .quote-card")) return;
   if (window.getSelection().toString()) return; // 正在选择文本时不跳转
   openDetail(r.id);
 }

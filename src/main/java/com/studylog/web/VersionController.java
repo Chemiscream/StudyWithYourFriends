@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.9.2";
+    public static final String VERSION = "1.9.3";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.9.3", List.of(
+                    "点击记录中的图片可全屏放大查看，点击空白处或按 Esc 关闭。"
+            )),
             new ReleaseNote("1.9.2", List.of(
                     "顶栏布局微调：⚙️ 设置按钮移到「退出」左边。"
             )),
