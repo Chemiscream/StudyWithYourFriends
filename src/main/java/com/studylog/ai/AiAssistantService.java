@@ -114,22 +114,31 @@ public class AiAssistantService {
         });
     }
 
-    /** 留言发布后调用：留言内容包含 @AI助手 时触发回复（reply_to 指向该留言，回复给留言作者）。 */
+    /**
+     * 留言发布后调用。触发条件（满足其一）：
+     * 1) 留言内容包含 @AI助手（reply_to 指向该留言）；
+     * 2) 该留言直接回复了 AI助手的留言（reply_to = AI助手，无需 @）。
+     */
     public void replyToComment(Record r, Comment c) {
         if (AI_NAME.equals(c.getUsername())) return; // 防自触发兜底
-        if (!c.getContent().contains("@" + AI_NAME)) return;
+        boolean mentioned = c.getContent().contains("@" + AI_NAME);
+        boolean replyToAi = AI_NAME.equals(c.getReplyTo());
+        if (!mentioned && !replyToAi) return;
         long rid = r.getId();
         long cid = c.getId();
         String asker = c.getUsername();
         String question = c.getContent();
+        boolean repliedDirectly = replyToAi; // 直接回复 AI 留言（非 @）
         pool.submit(() -> {
             try {
                 StringBuilder ctx = new StringBuilder();
-                ctx.append("站内用户「").append(asker).append("」在学习记录下的留言中 @ 了你，请阅读记录与已有留言后直接回复他。\n");
+                ctx.append(repliedDirectly
+                        ? "站内用户「" + asker + "」刚刚直接回复了你的留言（没有@你），请阅读记录与留言后回复他。\n"
+                        : "站内用户「" + asker + "」在学习记录下的留言中 @ 了你，请阅读记录与已有留言后直接回复他。\n");
                 ctx.append("【学习记录】\n").append(truncate(plainOf(r.getContent()), MAX_RECORD_CHARS)).append("\n");
                 ctx.append("【该记录下的留言（旧→新）】\n");
                 List<Comment> list = comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid));
-                // 标注被回复者的最近一条留言，帮助 AI 理解「他」「这句话」等指代
+                // 标注被回复者的最近一条留言，帮助 AI 理解「他」「这句话」等指代；AI 自己的留言标「你之前发的」
                 String replyTarget = c.getReplyTo();
                 Long targetCommentId = null;
                 if (replyTarget != null && !replyTarget.isEmpty()) {
@@ -141,11 +150,15 @@ public class AiAssistantService {
                 for (Comment o : list) {
                     if (o.getId().equals(cid)) continue; // 触发留言单独列出
                     if (shown++ >= MAX_COMMENTS_SHOWN) break;
-                    String tag = o.getId().equals(targetCommentId) ? "（" + asker + " 回复的对象）" : "";
+                    String tag;
+                    if (AI_NAME.equals(o.getUsername())) tag = "（你之前发的）";
+                    else if (o.getId().equals(targetCommentId)) tag = "（" + asker + " 回复的对象）";
+                    else tag = "";
                     ctx.append("- ").append(o.getUsername()).append(tag).append("：").append(oneLine(o.getContent())).append("\n");
                 }
-                ctx.append("【").append(asker).append(" 刚刚留言 @ 了你】");
-                if (replyTarget != null && !replyTarget.isEmpty()) {
+                ctx.append("【").append(asker).append(" 刚刚留言");
+                ctx.append(repliedDirectly ? "回复了你" : " @ 了你").append("】");
+                if (replyTarget != null && !replyTarget.isEmpty() && !repliedDirectly) {
                     ctx.append("（这条留言是在回复「").append(replyTarget).append("」的留言）");
                 }
                 ctx.append("\n").append(oneLine(question)).append("\n");
