@@ -8,6 +8,7 @@ export function useMention() {
   const open = ref(false);
   const items = ref([]);
   const index = ref(0);
+  const activeKey = ref(null); // 当前补全所属输入框的标识：列表页多个留言框共用本状态，弹层只在匹配的框上渲染
   let input = null;   // 当前补全中的输入框
   let startPos = -1;  // @ 字符在文本中的位置
   let enterGuard = false; // Enter 补全后拦截同一次按键触发的发送
@@ -19,7 +20,7 @@ export function useMention() {
     return m ? { start: caret - m[0].length, query: m[1] } : null;
   }
 
-  function onInput(e) {
+  function onInput(e, key = null) {
     input = e.target;
     const hit = queryAt(input.value, input.selectionStart);
     if (!hit) { open.value = false; return; }
@@ -31,6 +32,7 @@ export function useMention() {
     if (!items.value.length) { open.value = false; return; }
     startPos = hit.start;
     index.value = 0;
+    activeKey.value = key;
     open.value = true;
   }
 
@@ -72,5 +74,5 @@ export function useMention() {
   }
 
   // reactive 包装让模板可直接 mention.open（ref 自动解包）
-  return reactive({ open, items, index, onInput, onKeydown, onBlur, pick, takeEnterGuard });
+  return reactive({ open, items, index, activeKey, onInput, onKeydown, onBlur, pick, takeEnterGuard });
 }

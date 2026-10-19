@@ -143,12 +143,12 @@ function onRecordClick(r, e) {
                 v-model="draft(r).text"
                 :placeholder="commentPlaceholder(r)"
                 maxlength="2000"
-                @input="mention.onInput"
+                @input="mention.onInput($event, r.id)"
                 @keydown="mention.onKeydown"
                 @blur="mention.onBlur"
                 @keydown.enter="onSend(r)"
               >
-              <div v-if="mention.open" class="mention-pop">
+              <div v-if="mention.open && mention.activeKey === r.id" class="mention-pop">
                 <button
                   v-for="(u, i) in mention.items" :key="u.username" type="button"
                   :class="{ active: i === mention.index }"
