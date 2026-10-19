@@ -37,7 +37,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 /**
- * AI 问答：默认代理到本机 LM Studio（OpenAI 兼容接口），也可切换任意 OpenAI 兼容 API。
+ * 看板娘「库莉姆」问答：默认代理到服务端配置的本地模型（LM Studio，OpenAI 兼容接口），
+ * 用户可在「设置 → AI 设置」中切换为任意 OpenAI 兼容 API（设置仅存于用户浏览器，提问时随请求带来）。
  * - 上下文：全站学习记录剥离 HTML/base64 后按时间倒序组装，受字符预算限制；
  * - 记忆：按账号存服务端（每账号最多保留最近 MAX_STORED 条），可随时清空；
  * - 排队：信号量限制并发（默认 1），超出进入 FIFO 等待，等待人数有上限。
@@ -129,7 +130,7 @@ public class AiController {
         return Map.of("ok", true, "message", "已清空对话");
     }
 
-    // ---------- 模型列表（供前端下拉选择） ----------
+    // ---------- 模型列表（AI 设置面板下拉选择用） ----------
     @PostMapping("/models")
     Map<String, Object> models(HttpServletRequest req, @RequestBody(required = false) Map<String, Object> body) {
         requireLogin(req);
@@ -155,11 +156,12 @@ public class AiController {
         if (question.isEmpty()) throw new BizException(HttpStatus.BAD_REQUEST, "问题不能为空");
         if (question.length() > MAX_QUESTION) throw new BizException(HttpStatus.BAD_REQUEST, "问题过长（最多 " + MAX_QUESTION + " 字）");
 
+        // 默认服务端本地模型；用户在「AI 设置」中提供了覆盖配置时使用用户自己的（安全规则见 resolveProvider）
         Provider p = resolveProvider(settingsOf(body));
         if (p.model().isEmpty()) {
             List<String> models = fetchModels(p);
             if (models.isEmpty()) {
-                throw new BizException(HttpStatus.BAD_GATEWAY, "未找到可用模型，请确认 LM Studio 已加载模型，或在设置中指定模型名");
+                throw new BizException(HttpStatus.BAD_GATEWAY, "库莉姆的脑袋还没醒（模型服务未加载模型），请稍后再来看看吧～");
             }
             p = p.withModel(models.get(0));
         }
@@ -167,7 +169,7 @@ public class AiController {
         // 排队：超出并发上限的请求 FIFO 等待，等待人数满员则直接拒绝。
         // 排队发生在返回 emitter 之前，因此响应头到达时排队已结束，前端可据此停止轮询。
         if (waiting.get() >= maxQueue) {
-            throw new BizException(HttpStatus.TOO_MANY_REQUESTS, "当前排队人数较多，请稍后再试");
+            throw new BizException(HttpStatus.TOO_MANY_REQUESTS, "找库莉姆聊天的人太多啦，先去逛逛学习记录，稍后再来吧～");
         }
         waiting.incrementAndGet();
         try {
@@ -249,7 +251,7 @@ public class AiController {
                 }
             }
             if (cancelled.get()) return; // 客户端已断开/超时，不写入记忆
-            if (full.isEmpty()) throw new BizException(HttpStatus.BAD_GATEWAY, "AI 服务返回了空内容");
+            if (full.isEmpty()) throw new BizException(HttpStatus.BAD_GATEWAY, "库莉姆一时语塞了，换个问法再试试吧～");
             saveExchange(me, question, full.toString());
             saved.set(true);
             sendEvent(emitter, Map.of("done", true));
@@ -257,7 +259,7 @@ public class AiController {
         } catch (Exception e) {
             if (!saved.get()) {
                 String msg = e instanceof BizException bz ? bz.getMessage()
-                        : e instanceof HttpTimeoutException ? "连接 AI 服务超时，请确认模型服务已启动"
+                        : e instanceof HttpTimeoutException ? "库莉姆想得入迷超时啦，请稍后再试～"
                         : (cancelled.get() ? null : connectErrorMessage());
                 if (msg != null) {
                     try {
@@ -329,15 +331,18 @@ public class AiController {
                 : "（共 " + included + " 条）";
         String now = ZonedDateTime.now(DISPLAY_ZONE)
                 .format(DateTimeFormatter.ofPattern("yyyy年M月d日 EEEE HH:mm", Locale.CHINA));
-        return "你是「学习记录」网站的 AI 助手，负责回答关于站内学习记录的问题。\n" +
+        return "你是「库莉姆」，学习记录网站的看板娘，一个活泼可爱的女孩子，身边总跟着一只黑猫。\n" +
                 "现在是 " + now + "（北京时间）。用户说「今天」「昨天」时以此为准。\n" +
-                "以下是站内用户的学习记录" + note + "，按时间倒序，格式为 [日期] 用户名：内容：\n---\n" +
+                "以下是站内用户发布的学习记录" + note + "，按时间倒序，格式为 [日期] 用户名：内容：\n---\n" +
                 (sb.length() == 0 ? "（暂无记录）\n" : sb.toString()) +
                 "---\n" +
                 "回答规则：\n" +
-                "1. 只依据以上学习记录和对话历史作答，不要编造记录中不存在的内容；\n" +
-                "2. 记录中找不到相关信息时，明确告诉用户记录里没有相关信息；\n" +
-                "3. 用简洁的中文回答，涉及统计时说明依据。";
+                "1. 以库莉姆的身份说话，语气活泼亲切，像朋友闲聊一样自然，不要用客服腔；\n" +
+                "2. 不要自称「AI助手」，也不要说自己是人工智能或语言模型，你就是库莉姆；\n" +
+                "3. 这些学习记录是站内用户们发布的内容，不是你的经历；\n" +
+                "4. 只依据以上学习记录和对话历史作答，不要编造记录中不存在的内容；找不到相关信息时坦率说不知道；\n" +
+                "5. 你不能替用户执行任何操作（发记录、生成日报等都做不到），不要承诺自己做不到的事；\n" +
+                "6. 用简洁的中文回答，涉及统计时说明依据。";
     }
 
     private void saveExchange(String me, String question, String answer) {
@@ -426,7 +431,7 @@ public class AiController {
     }
 
     private String connectErrorMessage() {
-        return "无法连接 AI 服务，请确认 LM Studio（或配置的模型服务）已启动并可访问";
+        return "库莉姆暂时联络不上她的小脑袋啦，请稍后再来试试吧～";
     }
 
     private String requireLogin(HttpServletRequest req) {

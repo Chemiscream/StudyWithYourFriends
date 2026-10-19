@@ -4,7 +4,7 @@ import { state, init, syncDetailFromHash } from "./store.js";
 import AppHeader from "./components/AppHeader.vue";
 import LoginView from "./components/LoginView.vue";
 import StatsPanel from "./components/StatsPanel.vue";
-import AiChatPanel from "./components/AiChatPanel.vue";
+import MascotWidget from "./components/MascotWidget.vue";
 import DailyReportPanel from "./components/DailyReportPanel.vue";
 import DailyReportListModal from "./components/DailyReportListModal.vue";
 import DailyReportDetailModal from "./components/DailyReportDetailModal.vue";
@@ -14,6 +14,7 @@ import RecordList from "./components/RecordList.vue";
 import DetailView from "./components/DetailView.vue";
 import ProfileModal from "./components/ProfileModal.vue";
 import SettingsModal from "./components/SettingsModal.vue";
+import AiSettingsModal from "./components/AiSettingsModal.vue";
 import ChangelogModal from "./components/ChangelogModal.vue";
 import ImageLightbox from "./components/ImageLightbox.vue";
 import NotifModal from "./components/NotifModal.vue";
@@ -42,7 +43,6 @@ onUnmounted(() => window.removeEventListener("hashchange", onHash));
     <DetailView v-if="state.detailId" />
     <template v-else>
       <StatsPanel />
-      <AiChatPanel v-if="state.token" />
       <DailyReportPanel />
       <RecordEditor v-if="state.token" />
       <FilterBar />
@@ -55,10 +55,12 @@ onUnmounted(() => window.removeEventListener("hashchange", onHash));
   <FavoriteModal v-if="state.favorites.open" />
   <ProfileModal v-if="state.profileOpen" />
   <SettingsModal v-if="state.settingsOpen" />
+  <AiSettingsModal v-if="state.aiSettingsOpen" />
   <ChangelogModal v-if="state.changelogOpen" />
   <ImageLightbox v-if="state.lightbox" />
   <UpdateModal v-if="state.update" />
   <DailyReportListModal v-if="state.daily.listOpen" />
   <DailyReportDetailModal v-if="state.daily.detailOpen" />
   <AppDialog />
+  <MascotWidget v-if="state.view !== 'login'" />
 </template>

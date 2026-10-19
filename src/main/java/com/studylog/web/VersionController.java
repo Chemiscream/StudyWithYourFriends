@@ -14,10 +14,16 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.9.7";
+    public static final String VERSION = "1.10.0";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.10.0", List.of(
+                    "新看板娘「库莉姆」入驻右下角：点击即可和她聊天，原 AI 问答面板由她接棒（聊天能力和历史对话完全保留）。",
+                    "库莉姆会「自己有事做」：待机时在特写、站立、看书、逗猫等姿势间随机切换；你打字时她会侧耳倾听，回答时认真思考与书写。",
+                    "库莉姆会主动打招呼：面板关闭时她偶尔冒出一句鼓励气泡，点气泡即可开聊。",
+                    "AI 设置搬家：切换服务器AI / 外部 API、指定模型移至「⚙️ 设置 → AI 设置」。"
+            )),
             new ReleaseNote("1.9.7", List.of(
                     "修复：在一个留言框输入 @ 时，其他留言框也会同时弹出用户列表的问题。"
             )),

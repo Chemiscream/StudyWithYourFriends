@@ -1,4 +1,5 @@
-// AI 问答：历史记忆、排队轮询、SSE 流式渲染、模型设置（自 index.html 迁移）
+// 看板娘「库莉姆」问答：历史记忆、排队轮询、SSE 流式渲染
+// 默认使用服务端本地模型；用户可在「设置 → AI 设置」中切换外部 API 或指定模型（设置仅存本浏览器）
 import { reactive } from "vue";
 import { request, authHeaders, getToken } from "./api.js";
 import { mdRender } from "./utils/md.js";
@@ -56,7 +57,7 @@ function pollStatus() {
       const s = await request("/api/ai/status");
       if (!s.ok) return;
       const ahead = (s.running || 0) + (s.waiting || 0) - 1; // 减去自己
-      setStatus(ahead > 0 ? `排队中（前面还有约 ${ahead} 人）…` : "正在生成…");
+      setStatus(ahead > 0 ? `排队中（前面还有约 ${ahead} 人）…` : "库莉姆正在奋笔疾书…");
     } catch (e) { /* 轮询失败忽略 */ }
   }, 2000);
 }
@@ -67,7 +68,7 @@ function stopPoll() {
 export async function send(q) {
   if (!q || ai.busy) return null;
   if (ai.cfg.provider === "api" && (!ai.cfg.base_url || !ai.cfg.api_model)) {
-    setStatus("请先在下方设置区填写 Base URL 和模型名，并点击「保存设置」", true);
+    setStatus("请先在「设置 → AI 设置」中填写 Base URL 和模型名并保存", true);
     return null;
   }
   ai.busy = true;
@@ -95,7 +96,7 @@ export async function send(q) {
     }
     // 流式：排队已在流建立前结束，停止轮询
     stopPoll();
-    setStatus("正在生成…");
+    setStatus("库莉姆正在奋笔疾书…");
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = "", full = "", model = "", errored = false, done = false;
@@ -121,7 +122,7 @@ export async function send(q) {
       doneOk = true;
       ai.model = model;
       ai.history.push({ role: "assistant", content: full });
-      setStatus(model ? "模型：" + model : "");
+      setStatus("");
     } else if (!full) {
       ai.streamError = "连接中断，请稍后重试";
       setStatus("");
@@ -175,7 +176,7 @@ export function saveAiCfgFields(base_url, api_key, api_model) {
   ai.cfg.api_key = (api_key || "").trim();
   ai.cfg.api_model = (api_model || "").trim();
   saveCfg();
-  setStatus("设置已保存");
+  setStatus("AI 设置已保存");
 }
 
 export function setProvider(p) {
@@ -188,7 +189,7 @@ export function setLocalModel(m) {
   saveCfg();
 }
 
-// 登录后加载一次历史与模型列表（原 updateAuthUI 中的 if (!aiHistoryLoaded) 分支）
+// 登录后加载一次历史（logout 时由 store 调 resetAi 复位）
 export async function ensureAiLoaded() {
   if (ai.loaded || !getToken()) return;
   ai.loaded = true;

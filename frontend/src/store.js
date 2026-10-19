@@ -52,7 +52,8 @@ export const state = reactive({
   emoji: { visible: false, kind: null, inputEl: null, savedRange: null, anchorEl: null },
   profileOpen: false,
   lightbox: null, // 图片放大预览 {src}
-  settingsOpen: false, // ⚙️ 设置面板（修改个人信息 / 查看更新日志入口）
+  settingsOpen: false, // ⚙️ 设置面板（修改个人信息 / 查看更新日志 / AI 设置入口）
+  aiSettingsOpen: false, // AI 设置弹窗（服务器AI / 外部 API 切换）
   changelogOpen: false, // 历史更新日志弹窗
   // AI 日报
   daily: {

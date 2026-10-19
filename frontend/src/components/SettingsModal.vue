@@ -22,6 +22,14 @@
           </span>
           <span class="settings-arrow">›</span>
         </button>
+        <button class="settings-item" type="button" @click="openAiSettings">
+          <span class="settings-icon">🤖</span>
+          <span class="settings-text">
+            <b>AI 设置</b>
+            <small>切换服务器AI / 外部 API，指定模型</small>
+          </span>
+          <span class="settings-arrow">›</span>
+        </button>
       </div>
     </div>
   </div>
@@ -40,5 +48,9 @@ function openProfile() {
 function openChangelog() {
   state.settingsOpen = false;
   state.changelogOpen = true;
+}
+function openAiSettings() {
+  state.settingsOpen = false;
+  state.aiSettingsOpen = true;
 }
 </script>
