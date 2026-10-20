@@ -14,10 +14,16 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.10.0";
+    public static final String VERSION = "1.10.1";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.10.1", List.of(
+                    "看板娘「库莉姆」不再以大头照出现：右下角的她默认以全身姿势登场，并在站立、看书、逗猫之间悠闲变换。",
+                    "库莉姆的形象图背景已全部抠成透明，浮在页面角落不再带一圈白底方框。",
+                    "库莉姆说话更自然了：改用活泼女生的口吻闲聊，不再反复强调自己「不是猫」。",
+                    "修复 AI 设置中「服务器AI / 外部 API」切换按钮在手机上右侧留白的问题。"
+            )),
             new ReleaseNote("1.10.0", List.of(
                     "新看板娘「库莉姆」入驻右下角：点击即可和她聊天，原 AI 问答面板由她接棒（聊天能力和历史对话完全保留）。",
                     "库莉姆会「自己有事做」：待机时在特写、站立、看书、逗猫等姿势间随机切换；你打字时她会侧耳倾听，回答时认真思考与书写。",

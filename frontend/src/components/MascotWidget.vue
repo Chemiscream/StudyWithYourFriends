@@ -8,15 +8,17 @@ import { mdRender, esc } from "../utils/md.js";
 const open = ref(false);
 const input = ref("");
 const chatBox = ref(null);
-const pose = ref("avatar");   // avatar(待机特写) / idle(站立) / read(看书) / play(逗猫) / listen(倾听) / wave / think / write / cheer / sleep
+const pose = ref("idle");   // 待机默认用全身照：idle(站立) / read(看书) / play(逗猫) / listen(倾听) / wave / think / write / cheer / sleep
 const bubble = ref("");       // 待机鼓励气泡文案（空=不显示）
 let poseTimer = null, bubbleTimer = null, bubbleHideTimer = null, idleTimer = null;
 let greeted = false;          // 本次会话是否已做过招手问候
 
 // 待机动作轮换组：没对话也没临时姿势时，在这几张之间慢速轮换，让她「自己有事做」
-const IDLES = ["avatar", "idle", "read", "play"];
+const IDLES = ["idle", "read", "play"];
 
 const poseSrc = computed(() => "/mascot/" + pose.value + ".png");
+// 聊天面板头部用大头照特写，与右下角按钮的全身姿势区分
+const headSrc = "/mascot/avatar.png";
 
 const CHEERS = [
   "今天也要加油哦～",
@@ -30,7 +32,7 @@ const CHEERS = [
 function setPoseTemp(p, ms) {
   if (poseTimer) clearTimeout(poseTimer);
   pose.value = p;
-  poseTimer = setTimeout(() => { pose.value = "avatar"; }, ms);
+  poseTimer = setTimeout(() => { pose.value = "idle"; }, ms);
 }
 
 function togglePanel() {
@@ -57,7 +59,7 @@ async function doSend() {
   const r = await send(q);
   if (ai.streamError) setPoseTemp("sleep", 4000);
   else if (r) setPoseTemp("cheer", 2500);
-  else pose.value = "avatar";
+  else pose.value = "idle";
 }
 
 async function doClear() {
@@ -75,7 +77,7 @@ watch(input, (v) => {
   if (!open.value || ai.busy) return;
   const t = v.trim();
   if (t && IDLES.includes(pose.value)) pose.value = "listen";
-  else if (!t && pose.value === "listen") pose.value = "avatar";
+  else if (!t && pose.value === "listen") pose.value = "idle";
 });
 // 待机动作慢速轮换：仅当处于待机组（非问候/思考/倾听等临时姿势）时推进
 function scheduleIdle() {
@@ -123,7 +125,7 @@ onUnmounted(() => {
     <transition name="mascot-pop">
       <div v-if="open" class="mascot-panel">
         <div class="mascot-head">
-          <img class="mascot-head-img" :src="poseSrc" alt="库莉姆">
+          <img class="mascot-head-img" :src="headSrc" alt="库莉姆">
           <div class="mascot-title">
             <div class="mascot-name">库莉姆</div>
             <div class="mascot-sub">网站看板娘 · 爱学习也爱聊天</div>

@@ -60,3 +60,8 @@ function switchProvider(p) {
     </div>
   </div>
 </template>
+
+<style scoped>
+.seg { width: 100%; }
+.seg button { flex: 1; }
+</style>
