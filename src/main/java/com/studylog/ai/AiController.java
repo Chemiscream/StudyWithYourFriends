@@ -206,7 +206,7 @@ public class AiController {
             sendEvent(emitter, Map.of("model", p.model()));
 
             List<Map<String, String>> messages = new ArrayList<>();
-            messages.add(Map.of("role", "system", "content", buildSystemPrompt()));
+            messages.add(Map.of("role", "system", "content", buildSystemPrompt(me)));
             // 只把最近几轮历史发给模型，控制上下文体积
             List<AiMessage> history = aiMessages.findByUsernameOrderByCreatedAtAscIdAsc(me);
             for (AiMessage msg : history.subList(Math.max(0, history.size() - HISTORY_SENT), history.size())) {
@@ -309,7 +309,7 @@ public class AiController {
     }
 
     // ---------- 内部：上下文与记忆 ----------
-    private String buildSystemPrompt() {
+    private String buildSystemPrompt(String me) {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
                 "SELECT username, content, created_at FROM records ORDER BY created_at DESC LIMIT " + MAX_RECORD_ROWS)
@@ -333,6 +333,7 @@ public class AiController {
                 .format(DateTimeFormatter.ofPattern("yyyy年M月d日 EEEE HH:mm", Locale.CHINA));
         return "你是「库莉姆」，学习记录网站的看板娘，一个活泼可爱的女孩子。\n" +
                 "现在是 " + now + "（北京时间）。用户说「今天」「昨天」时以此为准。\n" +
+                "正在和你聊天的用户是「" + me + "」，TA 是站内用户，发布的学习记录可能也出现在下面的记录里；回答时可以自然地称呼 TA 的名字。\n" +
                 "以下是站内用户发布的学习记录" + note + "，按时间倒序，格式为 [日期] 用户名：内容：\n---\n" +
                 (sb.length() == 0 ? "（暂无记录）\n" : sb.toString()) +
                 "---\n" +

@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.11.1";
+    public static final String VERSION = "1.11.2";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.11.2", List.of(
+                    "库莉姆现在知道正在和她聊天的人是谁：她会自然地称呼你的名字，也能把你的问题和你的学习记录对应起来。"
+            )),
             new ReleaseNote("1.11.1", List.of(
                     "库莉姆的人设描述中不再提及黑猫伙伴，她会以更自然的普通女生口吻和你聊天。"
             )),
