@@ -853,3 +853,226 @@ html[data-theme="light"] .chat-bubble .md-code { background: #1f2937; }
 .daily-word em { font-style: normal; font-size: 11px; opacity: .7; }
 .daily-detail-actions { display: flex; gap: 10px; margin-top: 18px; }
 .daily-detail-actions .btn { flex: 1; }
+
+/* ===== v2 预览布局层：桌面工作台双列 + 移动端模块分页 =====
+   仅调整布局结构，不改动任何业务逻辑、组件功能与数据请求。 */
+
+/* 移动端「日报」独立分页：铺开最新日报正文，避免整屏只有一张小卡片 */
+.daily-entry-lg .daily-hero { display: block; }
+.daily-hero-date {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: .4px;
+  color: var(--ink);
+  margin: 4px 0 12px;
+}
+.daily-entry-lg .daily-hero-summary {
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 14.5px;
+  line-height: 1.85;
+}
+.daily-hero-nums { display: flex; gap: 10px; margin-bottom: 4px; }
+.daily-num {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-soft);
+  text-align: center;
+}
+.daily-num strong { display: block; font-size: 22px; line-height: 1.25; color: var(--primary-dark); }
+.daily-num span { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+.daily-entry-lg .daily-stat-block:last-child { margin-bottom: 0; }
+
+/* 底部模块切换栏只在移动端出现 */
+.module-tabs { display: none; }
+.workspace { min-width: 0; }
+
+/* 轻量视觉层：统一圆角与标题标识，不涉及任何交互逻辑 */
+:root { --radius: 12px; }
+.panel-head h2 { display: flex; align-items: center; gap: 7px; }
+.panel-head h2::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 3px;
+  height: 15px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+}
+.record:hover { transform: translateY(-1px); }
+/* 可折叠标题本身已有箭头，不再叠加强调条 */
+.collapse-head h2::before { display: none; }
+
+@media (min-width: 821px) {
+  /* 顶部留白略收紧，让右栏在页面顶端也不越过视口下沿 */
+  .shell { padding-top: 22px; }
+  header.app-bar { margin-bottom: 12px; }
+
+  .workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 20px;
+    align-items: start;
+  }
+  .col-main, .col-side { min-width: 0; }
+  /* 右栏随页面滚动固定在视口内，避免向下滑后右侧留下整条空白 */
+  .col-side {
+    position: sticky;
+    top: 78px;
+    max-height: calc(100vh - 84px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    padding-right: 2px;
+  }
+  .col-side::-webkit-scrollbar { width: 6px; }
+  .col-side::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+  .col-side .rank-name { flex: 0 0 118px; max-width: 118px; }
+  .col-side .rank-list { gap: 6px; }
+  .col-side .rank-bar-wrap { height: 18px; }
+  .col-side .panel { padding: 14px; margin-bottom: 12px; }
+  .col-side .stats-sub { margin: 10px 0 8px; }
+  .col-side .rank-more { margin-top: 6px; padding: 5px; }
+  /* 词云高度随视口自适应：矮屏不再被压扁，高屏自然变高填满右栏 */
+  .col-side .cloud-canvas { height: clamp(170px, calc(100vh - 690px), 360px); }
+  .col-main > .panel:last-child,
+  .col-side .module-block:last-child .panel { margin-bottom: 0; }
+}
+
+@media (max-width: 820px) {
+  .workspace { display: block; }
+
+  /* 日报展开页：加大内边距，内容不贴边 */
+  .daily-entry-lg { padding: 22px 20px 26px; }
+  .daily-entry-lg .daily-hero-summary { margin-bottom: 18px; }
+  .daily-entry-lg .daily-stat-block { margin-bottom: 18px; }
+
+  /* 模块分页：同一时刻只展示一个模块 */
+  .workspace[data-tab="feed"] .module-block,
+  .workspace[data-tab="daily"] .col-main,
+  .workspace[data-tab="daily"] .module-block[data-module="stats"],
+  .workspace[data-tab="daily"] .module-block[data-module="heatmap"],
+  .workspace[data-tab="stats"] .col-main,
+  .workspace[data-tab="stats"] .module-block[data-module="daily"] { display: none; }
+
+  /* 底部标签栏 */
+  .module-tabs {
+    display: flex;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 96;
+    gap: 6px;
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: rgba(251, 252, 254, .94);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -6px 20px rgba(26, 36, 53, .06);
+  }
+  html[data-theme="dark"] .module-tabs { background: rgba(17, 29, 45, .94); }
+  .module-tabs button {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px;
+    min-height: 50px;
+    padding: 4px 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    transition: background .16s ease, color .16s ease;
+  }
+  .module-tabs button.on { color: var(--primary-dark); background: var(--primary-soft); }
+  .mt-ico { font-size: 17px; line-height: 1; }
+  html[data-theme="dark"] .module-tabs button.on { color: var(--primary); }
+
+  /* 给固定标签栏留出空间 */
+  .shell { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
+
+  /* 看板娘整体上移，避免压住底部标签栏 */
+  .mascot-wrap { bottom: calc(88px + env(safe-area-inset-bottom)) !important; }
+}
+
+/* ---------- 学习打卡热力图 ---------- */
+:root {
+  --heat-0: #e3ecf8;
+  --heat-1: #c3dcf6;
+  --heat-2: #8dbdf0;
+  --heat-3: #5b9ee5;
+  --heat-4: #3b82d6;
+}
+html[data-theme="dark"] {
+  --heat-0: rgba(73, 167, 255, .12);
+  --heat-1: rgba(73, 167, 255, .30);
+  --heat-2: rgba(73, 167, 255, .52);
+  --heat-3: rgba(73, 167, 255, .74);
+  --heat-4: #49a7ff;
+}
+.heatmap-panel .panel-head { margin-bottom: 10px; }
+.heat-ico { margin-right: 6px; }
+.heat-streak {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+html[data-theme="dark"] .heat-streak { color: var(--primary); }
+.heat-months {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 3px;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--muted);
+}
+.heat-month { flex: 1 1 0; min-width: 0; white-space: nowrap; }
+.heat-grid { display: flex; gap: 2px; }
+.heat-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.heat-cell {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 2px;
+  background: var(--heat-0);
+}
+.heat-cell.lv1 { background: var(--heat-1); }
+.heat-cell.lv2 { background: var(--heat-2); }
+.heat-cell.lv3 { background: var(--heat-3); }
+.heat-cell.lv4 { background: var(--heat-4); }
+.heat-cell.heat-off { visibility: hidden; }
+.heat-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 8px;
+  margin-top: 7px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.heat-legend { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; white-space: nowrap; }
+.heat-legend .heat-cell { width: 9px; height: 9px; aspect-ratio: auto; }
+
+/* 排行查看更多 */
+.rank-more {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--primary);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all .14s ease;
+}
+.rank-more:hover { border-color: var(--primary); background: var(--primary-soft); }

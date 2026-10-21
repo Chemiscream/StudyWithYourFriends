@@ -1,10 +1,18 @@
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { state, loadStats } from "../store.js";
 
 // 折叠状态存 localStorage（与旧版 key 一致）
 const collapsed = ref(localStorage.getItem("studylog_collapse_stats") === "1");
 const cloudCanvas = ref(null);
+
+// 提交排行不展示 AI 虚拟用户；默认只露前三名，可展开
+const AI_NAME = "AI助手";
+const ranking = computed(() => state.ranking.filter((r) => r.username !== AI_NAME));
+const showAllRanking = ref(false);
+const visibleRanking = computed(() =>
+  showAllRanking.value ? ranking.value : ranking.value.slice(0, 3)
+);
 
 const RANGES = [
   { key: "all", label: "全部" },
@@ -25,14 +33,14 @@ function switchRange(key) {
 }
 
 const CLOUD_COLORS = ["#4a90d9","#e74c3c","#27ae60","#f39c12","#9b59b6","#1abc9c","#e67e22","#16a085","#d35400","#8e44ad","#2980b9","#c0392b"];
-const maxOf = () => Math.max(...state.ranking.map(r => r.count), 1);
+const maxOf = () => Math.max(...ranking.value.map(r => r.count), 1);
 
 function drawCloud() {
   const cv = cloudCanvas.value;
   if (!cv) return;
   const words = state.words;
   const dpr = window.devicePixelRatio || 1;
-  const W = cv.clientWidth || 600, H = 320;
+  const W = cv.clientWidth || 600, H = cv.clientHeight || 320;
   cv.width = W * dpr; cv.height = H * dpr;
   const ctx = cv.getContext("2d");
   ctx.scale(dpr, dpr);
@@ -49,7 +57,7 @@ function drawCloud() {
   for (let i = 0; i < words.length; i++) {
     const w = words[i];
     const t = max === min ? 1 : (w.weight - min) / (max - min);
-    const size = 14 + t * 34; // 14~48px
+    const size = (H < 260 ? 8 : 14) + t * (H < 260 ? 14 : 34); // 侧栏矮容器同步缩小字号，能放下更多词
     ctx.font = `700 ${size}px "Microsoft YaHei", sans-serif`;
     const tw = ctx.measureText(w.text).width, th = size;
     let ok = false, x = W / 2, y = H / 2;
@@ -77,7 +85,7 @@ function drawCloud() {
 }
 
 function medal(i) { return i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : ""; }
-function pct(i) { return Math.max(4, Math.round(state.ranking[i].count / maxOf() * 100)); }
+function pct(r) { return Math.max(4, Math.round(r.count / maxOf() * 100)); }
 
 watch(() => state.words, () => nextTick(drawCloud));
 onMounted(() => { if (!collapsed.value) nextTick(drawCloud); });
@@ -102,13 +110,16 @@ onMounted(() => { if (!collapsed.value) nextTick(drawCloud); });
       </div>
       <h3 class="stats-sub">提交排行</h3>
       <div class="rank-list">
-        <div v-if="!state.ranking.length" class="rank-empty">暂无数据</div>
-        <div v-for="(r, i) in state.ranking" :key="r.username" class="rank-row">
+        <div v-if="!ranking.length" class="rank-empty">暂无数据</div>
+        <div v-for="(r, i) in visibleRanking" :key="r.username" class="rank-row">
           <span class="rank-name" :style="{ color: '#' + r.color }">{{ medal(i) }}{{ r.username }}</span>
-          <div class="rank-bar-wrap"><div class="rank-bar" :style="{ width: pct(i) + '%', background: '#' + r.color }"></div></div>
+          <div class="rank-bar-wrap"><div class="rank-bar" :style="{ width: pct(r) + '%', background: '#' + r.color }"></div></div>
           <span class="rank-count">{{ r.count }} 条</span>
         </div>
       </div>
+      <button v-if="ranking.length > 3" type="button" class="rank-more" @click="showAllRanking = !showAllRanking">
+        {{ showAllRanking ? '收起排名' : '查看更多（共 ' + ranking.length + ' 人）' }}
+      </button>
       <h3 class="stats-sub">关键词词云</h3>
       <canvas ref="cloudCanvas" class="cloud-canvas"></canvas>
     </div>
