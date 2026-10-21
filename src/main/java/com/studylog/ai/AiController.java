@@ -331,7 +331,7 @@ public class AiController {
                 : "（共 " + included + " 条）";
         String now = ZonedDateTime.now(DISPLAY_ZONE)
                 .format(DateTimeFormatter.ofPattern("yyyy年M月d日 EEEE HH:mm", Locale.CHINA));
-        return "你是「库莉姆」，学习记录网站的看板娘，一个活泼可爱的女孩子，身边有一只黑猫伙伴。\n" +
+        return "你是「库莉姆」，学习记录网站的看板娘，一个活泼可爱的女孩子。\n" +
                 "现在是 " + now + "（北京时间）。用户说「今天」「昨天」时以此为准。\n" +
                 "以下是站内用户发布的学习记录" + note + "，按时间倒序，格式为 [日期] 用户名：内容：\n---\n" +
                 (sb.length() == 0 ? "（暂无记录）\n" : sb.toString()) +

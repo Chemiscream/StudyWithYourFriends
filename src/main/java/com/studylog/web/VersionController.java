@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.11.0";
+    public static final String VERSION = "1.11.1";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.11.1", List.of(
+                    "库莉姆的人设描述中不再提及黑猫伙伴，她会以更自然的普通女生口吻和你聊天。"
+            )),
             new ReleaseNote("1.11.0", List.of(
                     "桌面端改为左右双栏：左侧是学习动态，右侧固定显示 AI 日报、学习打卡和学习统计，向下滚动时右侧一直跟随。",
                     "手机端改用底部标签分页：「动态 / 日报 / 统计」一次只看一个模块，日报可以展开阅读完整内容。",
