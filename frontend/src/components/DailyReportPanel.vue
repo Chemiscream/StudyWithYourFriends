@@ -48,7 +48,7 @@ function openMore(e) {
 
     <template v-if="expanded">
       <div v-if="latest" class="daily-hero">
-        <div class="daily-hero-date">日报 {{ latest.report_date }}</div>
+        <div class="daily-hero-date"><span>日报</span><b>{{ latest.report_date }}</b></div>
 
         <div v-if="latest.summary" class="daily-summary daily-hero-summary" v-html="mdRender(latest.summary)"></div>
         <div v-else class="daily-no-summary">（AI 摘要暂不可用，可能是模型服务未启动）</div>
@@ -87,7 +87,7 @@ function openMore(e) {
 
     <template v-else>
       <div v-if="latest" class="daily-card" @click="openToday">
-        <div class="daily-card-title">日报 {{ latest.report_date }}</div>
+        <div class="daily-card-title"><span>日报</span><b>{{ latest.report_date }}</b></div>
         <div class="daily-card-sub">{{ subtitle }}</div>
       </div>
       <p v-else class="daily-hint">每天 0 点自动生成前一天的全站学习日报，看看大家都学了啥～</p>

@@ -6,6 +6,17 @@
         <button class="modal-close" type="button" title="关闭" @click="close">✕</button>
       </div>
       <div class="settings-list">
+        <div class="settings-item settings-theme">
+          <span class="settings-icon">🌓</span>
+          <span class="settings-text">
+            <b>界面主题</b>
+            <small>默认浅色 Persona 3 · 深色 Persona 5</small>
+          </span>
+          <div class="seg theme-seg">
+            <button type="button" :class="{ active: theme === 'light' }" @click="setTheme('light')">P3</button>
+            <button type="button" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">P5</button>
+          </div>
+        </div>
         <button class="settings-item" type="button" @click="openProfile">
           <span class="settings-icon">👤</span>
           <span class="settings-text">
@@ -36,8 +47,15 @@
 </template>
 
 <script setup>
-import { state } from "../store.js";
+import { ref } from "vue";
+import { state, applyTheme } from "../store.js";
 
+const theme = ref(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
+
+function setTheme(t) {
+  applyTheme(t);
+  theme.value = t;
+}
 function close() {
   state.settingsOpen = false;
 }

@@ -14,10 +14,17 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.11.2";
+    public static final String VERSION = "1.12.0";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.12.0", List.of(
+                    "界面皮肤全面重做：浅色「Persona 3」与深色「Persona 5」两套主题各自拥有独立的视觉语言——P3 的青蓝 HUD、刻度环与取景框，P5 的漫画分镜、斜切贴纸与半调网点。",
+                    "手机端底部标签栏重新设计：「动态 / 日报 / 统计」改为带编号的斜切卡片，浅色与深色主题分别适配各自的风格。",
+                    "深色主题的界面文案改为更贴合学习场景的「TAKE YOUR NOTES」。",
+                    "库莉姆的聊天面板会按手机屏幕高度自适应，顶部不再被截断；聊天头像改为更清晰的脸部特写。",
+                    "修复顶栏「消息」按钮在浅色主题下没有斜切、与相邻按钮形状不一致的问题。"
+            )),
             new ReleaseNote("1.11.2", List.of(
                     "库莉姆现在知道正在和她聊天的人是谁：她会自然地称呼你的名字，也能把你的问题和你的学习记录对应起来。"
             )),

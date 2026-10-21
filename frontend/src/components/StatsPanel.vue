@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { state, loadStats } from "../store.js";
 
 // 折叠状态存 localStorage（与旧版 key 一致）
@@ -32,13 +32,18 @@ function switchRange(key) {
   loadStats(key);
 }
 
-const CLOUD_COLORS = ["#4a90d9","#e74c3c","#27ae60","#f39c12","#9b59b6","#1abc9c","#e67e22","#16a085","#d35400","#8e44ad","#2980b9","#c0392b"];
+const CLOUD_THEME = {
+  light: ["#0099c0", "#123f5c", "#b97900", "#0a8f5f", "#bd3f7c", "#6148c9", "#3f7fa3"],
+  dark: ["#ffffff", "#e60012", "#ffd400", "#f7f3e6", "#ff6b74", "#c9a86a", "#ff8f00"],
+};
 const maxOf = () => Math.max(...ranking.value.map(r => r.count), 1);
 
 function drawCloud() {
   const cv = cloudCanvas.value;
   if (!cv) return;
   const words = state.words;
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  const colors = dark ? CLOUD_THEME.dark : CLOUD_THEME.light;
   const dpr = window.devicePixelRatio || 1;
   const W = cv.clientWidth || 600, H = cv.clientHeight || 320;
   cv.width = W * dpr; cv.height = H * dpr;
@@ -76,10 +81,15 @@ function drawCloud() {
       if (!hit) { placed.push(rect); ok = true; break; }
     }
     if (ok) {
-      ctx.fillStyle = CLOUD_COLORS[i % CLOUD_COLORS.length];
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.globalAlpha = 0.6 + t * 0.4;
       ctx.font = `700 ${size}px "Microsoft YaHei", sans-serif`;
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.shadowColor = dark ? "rgba(230,0,18,.30)" : "rgba(0,140,180,.18)";
+      ctx.shadowBlur = size > 24 ? 12 : 6;
       ctx.fillText(w.text, x, y);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
     }
   }
 }
@@ -88,7 +98,24 @@ function medal(i) { return i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "�
 function pct(r) { return Math.max(4, Math.round(r.count / maxOf() * 100)); }
 
 watch(() => state.words, () => nextTick(drawCloud));
-onMounted(() => { if (!collapsed.value) nextTick(drawCloud); });
+watch(() => state.statsRange, () => nextTick(drawCloud));
+function onTheme() { nextTick(drawCloud); }
+// 右栏高度随视口伸缩，窗口尺寸变化后重绘，避免画布拉伸模糊
+let resizeTimer = null;
+function onResize() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(drawCloud, 160);
+}
+onMounted(() => {
+  window.addEventListener("studylog:theme", onTheme);
+  window.addEventListener("resize", onResize);
+  if (!collapsed.value) nextTick(drawCloud);
+});
+onUnmounted(() => {
+  window.removeEventListener("studylog:theme", onTheme);
+  window.removeEventListener("resize", onResize);
+  clearTimeout(resizeTimer);
+});
 </script>
 
 <template>

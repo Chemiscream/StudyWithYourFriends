@@ -246,6 +246,8 @@ export function applyTheme(t) {
   if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
   else document.documentElement.removeAttribute("data-theme");
   localStorage.setItem("studylog_theme", t);
+  // 词云、粒子等 Canvas 需要感知主题切换后重新着色
+  window.dispatchEvent(new CustomEvent("studylog:theme", { detail: t }));
 }
 applyTheme(localStorage.getItem("studylog_theme") || "light");
 export function toggleTheme() {
