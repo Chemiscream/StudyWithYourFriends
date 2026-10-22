@@ -283,7 +283,7 @@ onUnmounted(() => {
       <button v-if="state.editingId" class="btn ghost" type="button" style="min-height:32px;padding:0 12px;font-size:13px;" @click="cancelEdit">取消编辑</button>
     </div>
     <div v-if="state.quoteOf && !state.editingId" class="quote-editing">
-      <span class="quote-line">↪ 转发自 <b>{{ state.quoteOf.username }}</b></span>
+      <span class="quote-line"><svg class="quote-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8a3 3 0 0 0 3 3h11"/><path d="M15 11l4 4-4 4"/></svg>转发自 <b>{{ state.quoteOf.username }}</b></span>
       <span class="quote-preview">{{ state.quoteOf.preview || "（无文字内容）" }}</span>
       <button class="quote-cancel" type="button" title="取消引用" @click="cancelQuote">✕</button>
     </div>
@@ -315,7 +315,7 @@ onUnmounted(() => {
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
       <div style="display:flex;gap:8px;">
         <button class="btn ghost" type="button" @click="pickImg">图片/视频</button>
-        <button ref="pickEmojiBtn" id="pickEmojiBtn" class="btn ghost" type="button" title="插入 emoji" @click="pickEmoji">😀</button>
+        <button ref="pickEmojiBtn" id="pickEmojiBtn" class="btn ghost emoji-open" type="button" title="插入 emoji" aria-label="插入 emoji" @click="pickEmoji"><svg class="smile-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.4 14.2a4.6 4.6 0 0 0 7.2 0"/><path d="M9.2 9.8h.01M14.8 9.8h.01"/></svg></button>
       </div>
       <button class="btn primary" type="button" @click="submit">{{ state.editingId ? "保存修改" : state.quoteOf ? "发布转发" : "添加记录" }}</button>
     </div>

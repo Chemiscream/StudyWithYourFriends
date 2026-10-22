@@ -171,7 +171,7 @@ onUnmounted(() => {
             <span class="chat-ava"><img :src="headSrc" alt=""></span>
             <div class="chat-body">
               <span class="chat-who">KURIMU</span>
-              <div class="chat-bubble">⚠️ {{ ai.streamError }}</div>
+              <div class="chat-bubble"><svg class="chat-warn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 9.4v5"/><path d="M12 17.4h.01"/></svg>{{ ai.streamError }}</div>
             </div>
           </div>
         </div>

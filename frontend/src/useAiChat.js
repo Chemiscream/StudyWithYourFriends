@@ -113,7 +113,7 @@ export async function send(q) {
           const ev = JSON.parse(line.slice(5).trim());
           if (ev.delta) { full += ev.delta; ai.streaming = full; }
           if (ev.model) model = ev.model;
-          if (ev.error) { errored = true; full += (full ? "\n\n" : "") + "⚠️ " + ev.error; ai.streaming = full; }
+          if (ev.error) { errored = true; full += (full ? "\n\n" : "") + "出错了：" + ev.error; ai.streaming = full; }
           if (ev.done) done = true;
         } catch (e) { /* 单行解析失败忽略 */ }
       }

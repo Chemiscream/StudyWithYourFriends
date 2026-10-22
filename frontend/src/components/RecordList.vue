@@ -84,10 +84,10 @@ function onRecordClick(r, e) {
         <div class="record-content clickable" v-html="r.content || ''" title="点击查看详情"></div>
         <div v-if="r.quote" class="quote-card" type="button" @click.stop="openDetail(r.quote.id)">
           <template v-if="!r.quote.deleted">
-            <span class="quote-line">↪ 转发自 <b :style="{ color: '#' + (r.quote.color || '4a90d9') }">{{ r.quote.username }}</b></span>
+            <span class="quote-line"><svg class="quote-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8a3 3 0 0 0 3 3h11"/><path d="M15 11l4 4-4 4"/></svg>转发自 <b :style="{ color: '#' + (r.quote.color || '4a90d9') }">{{ r.quote.username }}</b></span>
             <span class="quote-preview">{{ r.quote.preview || "（无文字内容）" }}</span>
           </template>
-          <span v-else class="quote-preview deleted">↪ 原记录已删除</span>
+          <span v-else class="quote-preview deleted"><svg class="quote-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8a3 3 0 0 0 3 3h11"/><path d="M15 11l4 4-4 4"/></svg>原记录已删除</span>
         </div>
         <div class="record-foot">
           <div class="foot-left">
@@ -95,13 +95,13 @@ function onRecordClick(r, e) {
               class="like-btn" :class="{ liked: r.liked }" type="button"
               :title="state.token ? (r.liked ? '取消点赞' : '点赞') : '登录后可点赞'"
               @click="toggleLike(r.id)"
-            >👍 {{ r.like_count || 0 }}</button>
+            ><svg class="act-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>{{ r.like_count || 0 }}</button>
             <button
               class="fav-btn" :class="{ favored: r.favorited }" type="button"
               :title="state.token ? (r.favorited ? '取消收藏' : '收藏') : '登录后可收藏'"
               @click="toggleFavorite(r.id)"
-            >{{ r.favorited ? "⭐" : "☆" }}</button>
-            <button class="quote-btn" type="button" title="转发这条记录" @click="startQuote(r)">🔁</button>
+            ><svg class="act-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button>
+            <button class="quote-btn" type="button" title="转发这条记录" @click="startQuote(r)"><svg class="act-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1.5l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22.5l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button>
           </div>
           <div v-if="(r.mine || state.isAdmin) && state.token" class="record-actions">
             <button v-if="r.mine" class="edit-btn" type="button" @click="startEdit(r)">编辑</button>
@@ -118,7 +118,7 @@ function onRecordClick(r, e) {
               class="comment-like" :class="{ liked: c.liked }" type="button"
               :title="state.token ? (c.liked ? '取消点赞' : '点赞') : '登录后可点赞'"
               @click="toggleCommentLike(c.id)"
-            >👍{{ c.like_count ? " " + c.like_count : "" }}</button>
+            ><svg class="act-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>{{ c.like_count ? c.like_count : "" }}</button>
             <button v-if="(c.mine || state.isAdmin) && state.token" class="comment-del" type="button" title="删除留言" @click="delComment(c.id)">删除</button>
             <button v-if="state.token && !c.mine" class="comment-reply" type="button" title="回复这条留言" @click="onReply(r, c)">回复</button>
           </div>
@@ -157,7 +157,7 @@ function onRecordClick(r, e) {
                   <span class="role-tag" :style="{ background: '#' + (u.color || '4a90d9') + '22', color: '#' + (u.color || '4a90d9') }">@{{ u.username }}</span>
                 </button>
               </div>
-              <button class="btn ghost emoji-open" type="button" title="插入 emoji" @click="openCommentEmoji(r, $event)">😀</button>
+              <button class="btn ghost emoji-open" type="button" title="插入 emoji" aria-label="插入 emoji" @click="openCommentEmoji(r, $event)"><svg class="smile-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.4 14.2a4.6 4.6 0 0 0 7.2 0"/><path d="M9.2 9.8h.01M14.8 9.8h.01"/></svg></button>
               <button class="btn" type="button" @click="onSend(r)">留言</button>
             </div>
           </template>

@@ -110,7 +110,7 @@ function level(c) {
 <template>
   <section class="panel heatmap-panel">
     <div class="panel-head">
-      <h2><span class="heat-ico">🔥</span>学习打卡</h2>
+      <h2><span class="heat-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>学习打卡</h2>
       <span class="heat-streak">连续 {{ streak }} 天</span>
     </div>
     <div class="heat-months">

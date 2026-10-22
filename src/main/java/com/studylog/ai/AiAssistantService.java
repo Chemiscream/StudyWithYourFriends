@@ -48,8 +48,11 @@ public class AiAssistantService {
     private static final int MAX_RECORD_CHARS = 4000;
     private static final int MAX_COMMENTS_SHOWN = 30;
     private static final int MAX_REPLY_CHARS = 2000;
+    private static final int MAX_SELF_RECORDS = 2;
+    private static final int MAX_SELF_RECORD_CHARS = 240;
     private static final Duration CHAT_TIMEOUT = Duration.ofSeconds(120);
     private static final DateTimeFormatter CN_DATE = DateTimeFormatter.ofPattern("M月d日");
+    private static final java.time.ZoneId CN_ZONE = java.time.ZoneId.of("Asia/Shanghai");
 
     private final UserRepository users;
     private final RecordRepository records;
@@ -106,6 +109,9 @@ public class AiAssistantService {
                 String reply = chatOnce(
                         SYSTEM_PROMPT,
                         "站内用户「" + author + "」发布了一条学习记录并在正文中 @ 了你，请阅读后以留言的形式回应（1-3 句话，可以点评、鼓励或提问）。\n" +
+                                "【当前情境（以此为准）】\n" +
+                                "- 发布并 @ 你的人：「" + author + "」。他说的「我」指他自己，「你」指你（AI助手）。\n" +
+                                "- 记录正文是「" + author + "」本人的学习成果；正文里提到的其他名字都是第三方，不是作者本人。\n" +
                                 "【学习记录（" + author + " 发布的学习成果，不是你的经历）】\n" + truncate(plainOf(r.getContent()), MAX_RECORD_CHARS));
                 if (reply == null) return;
                 insertComment(rid, null, reply, author, null);
@@ -136,6 +142,26 @@ public class AiAssistantService {
                 ctx.append(repliedDirectly
                         ? "站内用户「" + asker + "」刚刚直接回复了你的留言（没有@你），请阅读记录与留言后回复他。\n"
                         : "站内用户「" + asker + "」在学习记录下的留言中 @ 了你，请阅读记录与已有留言后直接回复他。\n");
+                ctx.append("【当前情境（以此为准）】\n")
+                   .append("- 正在向你留言的人：「").append(asker).append("」。这条留言里的「我」指 ")
+                   .append(asker).append(" 本人，「你」指你（AI助手）。\n")
+                   .append("- 这条记录的作者：「").append(r.getUsername()).append("」，记录正文是 ")
+                   .append(r.getUsername()).append(" 的学习成果。\n");
+                if (!asker.equals(r.getUsername())) {
+                    ctx.append("- 留言的人和记录作者不是同一个人：正文描述的经历属于 ")
+                       .append(r.getUsername()).append("，不属于 ").append(asker).append("。")
+                       .append("不要把记录作者的成果说成留言者的成果；要夸留言者，只能依据他本人的留言或下面")
+                       .append("【留言者本人最近发布的学习记录】，不要引用本次记录里属于别人的成果。\n");
+                }
+                ctx.append("- 记录或留言里提到的其他名字（如同学、朋友）都是第三方，既不是留言的人，也不是记录作者；" +
+                                "不要猜测他们与记录内容的关系，不要替他们编造事迹，也不要把记录里的学习成果安到他们身上。\n")
+                   .append("- 本次回复的对象是「").append(asker).append("」，请用「你」称呼他，不要用第三人称名字指代他。\n")
+                   .append("- 如果他说「夸我 / 表扬我 / 夸夸我」，夸的对象只能是「").append(asker)
+                   .append("」本人，禁止换成记录作者或任何其他人名。\n");
+                if (!asker.equals(r.getUsername())) {
+                    ctx.append("【留言者本人最近发布的学习记录（是他的成果，可作为夸他的素材，不是你的经历）】\n")
+                       .append(selfRecordsContext(asker));
+                }
                 ctx.append("【学习记录（").append(r.getUsername()).append(" 发布的学习成果，不是你的经历）】\n")
                    .append(truncate(plainOf(r.getContent()), MAX_RECORD_CHARS)).append("\n");
                 ctx.append("【该记录下的留言（旧→新）】\n");
@@ -153,7 +179,7 @@ public class AiAssistantService {
                     if (o.getId().equals(cid)) continue; // 触发留言单独列出
                     if (shown++ >= MAX_COMMENTS_SHOWN) break;
                     String tag;
-                    if (AI_NAME.equals(o.getUsername())) tag = "（你之前发的）";
+                    if (AI_NAME.equals(o.getUsername())) tag = "（你之前发的，不要照抄，也不要沿用其中的错误说法）";
                     else if (o.getId().equals(targetCommentId)) tag = "（" + asker + " 回复的对象）";
                     else tag = "";
                     ctx.append("- ").append(o.getUsername()).append(tag).append("：").append(oneLine(o.getContent())).append("\n");
@@ -164,7 +190,8 @@ public class AiAssistantService {
                     ctx.append("（这条留言是在回复「").append(replyTarget).append("」的留言）");
                 }
                 ctx.append("\n").append(oneLine(question)).append("\n");
-                ctx.append("请直接回复这条留言。如果用户提到「他」「这句话」「这条记录」等，请结合上文判断具体指代。");
+                ctx.append("请直接回复这条留言。如果用户提到「他」「这句话」「这条记录」等，请结合上文判断具体指代；" +
+                        "人物身份一律以【当前情境】为准，不要照抄你之前回复里用过的话。");
                 String reply = chatOnce(SYSTEM_PROMPT, ctx.toString());
                 if (reply == null) return;
                 insertComment(rid, asker, reply, asker, cid);
@@ -182,7 +209,7 @@ public class AiAssistantService {
             Record r = new Record();
             r.setUserId(ai.getId());
             r.setUsername(AI_NAME);
-            r.setContent("<p>📊 " + CN_DATE.format(reportDate) + " 的学习日报已发布，点击首页顶部的「日报」卡片即可查看～</p>");
+            r.setContent("<p>" + CN_DATE.format(reportDate) + " 的学习日报已发布，点击首页顶部的「日报」卡片即可查看～</p>");
             r.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
             records.save(r);
             System.out.println("[AI助手] 已播报 " + reportDate + " 日报");
@@ -240,9 +267,11 @@ public class AiAssistantService {
                 "2. 你只能通过留言/回复和大家对话，不能替用户执行任何操作（发记录、生成日报、收藏、点赞等）。" +
                 "不要主动承诺「我帮你做某事」，可以建议用户自己去操作。\n" +
                 "3. 你没有主动发起对话的能力，只有被 @ 或被回复时才会出现。\n" +
+                "4. 分清人物身份：当前向你说话的人说的「我」指他自己，「你」指你；记录作者、记录里提到的同学朋友都是不同的人。" +
+                "不要因为某个名字在记录或历史留言里出现过，就把说话的人当成那个人；也不要沿用你之前回复里说错的说法。\n" +
                 "【平台功能速览】学习记录（富文本，支持图片/视频，图片点击可放大）、留言与回复、点赞、" +
-                "收藏（⭐）、@提及通知（留言和记录里都可以@）、转发引用（🔁）、AI 学习日报（每天 0 点由系统自动生成前一天的日报，不是你生成的）、" +
-                "⚙️设置面板（修改个人信息、查看全部历史更新日志）、主题色切换、暗色模式。\n" +
+                "收藏、@提及通知（留言和记录里都可以@）、转发引用、AI 学习日报（每天 0 点由系统自动生成前一天的日报，不是你生成的）、" +
+                "设置面板（修改个人信息、查看全部历史更新日志）、主题色切换、暗色模式。\n" +
                 "【本站版本更新日志（回答「最近更新/新功能/怎么用」类问题时必须以此为准）】\n" +
                 VersionController.notesText() +
                 "【回答规则】与平台功能/版本相关的问题必须严格依据上面的真实信息回答；" +
@@ -303,6 +332,24 @@ public class AiAssistantService {
     }
 
     // ---------- 文本工具 ----------
+
+    /** 留言者本人最近 2 条学习记录的摘要，为「夸我」类请求提供真实、属于他本人的素材。 */
+    private String selfRecordsContext(String asker) {
+        List<Record> own = records.findTop2ByUsernameOrderByCreatedAtDesc(asker);
+        StringBuilder sb = new StringBuilder();
+        int n = 0;
+        for (Record r : own) {
+            if (n >= MAX_SELF_RECORDS) break;
+            String text = truncate(plainOf(r.getContent()), MAX_SELF_RECORD_CHARS);
+            if (text.isEmpty()) continue;
+            sb.append("- ").append(CN_DATE.format(r.getCreatedAt().atZoneSameInstant(CN_ZONE).toLocalDate()))
+              .append("：").append(text).append("\n");
+            n++;
+        }
+        return sb.length() == 0
+                ? "（他最近没有发布学习记录，缺少可夸的具体素材，可以请他分享最近在学什么）\n"
+                : sb.toString();
+    }
 
     /** 富文本 HTML 转纯文本：标签替换为空格，解码常见 HTML 实体，压缩空白。 */
     private static String plainOf(String html) {

@@ -94,7 +94,7 @@ function drawCloud() {
   }
 }
 
-function medal(i) { return i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : ""; }
+function medal(i) { return i === 0 ? "01" : i === 1 ? "02" : i === 2 ? "03" : ""; }
 function pct(r) { return Math.max(4, Math.round(r.count / maxOf() * 100)); }
 
 watch(() => state.words, () => nextTick(drawCloud));
@@ -139,7 +139,7 @@ onUnmounted(() => {
       <div class="rank-list">
         <div v-if="!ranking.length" class="rank-empty">暂无数据</div>
         <div v-for="(r, i) in visibleRanking" :key="r.username" class="rank-row">
-          <span class="rank-name" :style="{ color: '#' + r.color }">{{ medal(i) }}{{ r.username }}</span>
+          <span class="rank-name" :style="{ color: '#' + r.color }"><span v-if="medal(i)" class="rank-medal">{{ medal(i) }}</span>{{ r.username }}</span>
           <div class="rank-bar-wrap"><div class="rank-bar" :style="{ width: pct(r) + '%', background: '#' + r.color }"></div></div>
           <span class="rank-count">{{ r.count }} 条</span>
         </div>

@@ -2607,3 +2607,87 @@ html[data-theme="dark"] .settings-icon {
 html[data-theme="dark"] .settings-icon svg { stroke-width: 2.1; }
 html[data-theme="dark"] .settings-head-ico { stroke-width: 2; }
 /* ===== 设置面板图标 END ===== */
+
+/* ===== 互动图标：线描 SVG 替换 emoji ===== */
+.act-ico {
+  width: 15px; height: 15px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+/* 已点赞 / 已收藏时填实，保留状态反馈 */
+.like-btn.liked .act-ico,
+.fav-btn.favored .act-ico,
+.comment-like.liked .act-ico { fill: currentColor; }
+.fav-btn .act-ico, .quote-btn .act-ico { width: 16px; height: 16px; }
+.quote-btn { display: inline-flex; align-items: center; justify-content: center; }
+.comment-like { display: inline-flex; align-items: center; gap: 3px; }
+.comment-like .act-ico { width: 13px; height: 13px; }
+.comment-like.liked { color: #e74c3c; }
+html[data-theme="dark"] .comment-like.liked { color: #ff8a90; }
+/* 通知列表：类型图标 */
+.notif-ico { display: inline-flex; vertical-align: -3px; margin-right: 5px; }
+.notif-ico svg {
+  width: 15px; height: 15px; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+.notif-item.unread .notif-ico { color: var(--primary-dark); }
+html[data-theme="dark"] .notif-item.unread .notif-ico { color: #ff8a90; }
+/* ===== 互动图标 END ===== */
+
+/* ===== 通用线描图标（替换面板标题 / 排行榜 / 管理员 / 表情按钮中的 emoji） ===== */
+.modal-title-ico {
+  width: 17px; height: 17px; margin-right: 7px;
+  fill: none; stroke: currentColor; stroke-width: 1.7;
+  stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -2px;
+}
+.block-ico {
+  width: 14px; height: 14px; margin-right: 6px;
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -2px;
+}
+.daily-ico, .heat-ico { display: inline-flex; align-items: center; vertical-align: -1px; }
+.daily-ico svg, .heat-ico svg {
+  width: 16px; height: 16px;
+  fill: none; stroke: currentColor; stroke-width: 1.7;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.admin-crown {
+  width: 13px; height: 13px; margin-right: 3px;
+  fill: none; stroke: currentColor; stroke-width: 1.9;
+  stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -1px;
+}
+.rank-medal {
+  margin-right: 5px; font-size: 11px; font-weight: 700;
+  font-variant-numeric: tabular-nums; opacity: .65;
+}
+.daily-rank-medal {
+  font-size: 11px; font-weight: 700; letter-spacing: .5px;
+  color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.emoji-open { display: inline-flex; align-items: center; justify-content: center; }
+.smile-ico {
+  width: 16px; height: 16px;
+  fill: none; stroke: currentColor; stroke-width: 1.7;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.inline-ico {
+  width: 15px; height: 15px; margin-right: 5px;
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -2px;
+}
+.chat-warn {
+  width: 14px; height: 14px; margin-right: 5px;
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -2px;
+}
+.quote-ico {
+  width: 13px; height: 13px; margin-right: 4px;
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -2px;
+}

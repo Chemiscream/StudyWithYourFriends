@@ -8,7 +8,7 @@ const stat = computed(() => detail.value?.stat || {});
 const ranking = computed(() => stat.value.ranking || []);
 const words = computed(() => stat.value.words || []);
 
-function medal(i) { return i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : ""; }
+function medal(i) { return i === 0 ? "01" : i === 1 ? "02" : i === 2 ? "03" : ""; }
 
 // 下载日报为文本文件
 function download() {
@@ -27,7 +27,7 @@ function download() {
   lines.push("");
   if (ranking.value.length) {
     lines.push("【提交排行】");
-    ranking.value.forEach((r, i) => lines.push(`${medal(i)} ${r.username}：${r.count} 条`));
+    ranking.value.forEach((r, i) => lines.push(`${i + 1}. ${r.username}：${r.count} 条`));
     lines.push("");
   }
   if (words.value.length) {
@@ -48,18 +48,18 @@ function download() {
 <template>
   <div class="modal-mask" @click.self="closeDailyDetail">
     <div class="modal-card daily-detail-card">
-      <h2>📅 {{ detail?.report_date }} 日报</h2>
+      <h2><svg class="modal-title-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/><path d="M8 13.5h2M14 13.5h2M8 17h2M14 17h2"/></svg>{{ detail?.report_date }} 日报</h2>
 
       <div v-if="detail?.summary" class="daily-summary" v-html="mdRender(detail.summary)"></div>
       <div v-else class="daily-no-summary">（AI 摘要暂不可用，可能是模型服务未启动）</div>
 
       <div class="daily-stat-block">
-        <h3>📊 统计</h3>
+        <h3><svg class="block-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 20.5V10M9.5 20.5V4.5M15.5 20.5v-6.5M21 20.5V8.5"/><path d="M2.5 20.5h19.5"/></svg>统计</h3>
         <p class="daily-total">共 <strong>{{ stat.total || 0 }}</strong> 条学习记录</p>
       </div>
 
       <div v-if="ranking.length" class="daily-stat-block">
-        <h3>🏆 提交排行</h3>
+        <h3><svg class="block-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.3" r="4.3"/><path d="M9.6 12L7.8 21l4.2-2.4 4.2 2.4-1.8-9"/></svg>提交排行</h3>
         <div class="daily-rank">
           <div v-for="(r, i) in ranking" :key="r.username" class="daily-rank-row">
             <span class="daily-rank-medal">{{ medal(i) }}</span>
@@ -70,7 +70,7 @@ function download() {
       </div>
 
       <div v-if="words.length" class="daily-stat-block">
-        <h3>🔥 今日热词</h3>
+        <h3><svg class="block-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5l6-6 3.5 3.5 7.5-7.5"/><path d="M15.5 7.5h5v5"/></svg>今日热词</h3>
         <div class="daily-words">
           <span v-for="w in words" :key="w.text" class="daily-word">{{ w.text }} <em>{{ w.weight }}</em></span>
         </div>

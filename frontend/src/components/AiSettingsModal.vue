@@ -27,7 +27,7 @@ function switchProvider(p) {
   <div class="modal-mask" @click.self="close">
     <div class="modal-card" role="dialog" aria-modal="true">
       <div class="modal-head">
-        <h3>🤖 AI 设置</h3>
+        <h3><svg class="modal-title-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7.5" width="16" height="11.5" rx="3"/><path d="M12 3.5v4"/><circle cx="12" cy="3" r="1.2"/><path d="M9 12.6h.01M15 12.6h.01"/><path d="M9.5 15.6h5"/></svg>AI 设置</h3>
         <button class="modal-close" type="button" title="关闭" @click="close">✕</button>
       </div>
       <div class="field" style="margin-bottom:10px;">

@@ -26,7 +26,7 @@ const subtitle = computed(() => {
   return `共 ${r.stat?.total || 0} 条记录`;
 });
 
-function medal(i) { return i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : ""; }
+function medal(i) { return i === 0 ? "01" : i === 1 ? "02" : i === 2 ? "03" : ""; }
 
 function openToday() {
   if (latest.value) openDailyDetail(latest.value.report_date);
@@ -40,7 +40,7 @@ function openMore(e) {
 <template>
   <section class="panel daily-entry" :class="{ 'daily-entry-lg': expanded }">
     <div class="panel-head">
-      <h2><span class="daily-ico">📅</span>AI 日报</h2>
+      <h2><span class="daily-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/><path d="M8 13.5h2M14 13.5h2M8 17h2M14 17h2"/></svg></span>AI 日报</h2>
       <span class="daily-more" v-if="latest" @click="openMore">
         {{ expanded ? '查看更多' : latest.report_date + ' · 查看更多' }}
       </span>
@@ -65,7 +65,7 @@ function openMore(e) {
         </div>
 
         <div v-if="ranking.length" class="daily-stat-block">
-          <h3>🏆 提交排行</h3>
+          <h3><svg class="block-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.3" r="4.3"/><path d="M9.6 12L7.8 21l4.2-2.4 4.2 2.4-1.8-9"/></svg>提交排行</h3>
           <div class="daily-rank">
             <div v-for="(r, i) in ranking" :key="r.username" class="daily-rank-row">
               <span class="daily-rank-medal">{{ medal(i) }}</span>
@@ -76,7 +76,7 @@ function openMore(e) {
         </div>
 
         <div v-if="words.length" class="daily-stat-block">
-          <h3>🔥 今日热词</h3>
+          <h3><svg class="block-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5l6-6 3.5 3.5 7.5-7.5"/><path d="M15.5 7.5h5v5"/></svg>今日热词</h3>
           <div class="daily-words">
             <span v-for="w in words" :key="w.text" class="daily-word">{{ w.text }} <em>{{ w.weight }}</em></span>
           </div>

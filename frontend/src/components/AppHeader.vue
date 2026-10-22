@@ -85,7 +85,7 @@ onUnmounted(() => {
         class="user-tag"
         :title="state.isAdmin ? '管理员（可删除任意记录/留言）' : ''"
         :style="{ background: '#' + myColor + '22', color: '#' + myColor }"
-      >{{ state.isAdmin ? "👑 " : "" }}{{ state.user }}</span>
+      ><svg v-if="state.isAdmin" class="admin-crown" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5l4.6 3.4L12 5.4l3.9 6.5 4.6-3.4-1.9 9.6H5.4z"/><path d="M5.4 18.1h13.2"/></svg>{{ state.user }}</span>
       <button v-if="loggedIn" class="hbtn" type="button" title="我的收藏" @click="flipBtn($event, openFavorites)">
         <svg class="ico" viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/></svg>
         <span class="hbtn-label">收藏</span>
