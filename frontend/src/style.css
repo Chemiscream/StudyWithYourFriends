@@ -353,10 +353,9 @@ html[data-theme="dark"] .editor { background: #0d1726; }
   text-align: left; font: inherit; color: var(--ink, inherit);
 }
 .settings-item:hover { border-color: var(--primary); }
-.settings-icon { font-size: 20px; }
 .settings-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .settings-text b { font-size: 14px; }
-.settings-text small { color: var(--muted); font-size: 12px; }
+.settings-text small { color: var(--muted); font-size: 12px; word-break: keep-all; overflow-wrap: anywhere; }
 .settings-arrow { color: var(--muted); font-size: 18px; line-height: 1; }
 
 /* 📋 更新日志弹窗 */
@@ -1576,13 +1575,6 @@ html[data-theme="dark"] .daily-hero-date span { color: #ff5c64; }
   border-radius: 0; background: var(--panel-soft); border-color: var(--line);
 }
 .settings-item:hover, .changelog-item:hover { border-color: var(--primary); background: var(--primary-soft); }
-.settings-icon { filter: grayscale(0); }
-.settings-theme { cursor: default; }
-.settings-theme .theme-seg { flex: none; margin-left: auto; }
-.settings-theme .theme-seg button { min-height: 30px; padding: 0 12px; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; }
-html[data-theme="dark"] .settings-theme .theme-seg { border-color: rgba(247, 243, 230, .3); }
-html[data-theme="dark"] .settings-theme .theme-seg button { background: #141414; color: #a39c8f; }
-html[data-theme="dark"] .settings-theme .theme-seg button.active { background: var(--primary); color: #fff; }
 .notif-modal-card, .fav-modal-card, .daily-list-card, .daily-detail-card { border-radius: 0; }
 .notif-item, .fav-item { color: var(--ink); }
 .notif-item:hover, .fav-item:hover { background: var(--panel-soft); }
@@ -2082,9 +2074,6 @@ html[data-theme="dark"] .settings-item:hover,
 html[data-theme="dark"] .changelog-item:hover {
   background: rgba(230, 0, 18, .14); border-color: #e60012; box-shadow: 3px 3px 0 #e60012;
 }
-html[data-theme="dark"] .settings-theme .theme-seg { border: 2px solid #f7f3e6; }
-html[data-theme="dark"] .settings-theme .theme-seg button { background: #0a0a0a; color: #f7f3e6; }
-html[data-theme="dark"] .settings-theme .theme-seg button.active { background: #e60012; color: #fff; }
 
 /* --- 登录：黑底红斜带 + 白色档案纸卡片 --- */
 html[data-theme="dark"] .auth-wrap::before {
@@ -2429,3 +2418,192 @@ html:not([data-theme="dark"]) .range-btn.active {
 /* 日报卡片：左侧强调条 */
 html:not([data-theme="dark"]) .daily-card { border-left: 3px solid var(--primary); }
 /* ===== POLISH ROUND END ===== */
+
+/* ===== MOTION ROUND：P3 机械 HUD / P5 漫画翻页 ===== */
+
+/* ---------- 顶栏按钮：点击翻面 ---------- */
+.hbtn.is-flip { animation: p3hbtnFlip .64s cubic-bezier(.4,.05,.25,1); }
+@keyframes p3hbtnFlip {
+  0%   { transform: perspective(700px) rotateY(0deg); }
+  40%  { transform: perspective(700px) rotateY(88deg) scale(.94);
+         box-shadow: 0 0 0 2px rgba(0, 150, 190, .5), 0 8px 20px rgba(0, 116, 150, .3); }
+  41%  { transform: perspective(700px) rotateY(-88deg) scale(.94); }
+  100% { transform: perspective(700px) rotateY(0deg); }
+}
+html[data-theme="dark"] .hbtn.is-flip { animation: p5hbtnFlip .68s cubic-bezier(.35,0,.2,1); }
+@keyframes p5hbtnFlip {
+  0%   { transform: perspective(700px) skewX(-5deg) rotateY(0deg); }
+  38%  { transform: perspective(700px) skewX(-5deg) rotateY(90deg) scale(.9);
+         box-shadow: 6px 6px 0 #f7f3e6; background: #e60012; }
+  39%  { transform: perspective(700px) skewX(-5deg) rotateY(-90deg) scale(.9);
+         box-shadow: 6px 6px 0 #f7f3e6; background: #e60012; }
+  100% { transform: perspective(700px) skewX(-5deg) rotateY(0deg); }
+}
+/* 未读角标：出现时弹一下 */
+.notif-badge { animation: badgePop .5s cubic-bezier(.2,1.5,.4,1) both; }
+@keyframes badgePop {
+  0% { transform: scale(.3); opacity: 0; }
+  60% { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* ---------- 弹窗入场 ---------- */
+.modal-mask { animation: maskFade .22s ease both; }
+@keyframes maskFade { from { opacity: 0; } to { opacity: 1; } }
+/* P3：面板从下方浮起，青色缝隙收拢 */
+.modal-card { animation: p3ModalIn .4s cubic-bezier(.2,.8,.25,1) both; }
+@keyframes p3ModalIn {
+  0%   { opacity: 0; transform: translateY(22px) rotate(-.7deg) scale(.985); }
+  100% { opacity: 1; transform: none; }
+}
+/* P5：分镜贴纸从左上砸进来，红影先到、本体回弹 */
+html[data-theme="dark"] .modal-card { animation: p5ModalIn .46s cubic-bezier(.18,.9,.28,1) both; }
+@keyframes p5ModalIn {
+  0%   { opacity: 0; transform: translate(-24px, -16px) rotate(-2.2deg) scale(1.06);
+         filter: brightness(1.7) contrast(1.1); }
+  58%  { opacity: 1; transform: translate(3px, 3px) rotate(-.5deg) scale(.995); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+/* ---------- 记录卡：P3 悬浮 / P5 贴纸翘起 ---------- */
+html:not([data-theme="dark"]) .record {
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+html:not([data-theme="dark"]) .record:hover {
+  transform: translateY(-3px);
+  box-shadow: 5px 5px 0 rgba(0, 150, 190, .18), var(--shadow-soft);
+}
+html[data-theme="dark"] .record {
+  transition: transform .18s cubic-bezier(.2,1.3,.4,1), box-shadow .18s ease, border-color .18s ease;
+}
+html[data-theme="dark"] .record:hover {
+  transform: translate(-3px, -3px) rotate(-.4deg);
+  box-shadow: 9px 9px 0 #e60012;
+}
+
+/* ---------- 移动端切页：P3 翻纸 / P5 分镜滑入 ---------- */
+@media (max-width: 820px) {
+  html:not([data-theme="dark"]) .workspace[data-anim="next"] .col-main,
+  html:not([data-theme="dark"]) .workspace[data-anim="next"] .module-block {
+    transform-origin: left center;
+    animation: p3PageNext .56s cubic-bezier(.2,.8,.2,1) both;
+  }
+  html:not([data-theme="dark"]) .workspace[data-anim="prev"] .col-main,
+  html:not([data-theme="dark"]) .workspace[data-anim="prev"] .module-block {
+    transform-origin: right center;
+    animation: p3PagePrev .56s cubic-bezier(.2,.8,.2,1) both;
+  }
+  html[data-theme="dark"] .workspace[data-anim="next"] .col-main,
+  html[data-theme="dark"] .workspace[data-anim="next"] .module-block {
+    animation: p5PanelNext .48s cubic-bezier(.16,1,.3,1) both;
+  }
+  html[data-theme="dark"] .workspace[data-anim="prev"] .col-main,
+  html[data-theme="dark"] .workspace[data-anim="prev"] .module-block {
+    animation: p5PanelPrev .48s cubic-bezier(.16,1,.3,1) both;
+  }
+  /* 统计页会同时出现两张卡，错开一点更像连续分镜 */
+  .workspace[data-anim] .module-block:nth-child(3) { animation-delay: .07s !important; }
+
+  /* 激活的标签按钮：随切页一起弹一下 */
+  html:not([data-theme="dark"]) .module-tabs button.on { animation: p3TabOn .32s cubic-bezier(.2,.9,.25,1); }
+  html[data-theme="dark"] .module-tabs button.on { animation: p5TabOn .38s cubic-bezier(.2,.9,.25,1); }
+}
+
+@keyframes p3PageNext {
+  0%   { opacity: 0; transform: perspective(1300px) rotateY(-62deg) translateX(-10px); filter: brightness(1.22); }
+  60%  { opacity: 1; filter: brightness(1.06); }
+  100% { opacity: 1; transform: perspective(1300px) rotateY(0deg) translateX(0); filter: none; }
+}
+@keyframes p3PagePrev {
+  0%   { opacity: 0; transform: perspective(1300px) rotateY(62deg) translateX(10px); filter: brightness(1.22); }
+  60%  { opacity: 1; filter: brightness(1.06); }
+  100% { opacity: 1; transform: perspective(1300px) rotateY(0deg) translateX(0); filter: none; }
+}
+@keyframes p5PanelNext {
+  0%   { opacity: 0; transform: translateX(58px) skewX(-10deg) scale(.96); filter: brightness(1.35) contrast(1.12); }
+  55%  { opacity: 1; transform: translateX(-8px) skewX(-10deg) scale(1.004); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@keyframes p5PanelPrev {
+  0%   { opacity: 0; transform: translateX(-58px) skewX(10deg) scale(.96); filter: brightness(1.35) contrast(1.12); }
+  55%  { opacity: 1; transform: translateX(8px) skewX(10deg) scale(1.004); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@keyframes p3TabOn {
+  0%   { transform: translateY(6px) scale(.95); opacity: .5; }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes p5TabOn {
+  0%   { transform: translateY(6px) skewX(-4deg) scale(.94); }
+  60%  { transform: translateY(-6px) skewX(-4deg) scale(1.05); }
+  100% { transform: translateY(-3px) skewX(-4deg); }
+}
+
+/* ---------- 环境动效 ---------- */
+/* P3：取景框上电、锁定一次 */
+html:not([data-theme="dark"]) .hero-lines::after { animation: p3Lock .9s cubic-bezier(.2,.8,.2,1) both .25s; }
+@keyframes p3Lock {
+  0%   { opacity: 0; transform: scale(.35); }
+  55%  { opacity: .95; transform: scale(1.08); }
+  100% { opacity: .8; transform: scale(1); }
+}
+/* P5：半调网点缓慢漂移，让黑底不呆板 */
+html[data-theme="dark"] .hero::after { animation: p5Dots 18s linear infinite; }
+@keyframes p5Dots {
+  0%   { background-position: 0 0; }
+  100% { background-position: 80px 60px; }
+}
+/* ===== MOTION ROUND END ===== */
+
+/* 尊重系统的「减少动态效果」偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .hbtn.is-flip,
+  .notif-badge,
+  .modal-mask,
+  .modal-card,
+  .module-tabs button.on,
+  .workspace[data-anim] .col-main,
+  .workspace[data-anim] .module-block,
+  html[data-theme="dark"] .hero::after,
+  html:not([data-theme="dark"]) .hero-lines::after { animation: none !important; }
+  html:not([data-theme="dark"]) .record,
+  html[data-theme="dark"] .record { transition: none !important; }
+}
+
+/* ===== 设置面板：图标改为线描 SVG（替换 emoji） ===== */
+.settings-head-ico {
+  width: 17px; height: 17px; margin-right: 7px;
+  fill: none; stroke: currentColor; stroke-width: 1.7;
+  stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -2px;
+}
+.settings-icon {
+  width: 38px; height: 38px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(0, 150, 190, .38);
+  background: linear-gradient(155deg, rgba(56, 188, 216, .16), rgba(0, 153, 192, .07));
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  color: var(--primary-dark);
+}
+.settings-icon svg {
+  width: 20px; height: 20px; fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+}
+.settings-arrow { display: inline-flex; align-items: center; }
+.settings-arrow svg {
+  width: 16px; height: 16px; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+.settings-card .modal-close svg {
+  display: block; width: 14px; height: 14px; fill: none;
+  stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+}
+/* P5：米白贴纸 + 红色硬影，图标纯黑 */
+html[data-theme="dark"] .settings-icon {
+  border: 2px solid #111; background: #f7f3e6; color: #111;
+  clip-path: none; box-shadow: 3px 3px 0 #e60012;
+  transform: skewX(-5deg);
+}
+html[data-theme="dark"] .settings-icon svg { stroke-width: 2.1; }
+html[data-theme="dark"] .settings-head-ico { stroke-width: 2; }
+/* ===== 设置面板图标 END ===== */

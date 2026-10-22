@@ -28,10 +28,20 @@ import AppDialog from "./components/AppDialog.vue";
 const tab = ref("feed");
 // 统计面板首次渲染在隐藏容器里时画布宽度为 0，切到统计页时重挂载以按真实宽度重绘词云
 const statsKey = ref(0);
+// 移动端切页动画方向：next=向右翻页，prev=向左回翻
+const TAB_ORDER = ["feed", "daily", "stats"];
+const tabAnim = ref("");
+let tabAnimTimer = null;
 function switchTab(key) {
   if (tab.value === key) return;
+  const dir = TAB_ORDER.indexOf(key) > TAB_ORDER.indexOf(tab.value) ? "next" : "prev";
   tab.value = key;
   if (key === "stats") statsKey.value++;
+  // 先清空再在下一帧挂上方向，保证连续两次同方向切换也能重新播放
+  tabAnim.value = "";
+  requestAnimationFrame(() => { tabAnim.value = dir; });
+  clearTimeout(tabAnimTimer);
+  tabAnimTimer = setTimeout(() => { tabAnim.value = ""; }, 640);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -96,6 +106,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("hashchange", onHash);
   clearInterval(clockTimer);
+  clearTimeout(tabAnimTimer);
 });
 </script>
 
@@ -138,7 +149,7 @@ onUnmounted(() => {
       <div class="hero-code">ARCHIVE // 001</div>
     </section>
     <DetailView v-if="state.detailId" />
-    <div v-else class="workspace" :data-tab="tab">
+    <div v-else class="workspace" :data-tab="tab" :data-anim="tabAnim || undefined">
       <main class="col-main">
         <RecordEditor v-if="state.token" />
         <FilterBar />

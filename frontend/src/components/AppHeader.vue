@@ -12,6 +12,16 @@ function pickColor(c) {
   chooseColor(c);
 }
 
+// 顶栏按钮的翻面动效：先移除再强制重排后加回，确保连续点击也能重新播放
+function flipBtn(e, action) {
+  const el = e.currentTarget;
+  el.classList.remove("is-flip");
+  void el.offsetWidth;
+  el.classList.add("is-flip");
+  window.setTimeout(() => el.classList.remove("is-flip"), 680);
+  if (typeof action === "function") action();
+}
+
 function switchTheme() {
   toggleTheme();
   theme.value = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
@@ -57,7 +67,7 @@ onUnmounted(() => {
     </div>
     <div class="user-area">
       <div v-if="loggedIn" id="colorPickerWrap">
-        <button id="colorBtn" class="hbtn color-btn" type="button" title="我的主题色" @click.stop="paletteOpen = !paletteOpen">
+        <button id="colorBtn" class="hbtn color-btn" type="button" title="我的主题色" @click.stop="flipBtn($event, () => paletteOpen = !paletteOpen)">
           <span id="colorDot" :style="{ background: '#' + myColor }"></span>
         </button>
         <div v-if="paletteOpen" class="color-palette">
@@ -76,28 +86,28 @@ onUnmounted(() => {
         :title="state.isAdmin ? '管理员（可删除任意记录/留言）' : ''"
         :style="{ background: '#' + myColor + '22', color: '#' + myColor }"
       >{{ state.isAdmin ? "👑 " : "" }}{{ state.user }}</span>
-      <button v-if="loggedIn" class="hbtn" type="button" title="我的收藏" @click="openFavorites">
+      <button v-if="loggedIn" class="hbtn" type="button" title="我的收藏" @click="flipBtn($event, openFavorites)">
         <svg class="ico" viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/></svg>
         <span class="hbtn-label">收藏</span>
       </button>
       <span v-if="loggedIn" class="notif-wrap">
-        <button class="hbtn notif-btn" type="button" title="消息通知" @click="toggleNotif">
+        <button class="hbtn notif-btn" type="button" title="消息通知" @click="flipBtn($event, toggleNotif)">
           <svg class="ico" viewBox="0 0 24 24"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
           <span class="hbtn-label">消息</span>
         </button>
         <span v-if="state.notif.unread > 0" class="notif-badge">{{ state.notif.unread > 99 ? "99+" : state.notif.unread }}</span>
       </span>
       <a v-if="!loggedIn" class="hbtn login-link" href="#login">登录</a>
-      <button class="hbtn" type="button" :title="theme === 'dark' ? '切换到浅色（Persona 3）' : '切换到深色（Persona 5）'" @click="switchTheme">
+      <button class="hbtn" type="button" :title="theme === 'dark' ? '切换到浅色（Persona 3）' : '切换到深色（Persona 5）'" @click="flipBtn($event, switchTheme)">
         <svg v-if="theme === 'dark'" class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
         <svg v-else class="ico" viewBox="0 0 24 24"><path d="M20.5 14.6A8.5 8.5 0 1 1 9.4 3.5a6.8 6.8 0 0 0 11.1 11.1z"/></svg>
         <span class="hbtn-label">主题</span>
       </button>
-      <button v-if="loggedIn" class="hbtn" type="button" title="设置" @click="state.settingsOpen = true">
+      <button v-if="loggedIn" class="hbtn" type="button" title="设置" @click="flipBtn($event, () => state.settingsOpen = true)">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.3 14.7a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.2a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.2a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.5 1z"/></svg>
         <span class="hbtn-label">设置</span>
       </button>
-      <button v-if="loggedIn" class="hbtn quit" type="button" title="退出登录" @click="logout">
+      <button v-if="loggedIn" class="hbtn quit" type="button" title="退出登录" @click="flipBtn($event, logout)">
         <svg class="ico" viewBox="0 0 24 24"><path d="M12 3v9"/><path d="M6.5 6.5a8 8 0 1 0 11 0"/></svg>
         <span class="hbtn-label">退出</span>
       </button>
