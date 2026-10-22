@@ -17,9 +17,11 @@ let greeted = false;          // 本次会话是否已做过招手问候
 // 待机动作轮换组：没对话也没临时姿势时，在这几张之间慢速轮换，让她「自己有事做」
 const IDLES = ["idle", "read", "play"];
 
-const poseSrc = computed(() => "/mascot/" + pose.value + ".png");
+// 素材版本号：更换立绘后递增，强制浏览器重新拉取，避免继续显示缓存的旧 PNG
+const MASCOT_VER = "11";
+const poseSrc = computed(() => "/mascot/" + pose.value + ".png?v=" + MASCOT_VER);
 // 聊天面板头部用大头照特写，与右下角按钮的全身姿势区分
-const headSrc = "/mascot/avatar.png";
+const headSrc = "/mascot/avatar.png?v=" + MASCOT_VER;
 const clock = computed(() => {
   const p = (n) => String(n).padStart(2, "0");
   return `${p(now.value.getHours())}:${p(now.value.getMinutes())}`;
@@ -114,7 +116,7 @@ onMounted(() => {
   // 预加载姿势图，避免状态切换时闪烁
   ["idle", "wave", "think", "write", "cheer", "sleep", "avatar", "read", "play", "listen"].forEach((p) => {
     const img = new Image();
-    img.src = "/mascot/" + p + ".png";
+    img.src = "/mascot/" + p + ".png?v=" + MASCOT_VER;
   });
 });
 onUnmounted(() => {

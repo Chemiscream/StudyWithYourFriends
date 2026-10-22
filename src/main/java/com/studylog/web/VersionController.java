@@ -14,10 +14,15 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.14.3";
+    public static final String VERSION = "1.14.4";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.14.4", List.of(
+                    "看板娘的 10 张立绘全部重新抠图：图片边缘不再有白色残留和背景色块，深色主题下轮廓更干净。",
+                    "重新抠图保留了羽毛、星星、发饰等小细节，头像恢复了左侧辫子；头像上残缺的星星和左缘的杂点也已去掉。",
+                    "深色主题首页左上角的白色横条改为「FILE NO. 001」档案标签贴纸。"
+            )),
             new ReleaseNote("1.14.3", List.of(
                     "设置里新增「减少动态效果」开关：站内即可关闭弹窗翻出、切页与五维加分动画，并记住你的选择；关闭后点击处的聚焦环不会残留。",
                     "修复更新日志弹窗底部多出的一条横向滑条。",
