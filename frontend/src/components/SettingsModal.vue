@@ -47,13 +47,29 @@
             <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
           </span>
         </button>
+        <button
+          class="settings-item"
+          type="button"
+          role="switch"
+          :aria-checked="state.reduceMotion"
+          @click="toggleReduceMotion"
+        >
+          <span class="settings-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3.5 12c2.4-4.6 4.8-4.6 7.2 0s4.8 4.6 7.2 0"/><path d="M3.5 17.5h6M14.5 6.5h6"/></svg>
+          </span>
+          <span class="settings-text">
+            <b>减少动态效果</b>
+            <small>{{ state.reduceMotion ? "已开启：弹窗与切页直接显示" : "已关闭：保留翻出与切页动画" }}</small>
+          </span>
+          <span class="settings-switch" :class="{ on: state.reduceMotion }" aria-hidden="true"><i></i></span>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { state } from "../store.js";
+import { state, toggleReduceMotion } from "../store.js";
 
 function close() {
   state.settingsOpen = false;

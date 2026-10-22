@@ -363,7 +363,7 @@ html[data-theme="dark"] .editor { background: #0d1726; }
 
 /* 📋 更新日志弹窗 */
 .changelog-card { width: min(420px, 92vw); }
-.changelog-list { display: flex; flex-direction: column; gap: 8px; padding: 4px 0 2px; max-height: 55vh; overflow-y: auto; }
+.changelog-list { display: flex; flex-direction: column; gap: 8px; padding: 4px 0 2px; max-height: 55vh; overflow-x: hidden; overflow-y: auto; }
 .changelog-item {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px;
@@ -605,7 +605,7 @@ html[data-theme="dark"] .editor { background: #0d1726; }
   display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .modal-card {
-  width: min(440px, 94vw); max-height: 80vh; overflow-y: auto;
+  width: min(440px, 94vw); max-height: 80vh; overflow-x: hidden; overflow-y: auto;
   background: var(--panel); border: 1px solid var(--line);
   border-radius: 14px; box-shadow: var(--shadow); padding: 22px;
 }
@@ -662,7 +662,7 @@ html[data-theme="dark"] .emoji-panel { box-shadow: 0 8px 24px rgba(0,0,0,.4); }
 .chat-bubble {
   max-width: 85%; padding: 9px 12px;
   border-radius: 12px; font-size: 14px; line-height: 1.65;
-  white-space: pre-wrap; word-break: break-word;
+  white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere;
 }
 .chat-msg.user .chat-bubble { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
 .chat-msg.ai .chat-bubble { background: var(--panel-soft); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
@@ -670,6 +670,7 @@ html[data-theme="dark"] .emoji-panel { box-shadow: 0 8px 24px rgba(0,0,0,.4); }
 .chat-bubble > div { min-height: 1em; }
 .chat-bubble .md-h { font-weight: 700; font-size: 14.5px; margin: 6px 0 2px; }
 .chat-bubble .md-code {
+  max-width: 100%;
   background: var(--ink-soft, #1f2937); color: #e5e7eb;
   border-radius: 8px; padding: 10px 12px; margin: 6px 0;
   overflow-x: auto; white-space: pre; font-size: 13px; line-height: 1.55;
@@ -2457,25 +2458,17 @@ html[data-theme="dark"] .hbtn.is-flip { animation: p5hbtnFlip .68s cubic-bezier(
 :root { --fx: 50vw; --fy: 50vh; }
 .modal-mask { animation: maskFade .24s ease both; }
 @keyframes maskFade { from { opacity: 0; } to { opacity: 1; } }
-/* P3：卡片像从按钮里翻出来——先在指尖立起一片薄板，再翻正、落到屏幕中央 */
-.modal-card { animation: p3ModalFocus .46s cubic-bezier(.2,.8,.25,1) both; }
+/* P3：卡片像从按钮里翻出来——从指尖的薄板连续翻转、推移到屏幕中央，
+   只保留一段缓出曲线；中途不再设置反向关键帧，避免速度归零造成停顿感 */
+.modal-card { animation: p3ModalFocus .5s cubic-bezier(.16,1,.3,1) both; }
 @keyframes p3ModalFocus {
-  0% {
+  from {
     opacity: 0;
-    transform: perspective(1100px) translate(calc(var(--fx) - 50vw), calc(var(--fy) - 50vh))
-               rotateY(-86deg) scale(.1);
-    filter: brightness(1.9);
+    transform: perspective(1200px) translate(calc(var(--fx) - 50vw), calc(var(--fy) - 50vh))
+               rotateY(-78deg) scale(.12);
+    filter: brightness(1.7);
   }
-  44% {
-    opacity: 1;
-    transform: perspective(1100px) translate(calc((var(--fx) - 50vw) * .36), calc((var(--fy) - 50vh) * .36))
-               rotateY(14deg) scale(.92);
-    filter: brightness(1.12);
-  }
-  74% {
-    transform: perspective(1100px) translate(0, 0) rotateY(-2deg) scale(1.008);
-  }
-  100% { opacity: 1; transform: none; filter: none; }
+  to { opacity: 1; transform: none; filter: none; }
 }
 /* P5：贴在指尖的分镜卡被「甩」到中央，途中红影先到、落定回弹一次 */
 html[data-theme="dark"] .modal-card { animation: p5ModalFocus .5s cubic-bezier(.16,1,.3,1) both; }
@@ -2619,7 +2612,24 @@ html[data-theme="dark"] .hero::after { animation: p5Dots 18s linear infinite; }
   html:not([data-theme="dark"]) .hero-lines::after { animation: none !important; }
   html:not([data-theme="dark"]) .record,
   html[data-theme="dark"] .record { transition: none !important; }
+  /* 聚焦环靠动画归零透明度；动画关掉后必须直接隐藏，否则会常驻在点击处 */
+  .modal-mask::before { display: none; }
 }
+
+/* 站内「减少动态效果」开关：与系统偏好共用同一套关闭规则 */
+html.reduce-motion .hbtn.is-flip,
+html.reduce-motion .notif-badge,
+html.reduce-motion .modal-mask,
+html.reduce-motion .modal-card,
+html.reduce-motion .module-tabs button.on,
+html.reduce-motion .workspace[data-anim] .col-main,
+html.reduce-motion .workspace[data-anim] .module-block,
+html.reduce-motion .hero::after,
+html.reduce-motion .hero-lines::after { animation: none !important; }
+html.reduce-motion .modal-mask::before { display: none; }
+html.reduce-motion .record,
+html.reduce-motion .settings-switch,
+html.reduce-motion .settings-switch i { transition: none !important; }
 
 /* ===== 设置面板：图标改为线描 SVG（替换 emoji） ===== */
 .settings-head-ico {
@@ -2645,6 +2655,23 @@ html[data-theme="dark"] .hero::after { animation: p5Dots 18s linear infinite; }
   width: 16px; height: 16px; fill: none; stroke: currentColor;
   stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
 }
+/* 站内「减少动态效果」开关：滑块位置与文案同步，双主题各自着色 */
+.settings-switch {
+  width: 36px; height: 20px; flex: none; padding: 2px;
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--line-strong); background: var(--panel-soft);
+  transition: background .18s ease, border-color .18s ease;
+}
+.settings-switch i {
+  width: 14px; height: 14px; display: block; background: var(--muted);
+  transition: transform .18s ease, background .18s ease;
+}
+.settings-switch.on { border-color: var(--primary); background: var(--primary-soft); }
+.settings-switch.on i { transform: translateX(16px); background: var(--primary); }
+html[data-theme="dark"] .settings-switch { background: #0b0b0b; border-color: rgba(247, 243, 230, .5); }
+html[data-theme="dark"] .settings-switch i { background: #7d7d7d; }
+html[data-theme="dark"] .settings-switch.on { border-color: #e60012; background: rgba(230, 0, 18, .18); }
+html[data-theme="dark"] .settings-switch.on i { background: #e60012; }
 .settings-card .modal-close svg {
   display: block; width: 14px; height: 14px; fill: none;
   stroke: currentColor; stroke-width: 2; stroke-linecap: round;
@@ -3212,5 +3239,18 @@ html[data-theme="dark"] .pfx-tag { color: #c9c1b2; }
   .pfx-p3 .p3-tag { opacity: 1; animation: none; }
   .pfx-p3 .p3-tag.flip .p3-tag-txt { animation: none; }
 }
+/* 站内开关同步关闭五维加分/升级动画 */
+html.reduce-motion .pfx-enter-active,
+html.reduce-motion .pfx-leave-active,
+html.reduce-motion .pfx-circle.grow,
+html.reduce-motion .pfx-ring,
+html.reduce-motion .pfx-flash,
+html.reduce-motion .pfx-corner { animation: none; }
+html.reduce-motion .pfx-ring,
+html.reduce-motion .pfx-flash,
+html.reduce-motion .pfx-corner { opacity: 0; }
+html.reduce-motion .pfx-starwrap .star-tag,
+html.reduce-motion .pfx-p3 .p3-tag { opacity: 1; animation: none; }
+html.reduce-motion .pfx-p3 .p3-tag.flip .p3-tag-txt { animation: none; }
 /* ===== 五维 POINT UP / RANK UP 动画 END ===== */
 

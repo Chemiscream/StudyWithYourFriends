@@ -15,6 +15,8 @@ export const state = reactive({
   user: localStorage.getItem("studylog_user") || "",
   isAdmin: localStorage.getItem("studylog_admin") === "1",
   myColor: "",
+  // 动效偏好（站内「减少动态效果」开关，持久化到 localStorage）
+  reduceMotion: false,
   // 视图：home / login（hash 同步，兼容旧 /login.html → /#login）
   view: location.hash === "#login" ? "login" : "home",
   // 记录
@@ -262,6 +264,19 @@ export function applyTheme(t) {
 applyTheme(localStorage.getItem("studylog_theme") || "light");
 export function toggleTheme() {
   applyTheme((localStorage.getItem("studylog_theme") || "light") === "dark" ? "light" : "dark");
+}
+
+// ---------- 动效偏好 ----------
+// 系统级 prefers-reduced-motion 由 CSS 媒体查询兜底；这里再提供站内开关，便于随时关闭动画
+export function applyReduceMotion(on) {
+  state.reduceMotion = on;
+  if (on) document.documentElement.classList.add("reduce-motion");
+  else document.documentElement.classList.remove("reduce-motion");
+  localStorage.setItem("studylog_reduce_motion", on ? "1" : "0");
+}
+applyReduceMotion(localStorage.getItem("studylog_reduce_motion") === "1");
+export function toggleReduceMotion() {
+  applyReduceMotion(!state.reduceMotion);
 }
 
 // ---------- 视图 ----------

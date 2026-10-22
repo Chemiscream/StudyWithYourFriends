@@ -352,10 +352,10 @@ onUnmounted(() => {
   padding: 26px 12px;
   line-height: 1.9;
 }
-.chat-msg { display: flex; align-items: flex-end; gap: 8px; }
+.chat-msg { display: flex; align-items: flex-end; gap: 8px; min-width: 0; }
 .chat-msg.user { justify-content: flex-end; }
 .chat-ava { display: none; }
-.chat-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.chat-body { min-width: 0; max-width: 88%; display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
 .chat-msg.user .chat-body { align-items: flex-end; }
 .chat-who {
   font-family: var(--mono);
@@ -366,12 +366,13 @@ onUnmounted(() => {
 }
 .chat-msg.user .chat-who { color: var(--muted); }
 .chat-bubble {
-  max-width: 84%;
+  max-width: 100%;
   padding: 8px 11px;
   font-size: 12.5px;
   line-height: 1.72;
   white-space: pre-wrap;
   word-break: break-word;
+  overflow-wrap: anywhere;
   border: 1px solid var(--line);
   background: var(--panel-soft);
   color: var(--ink);

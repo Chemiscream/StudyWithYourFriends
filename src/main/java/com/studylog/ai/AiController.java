@@ -56,6 +56,8 @@ public class AiController {
     private static final int MAX_RECORD_CHARS = 500; // 单条记录截断长度
     private static final int MAX_RECORD_ROWS = 3000; // 读取记录行数安全上限
     private static final ZoneId DISPLAY_ZONE = ZoneId.of("Asia/Shanghai");
+    private static final DateTimeFormatter HISTORY_STAMP =
+            DateTimeFormatter.ofPattern("M月d日 HH:mm", Locale.CHINA);
 
     private final AiMessageRepository aiMessages;
     private final Tokens tokens;
@@ -207,10 +209,14 @@ public class AiController {
 
             List<Map<String, String>> messages = new ArrayList<>();
             messages.add(Map.of("role", "system", "content", buildSystemPrompt(me)));
-            // 只把最近几轮历史发给模型，控制上下文体积
+            // 只把最近几轮历史发给模型，控制上下文体积；每条补发送时间，避免「今天」被理解成昨天
             List<AiMessage> history = aiMessages.findByUsernameOrderByCreatedAtAscIdAsc(me);
             for (AiMessage msg : history.subList(Math.max(0, history.size() - HISTORY_SENT), history.size())) {
-                messages.add(Map.of("role", msg.getRole(), "content", msg.getContent()));
+                String stamp = historyStamp(msg.getCreatedAt());
+                String content = stamp.isEmpty()
+                        ? msg.getContent()
+                        : stamp + ("user".equals(msg.getRole()) ? "用户：" : "库莉姆：") + msg.getContent();
+                messages.add(Map.of("role", msg.getRole(), "content", content));
             }
             messages.add(Map.of("role", "user", "content", question));
 
@@ -333,6 +339,8 @@ public class AiController {
                 .format(DateTimeFormatter.ofPattern("yyyy年M月d日 EEEE HH:mm", Locale.CHINA));
         return "你是「库莉姆」，学习记录网站的看板娘，一个活泼可爱的女孩子。\n" +
                 "现在是 " + now + "（北京时间）。用户说「今天」「昨天」时以此为准。\n" +
+                "对话历史中每条消息开头的 [月日 相对日期 时:分] 是系统补充的发送时间标注，不是消息正文；" +
+                "结合标注判断用户说的「今天」「昨天」是哪一天，回答时不要输出这个时间前缀。\n" +
                 "正在和你聊天的用户是「" + me + "」，TA 是站内用户，发布的学习记录可能也出现在下面的记录里；回答时可以自然地称呼 TA 的名字。\n" +
                 "以下是站内用户发布的学习记录" + note + "，按时间倒序，格式为 [日期] 用户名：内容：\n---\n" +
                 (sb.length() == 0 ? "（暂无记录）\n" : sb.toString()) +
@@ -344,6 +352,16 @@ public class AiController {
                 "4. 只依据以上学习记录和对话历史作答，不要编造记录中不存在的内容；找不到相关信息时坦率说不知道；\n" +
                 "5. 你不能替用户执行任何操作（发记录、生成日报等都做不到），不要承诺自己做不到的事；\n" +
                 "6. 用简洁的中文回答，涉及统计时说明依据。";
+    }
+
+    /** 对话历史的时间标注：附上今天/昨天/N天前，小模型不必自己推算日期。 */
+    private static String historyStamp(OffsetDateTime at) {
+        if (at == null) return "";
+        ZonedDateTime t = at.atZoneSameInstant(DISPLAY_ZONE);
+        long days = java.time.temporal.ChronoUnit.DAYS.between(
+                t.toLocalDate(), ZonedDateTime.now(DISPLAY_ZONE).toLocalDate());
+        String rel = days <= 0 ? "今天" : days == 1 ? "昨天" : days + "天前";
+        return "[" + t.format(HISTORY_STAMP) + " " + rel + "] ";
     }
 
     private void saveExchange(String me, String question, String answer) {

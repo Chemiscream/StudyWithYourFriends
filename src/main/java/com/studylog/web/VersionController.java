@@ -14,10 +14,17 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.14.2";
+    public static final String VERSION = "1.14.3";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.14.3", List.of(
+                    "设置里新增「减少动态效果」开关：站内即可关闭弹窗翻出、切页与五维加分动画，并记住你的选择；关闭后点击处的聚焦环不会残留。",
+                    "修复更新日志弹窗底部多出的一条横向滑条。",
+                    "浅色主题的弹窗改为一段连续翻出动画，去掉了中途的停顿感。",
+                    "修复库莉姆聊天气泡遇到超长文字、链接或代码块时撑出面板的问题。",
+                    "库莉姆现在能看到最近每条消息的发送时间（附带今天/昨天标注），判断「今天」「昨天」时不再混淆。"
+            )),
             new ReleaseNote("1.14.2", List.of(
                     "弹窗改为「从你刚点的位置翻出来」：不再从屏幕中央淡入，而是先在按钮处立起，再翻正落到中央。",
                     "浅色主题像翻出一页档案，深色主题是分镜卡被甩到中央并回弹，点击处还会扩散一圈聚焦环。",
