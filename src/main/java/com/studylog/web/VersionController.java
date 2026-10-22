@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.13.1";
+    public static final String VERSION = "1.13.2";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.13.2", List.of(
+                    "移动端深色主题下，顶部横幅左上角那条孤立的白纸条装饰已隐藏（桌面端保留）。"
+            )),
             new ReleaseNote("1.13.1", List.of(
                     "界面图标全面线描化：点赞（改为竖大拇指）、收藏、转发、留言点赞和消息通知图标统一换成线描图标，不再使用 emoji。",
                     "更新日志、AI 设置、AI 日报、学习打卡、提交排行、今日热词等页面的标题 emoji 全部替换为线描图标；提交排行改用 01 / 02 / 03 编号。",

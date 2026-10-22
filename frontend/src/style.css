@@ -2136,7 +2136,8 @@ html[data-theme="dark"] .auth-card .back-link { color: #111; }
       repeating-linear-gradient(108deg, transparent 0 22px, rgba(247, 243, 230, .05) 22px 24px),
       #0b0b0b;
   }
-  html[data-theme="dark"] .hero::before { left: 18px; width: 78px; height: 8px; }
+  /* 移动端 hero 没有红色斜带做衬底，白色贴纸条会孤立成一条空白横条，直接隐藏 */
+  html[data-theme="dark"] .hero::before { display: none; }
   html[data-theme="dark"] .hero::after {
     width: 70%; height: 100%; right: 0;
     background: radial-gradient(circle at 78% 50%, rgba(247, 243, 230, .1) 0 1.5px, transparent 1.8px) 0 0 / 10px 10px;

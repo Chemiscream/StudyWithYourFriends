@@ -136,62 +136,72 @@ public class AiAssistantService {
         String asker = c.getUsername();
         String question = c.getContent();
         boolean repliedDirectly = replyToAi; // 直接回复 AI 留言（非 @）
+        // 「求夸奖」且留言者不是记录作者：只围绕留言者本人组织上下文，避免把记录作者的成果安到他头上
+        boolean praiseMe = !asker.equals(r.getUsername())
+                && question.matches(".*(夸|表扬|赞美).{0,6}我.*");
         pool.submit(() -> {
             try {
                 StringBuilder ctx = new StringBuilder();
-                ctx.append(repliedDirectly
-                        ? "站内用户「" + asker + "」刚刚直接回复了你的留言（没有@你），请阅读记录与留言后回复他。\n"
-                        : "站内用户「" + asker + "」在学习记录下的留言中 @ 了你，请阅读记录与已有留言后直接回复他。\n");
-                ctx.append("【当前情境（以此为准）】\n")
-                   .append("- 正在向你留言的人：「").append(asker).append("」。这条留言里的「我」指 ")
-                   .append(asker).append(" 本人，「你」指你（AI助手）。\n")
-                   .append("- 这条记录的作者：「").append(r.getUsername()).append("」，记录正文是 ")
-                   .append(r.getUsername()).append(" 的学习成果。\n");
-                if (!asker.equals(r.getUsername())) {
-                    ctx.append("- 留言的人和记录作者不是同一个人：正文描述的经历属于 ")
-                       .append(r.getUsername()).append("，不属于 ").append(asker).append("。")
-                       .append("不要把记录作者的成果说成留言者的成果；要夸留言者，只能依据他本人的留言或下面")
-                       .append("【留言者本人最近发布的学习记录】，不要引用本次记录里属于别人的成果。\n");
+                if (praiseMe) {
+                    ctx.append("站内用户「").append(asker).append("」在留言中 @ 了你，他在向你求夸奖。\n");
+                } else {
+                    ctx.append(repliedDirectly
+                            ? "站内用户「" + asker + "」刚刚直接回复了你的留言（没有@你），请阅读记录与留言后回复他。\n"
+                            : "站内用户「" + asker + "」在学习记录下的留言中 @ 了你，请阅读记录与已有留言后直接回复他。\n");
                 }
-                ctx.append("- 记录或留言里提到的其他名字（如同学、朋友）都是第三方，既不是留言的人，也不是记录作者；" +
-                                "不要猜测他们与记录内容的关系，不要替他们编造事迹，也不要把记录里的学习成果安到他们身上。\n")
-                   .append("- 本次回复的对象是「").append(asker).append("」，请用「你」称呼他，不要用第三人称名字指代他。\n")
-                   .append("- 如果他说「夸我 / 表扬我 / 夸夸我」，夸的对象只能是「").append(asker)
-                   .append("」本人，禁止换成记录作者或任何其他人名。\n");
+                ctx.append("【对话对象（最重要）】\n")
+                   .append("- 现在和你说话的人叫「").append(asker).append("」，你要回复的人就是他。\n")
+                   .append("- 他留言里的「我 / 俺 / 本人」都指 ").append(asker).append(" 本人，不是别人，也不是你（AI助手）。\n")
+                   .append("- 这条记录的作者是「").append(r.getUsername()).append("」，记录里的学习成果属于 ")
+                   .append(r.getUsername()).append("，不属于 ").append(asker).append("，也不属于你。\n");
                 if (!asker.equals(r.getUsername())) {
-                    ctx.append("【留言者本人最近发布的学习记录（是他的成果，可作为夸他的素材，不是你的经历）】\n")
-                       .append(selfRecordsContext(asker));
+                    ctx.append("- 不要把 ").append(r.getUsername()).append(" 的成果说成 ").append(asker).append(" 的成果；")
+                       .append("要夸 ").append(asker).append("，只能依据他的留言或下面【").append(asker).append(" 自己的学习记录】。\n");
                 }
-                ctx.append("【学习记录（").append(r.getUsername()).append(" 发布的学习成果，不是你的经历）】\n")
-                   .append(truncate(plainOf(r.getContent()), MAX_RECORD_CHARS)).append("\n");
-                ctx.append("【该记录下的留言（旧→新）】\n");
-                List<Comment> list = comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid));
-                // 标注被回复者的最近一条留言，帮助 AI 理解「他」「这句话」等指代；AI 自己的留言标「你之前发的」
-                String replyTarget = c.getReplyTo();
-                Long targetCommentId = null;
-                if (replyTarget != null && !replyTarget.isEmpty()) {
-                    for (Comment o : list) {
-                        if (replyTarget.equals(o.getUsername())) targetCommentId = o.getId();
+                ctx.append("- 记录或留言里出现的其他名字（如同学、朋友）都是与你们两个无关的第三方，不要写他们做了什么，也不要把记录内容安到他们身上。\n")
+                   .append("- 如果他说「夸我 / 表扬我 / 夸夸我」，就是要你夸「").append(asker)
+                   .append("」本人：不要夸记录作者，不要夸别人，也不要夸你自己。\n");
+                if (!asker.equals(r.getUsername())) {
+                    ctx.append("【").append(asker).append(" 自己的学习记录（属于 ").append(asker)
+                       .append("，不是你的经历）】\n").append(selfRecordsContext(asker));
+                }
+                if (praiseMe) {
+                    ctx.append("【").append(asker).append(" 刚刚留言】\n").append(oneLine(question)).append("\n");
+                    ctx.append("他在求夸奖：请用 1-2 句话直接夸「").append(asker).append("」本人。")
+                       .append("只能使用上面属于他自己的学习记录作为素材；如果他没有学习记录，就夸他的学习积极性并请他分享。")
+                       .append("不要提这条记录的作者、记录内容或其中的其他人名，也不要夸你自己。");
+                } else {
+                    ctx.append("【学习记录（").append(r.getUsername()).append(" 发布的学习成果，不是你的经历）】\n")
+                       .append(truncate(plainOf(r.getContent()), MAX_RECORD_CHARS)).append("\n");
+                    ctx.append("【该记录下的留言（旧→新）】\n");
+                    List<Comment> list = comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid));
+                    // 标注被回复者的最近一条留言，帮助 AI 理解「他」「这句话」等指代；AI 自己的留言标「你之前发的」
+                    String replyTarget = c.getReplyTo();
+                    Long targetCommentId = null;
+                    if (replyTarget != null && !replyTarget.isEmpty()) {
+                        for (Comment o : list) {
+                            if (replyTarget.equals(o.getUsername())) targetCommentId = o.getId();
+                        }
                     }
+                    int shown = 0;
+                    for (Comment o : list) {
+                        if (o.getId().equals(cid)) continue; // 触发留言单独列出
+                        if (shown++ >= MAX_COMMENTS_SHOWN) break;
+                        String tag;
+                        if (AI_NAME.equals(o.getUsername())) tag = "（你之前发的，不要照抄，也不要沿用其中的错误说法）";
+                        else if (o.getId().equals(targetCommentId)) tag = "（" + asker + " 回复的对象）";
+                        else tag = "";
+                        ctx.append("- ").append(o.getUsername()).append(tag).append("：").append(oneLine(o.getContent())).append("\n");
+                    }
+                    ctx.append("【").append(asker).append(" 刚刚留言");
+                    ctx.append(repliedDirectly ? "回复了你" : " @ 了你").append("】");
+                    if (replyTarget != null && !replyTarget.isEmpty() && !repliedDirectly) {
+                        ctx.append("（这条留言是在回复「").append(replyTarget).append("」的留言）");
+                    }
+                    ctx.append("\n").append(oneLine(question)).append("\n");
+                    ctx.append("请直接回复这条留言。如果用户提到「他」「这句话」「这条记录」等，请结合上文判断具体指代；" +
+                            "人物身份一律以【对话对象】为准，不要照抄你之前回复里用过的话。");
                 }
-                int shown = 0;
-                for (Comment o : list) {
-                    if (o.getId().equals(cid)) continue; // 触发留言单独列出
-                    if (shown++ >= MAX_COMMENTS_SHOWN) break;
-                    String tag;
-                    if (AI_NAME.equals(o.getUsername())) tag = "（你之前发的，不要照抄，也不要沿用其中的错误说法）";
-                    else if (o.getId().equals(targetCommentId)) tag = "（" + asker + " 回复的对象）";
-                    else tag = "";
-                    ctx.append("- ").append(o.getUsername()).append(tag).append("：").append(oneLine(o.getContent())).append("\n");
-                }
-                ctx.append("【").append(asker).append(" 刚刚留言");
-                ctx.append(repliedDirectly ? "回复了你" : " @ 了你").append("】");
-                if (replyTarget != null && !replyTarget.isEmpty() && !repliedDirectly) {
-                    ctx.append("（这条留言是在回复「").append(replyTarget).append("」的留言）");
-                }
-                ctx.append("\n").append(oneLine(question)).append("\n");
-                ctx.append("请直接回复这条留言。如果用户提到「他」「这句话」「这条记录」等，请结合上文判断具体指代；" +
-                        "人物身份一律以【当前情境】为准，不要照抄你之前回复里用过的话。");
                 String reply = chatOnce(SYSTEM_PROMPT, ctx.toString());
                 if (reply == null) return;
                 insertComment(rid, asker, reply, asker, cid);
@@ -263,6 +273,7 @@ public class AiAssistantService {
                 "不要出现「AI助手：」之类的前缀，不要使用 Markdown 标题或列表。\n" +
                 "【身份与能力边界（必须遵守）】\n" +
                 "1. 学习记录和留言都是站内用户发布的——记录正文是发布者本人的学习成果，绝不是你的经历。" +
+                "你（AI助手）没有自己的学习记录和生活经历，不要把任何人的学习内容说成你的。" +
                 "永远不要用第一人称描述用户的学习内容（不要说「我今天做了实验」这类话），你只是来围观和回应的朋友。\n" +
                 "2. 你只能通过留言/回复和大家对话，不能替用户执行任何操作（发记录、生成日报、收藏、点赞等）。" +
                 "不要主动承诺「我帮你做某事」，可以建议用户自己去操作。\n" +
@@ -342,8 +353,9 @@ public class AiAssistantService {
             if (n >= MAX_SELF_RECORDS) break;
             String text = truncate(plainOf(r.getContent()), MAX_SELF_RECORD_CHARS);
             if (text.isEmpty()) continue;
-            sb.append("- ").append(CN_DATE.format(r.getCreatedAt().atZoneSameInstant(CN_ZONE).toLocalDate()))
-              .append("：").append(text).append("\n");
+            sb.append("- ").append(asker).append(" 在")
+              .append(CN_DATE.format(r.getCreatedAt().atZoneSameInstant(CN_ZONE).toLocalDate()))
+              .append("发布：").append(text).append("\n");
             n++;
         }
         return sb.length() == 0
