@@ -14,10 +14,15 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.14.1";
+    public static final String VERSION = "1.14.2";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.14.2", List.of(
+                    "弹窗改为「从你刚点的位置翻出来」：不再从屏幕中央淡入，而是先在按钮处立起，再翻正落到中央。",
+                    "浅色主题像翻出一页档案，深色主题是分镜卡被甩到中央并回弹，点击处还会扩散一圈聚焦环。",
+                    "用键盘打开弹窗时动画从屏幕中心开始；系统开启「减少动态效果」时直接显示，不做位移动画。"
+            )),
             new ReleaseNote("1.14.1", List.of(
                     "点击别人的昵称可以直接进入对方的个人档案：记录作者、留言者、转发来源，以及提交排行里的名字都支持，悬停时会显示下划线。",
                     "从记录详情页点昵称进入档案后，左上角「返回」会回到刚才那条记录，不会退回首页。"

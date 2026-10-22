@@ -2452,22 +2452,67 @@ html[data-theme="dark"] .hbtn.is-flip { animation: p5hbtnFlip .68s cubic-bezier(
   100% { transform: scale(1); }
 }
 
-/* ---------- 弹窗入场 ---------- */
-.modal-mask { animation: maskFade .22s ease both; }
+/* ---------- 弹窗入场：从点击处「翻出」，视线焦点就是起点 ---------- */
+/* App.vue 在 documentElement 上写入最近一次点击的视口坐标 */
+:root { --fx: 50vw; --fy: 50vh; }
+.modal-mask { animation: maskFade .24s ease both; }
 @keyframes maskFade { from { opacity: 0; } to { opacity: 1; } }
-/* P3：面板从下方浮起，青色缝隙收拢 */
-.modal-card { animation: p3ModalIn .4s cubic-bezier(.2,.8,.25,1) both; }
-@keyframes p3ModalIn {
-  0%   { opacity: 0; transform: translateY(22px) rotate(-.7deg) scale(.985); }
-  100% { opacity: 1; transform: none; }
-}
-/* P5：分镜贴纸从左上砸进来，红影先到、本体回弹 */
-html[data-theme="dark"] .modal-card { animation: p5ModalIn .46s cubic-bezier(.18,.9,.28,1) both; }
-@keyframes p5ModalIn {
-  0%   { opacity: 0; transform: translate(-24px, -16px) rotate(-2.2deg) scale(1.06);
-         filter: brightness(1.7) contrast(1.1); }
-  58%  { opacity: 1; transform: translate(3px, 3px) rotate(-.5deg) scale(.995); }
+/* P3：卡片像从按钮里翻出来——先在指尖立起一片薄板，再翻正、落到屏幕中央 */
+.modal-card { animation: p3ModalFocus .46s cubic-bezier(.2,.8,.25,1) both; }
+@keyframes p3ModalFocus {
+  0% {
+    opacity: 0;
+    transform: perspective(1100px) translate(calc(var(--fx) - 50vw), calc(var(--fy) - 50vh))
+               rotateY(-86deg) scale(.1);
+    filter: brightness(1.9);
+  }
+  44% {
+    opacity: 1;
+    transform: perspective(1100px) translate(calc((var(--fx) - 50vw) * .36), calc((var(--fy) - 50vh) * .36))
+               rotateY(14deg) scale(.92);
+    filter: brightness(1.12);
+  }
+  74% {
+    transform: perspective(1100px) translate(0, 0) rotateY(-2deg) scale(1.008);
+  }
   100% { opacity: 1; transform: none; filter: none; }
+}
+/* P5：贴在指尖的分镜卡被「甩」到中央，途中红影先到、落定回弹一次 */
+html[data-theme="dark"] .modal-card { animation: p5ModalFocus .5s cubic-bezier(.16,1,.3,1) both; }
+@keyframes p5ModalFocus {
+  0% {
+    opacity: 0;
+    transform: translate(calc(var(--fx) - 50vw), calc(var(--fy) - 50vh)) scale(.12)
+               skewX(-16deg) rotate(-5deg);
+    filter: brightness(1.9) contrast(1.15);
+  }
+  54% {
+    opacity: 1;
+    transform: translate(-7px, 5px) scale(1.04) skewX(-3deg) rotate(-.7deg);
+    filter: brightness(1.06);
+  }
+  78% { transform: translate(2px, -2px) scale(.996); filter: none; }
+  100% { transform: none; filter: none; }
+}
+/* 点击处扩散一圈「聚焦环」：P3 青色扫描环，P5 红色冲击环，强化起点在指尖 */
+.modal-mask::before {
+  content: ""; position: fixed; left: var(--fx); top: var(--fy);
+  width: 24vmax; height: 24vmax; margin: -12vmax 0 0 -12vmax;
+  border-radius: 50%; pointer-events: none; z-index: -1;
+  animation: focusRing .62s cubic-bezier(.2,.8,.25,1) both;
+}
+html:not([data-theme="dark"]) .modal-mask::before {
+  border: 2px solid rgba(0, 168, 208, .55);
+  box-shadow: 0 0 46px rgba(0, 168, 208, .28);
+}
+html[data-theme="dark"] .modal-mask::before {
+  border: 3px solid rgba(230, 0, 18, .6);
+  box-shadow: 0 0 30px rgba(230, 0, 18, .35);
+}
+@keyframes focusRing {
+  0%   { opacity: .95; transform: scale(.12); }
+  70%  { opacity: .5; }
+  100% { opacity: 0; transform: scale(1); }
 }
 
 /* ---------- 记录卡：P3 悬浮 / P5 贴纸翘起 ---------- */
@@ -2565,6 +2610,7 @@ html[data-theme="dark"] .hero::after { animation: p5Dots 18s linear infinite; }
   .hbtn.is-flip,
   .notif-badge,
   .modal-mask,
+  .modal-mask::before,
   .modal-card,
   .module-tabs button.on,
   .workspace[data-anim] .col-main,

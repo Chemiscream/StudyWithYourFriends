@@ -109,14 +109,27 @@ function onVisibility() {
   if (document.visibilityState === "visible" && state.token) loadPendingPoints();
 }
 
+// 记录最近一次点击位置：弹窗从这里「翻出」，让入场画面从当前视线焦点长出来
+// （样式在 style.css 的 .modal-card 入场动画里读取 --fx / --fy）
+function trackFocus(e) {
+  if (typeof e.clientX !== "number") return;
+  // 键盘 Enter 触发的 click 坐标为 (0,0)，退回屏幕中心
+  const x = e.clientX || window.innerWidth / 2;
+  const y = e.clientY || window.innerHeight / 2;
+  document.documentElement.style.setProperty("--fx", x + "px");
+  document.documentElement.style.setProperty("--fy", y + "px");
+}
+
 onMounted(() => {
   init();
   clockTimer = setInterval(() => { now.value = new Date(); }, 1000);
   document.addEventListener("visibilitychange", onVisibility);
+  document.addEventListener("click", trackFocus, true);
 });
 onUnmounted(() => {
   window.removeEventListener("hashchange", onHash);
   document.removeEventListener("visibilitychange", onVisibility);
+  document.removeEventListener("click", trackFocus, true);
   clearInterval(clockTimer);
   clearTimeout(tabAnimTimer);
 });
