@@ -136,72 +136,67 @@ public class AiAssistantService {
         String asker = c.getUsername();
         String question = c.getContent();
         boolean repliedDirectly = replyToAi; // 直接回复 AI 留言（非 @）
-        // 「求夸奖」且留言者不是记录作者：只围绕留言者本人组织上下文，避免把记录作者的成果安到他头上
-        boolean praiseMe = !asker.equals(r.getUsername())
-                && question.matches(".*(夸|表扬|赞美).{0,6}我.*");
+        String replyTarget = c.getReplyTo();
         pool.submit(() -> {
             try {
                 StringBuilder ctx = new StringBuilder();
-                if (praiseMe) {
-                    ctx.append("站内用户「").append(asker).append("」在留言中 @ 了你，他在向你求夸奖。\n");
-                } else {
-                    ctx.append(repliedDirectly
-                            ? "站内用户「" + asker + "」刚刚直接回复了你的留言（没有@你），请阅读记录与留言后回复他。\n"
-                            : "站内用户「" + asker + "」在学习记录下的留言中 @ 了你，请阅读记录与已有留言后直接回复他。\n");
+                ctx.append(repliedDirectly
+                        ? "站内用户「" + asker + "」刚刚直接回复了你的留言（没有@你），请阅读记录与留言后回复他。\n"
+                        : "站内用户「" + asker + "」在学习记录下的留言中 @ 了你，请阅读记录与已有留言后直接回复他。\n");
+                // 身份信息：不省略任何上下文，而是把每段信息的归属标清楚，让模型自己判断指代
+                ctx.append("【人物与身份（最重要，先读这里）】\n")
+                   .append("- 记录作者：「").append(r.getUsername()).append("」。记录正文里的学习成果属于 ")
+                   .append(r.getUsername()).append("，不属于 ").append(asker).append("，也不属于你（AI助手）。\n")
+                   .append("- 当前留言者：「").append(asker).append("」。他留言里的「我 / 俺 / 本人」= ")
+                   .append(asker).append(" 本人；「你」= 你（AI助手）。\n");
+                if (replyTarget != null && !replyTarget.isEmpty()) {
+                    ctx.append("- 他这条留言是在回复「").append(replyTarget).append("」的留言。\n");
                 }
-                ctx.append("【对话对象（最重要）】\n")
-                   .append("- 现在和你说话的人叫「").append(asker).append("」，你要回复的人就是他。\n")
-                   .append("- 他留言里的「我 / 俺 / 本人」都指 ").append(asker).append(" 本人，不是别人，也不是你（AI助手）。\n")
-                   .append("- 这条记录的作者是「").append(r.getUsername()).append("」，记录里的学习成果属于 ")
-                   .append(r.getUsername()).append("，不属于 ").append(asker).append("，也不属于你。\n");
+                ctx.append("- 站内用户名单：").append(roster()).append("。名单之外的任何名字（如留言里提到的同学、朋友）都是身份未知的第三方，")
+                   .append("不要替他们编造经历，也不要把记录或他人的成果安到他们身上。\n")
+                   .append("- 回复前先确认：谁在跟你说话、他说的「我」指谁、记录是谁的成果，再组织回答。\n");
+
+                // 双方近期学习记录：都带上归属标签，作为可引用的真实素材
+                ctx.append("【记录作者 ").append(r.getUsername()).append(" 最近的学习记录（属于 ").append(r.getUsername()).append("）】\n")
+                   .append(recentRecordsContext(r.getUsername(), rid));
                 if (!asker.equals(r.getUsername())) {
-                    ctx.append("- 不要把 ").append(r.getUsername()).append(" 的成果说成 ").append(asker).append(" 的成果；")
-                       .append("要夸 ").append(asker).append("，只能依据他的留言或下面【").append(asker).append(" 自己的学习记录】。\n");
+                    ctx.append("【留言者 ").append(asker).append(" 最近的学习记录（属于 ").append(asker).append("，可作回应素材）】\n")
+                       .append(recentRecordsContext(asker, null));
                 }
-                ctx.append("- 记录或留言里出现的其他名字（如同学、朋友）都是与你们两个无关的第三方，不要写他们做了什么，也不要把记录内容安到他们身上。\n")
-                   .append("- 如果他说「夸我 / 表扬我 / 夸夸我」，就是要你夸「").append(asker)
-                   .append("」本人：不要夸记录作者，不要夸别人，也不要夸你自己。\n");
-                if (!asker.equals(r.getUsername())) {
-                    ctx.append("【").append(asker).append(" 自己的学习记录（属于 ").append(asker)
-                       .append("，不是你的经历）】\n").append(selfRecordsContext(asker));
-                }
-                if (praiseMe) {
-                    ctx.append("【").append(asker).append(" 刚刚留言】\n").append(oneLine(question)).append("\n");
-                    ctx.append("他在求夸奖：请用 1-2 句话直接夸「").append(asker).append("」本人。")
-                       .append("只能使用上面属于他自己的学习记录作为素材；如果他没有学习记录，就夸他的学习积极性并请他分享。")
-                       .append("不要提这条记录的作者、记录内容或其中的其他人名，也不要夸你自己。");
-                } else {
-                    ctx.append("【学习记录（").append(r.getUsername()).append(" 发布的学习成果，不是你的经历）】\n")
-                       .append(truncate(plainOf(r.getContent()), MAX_RECORD_CHARS)).append("\n");
-                    ctx.append("【该记录下的留言（旧→新）】\n");
-                    List<Comment> list = comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid));
-                    // 标注被回复者的最近一条留言，帮助 AI 理解「他」「这句话」等指代；AI 自己的留言标「你之前发的」
-                    String replyTarget = c.getReplyTo();
-                    Long targetCommentId = null;
-                    if (replyTarget != null && !replyTarget.isEmpty()) {
-                        for (Comment o : list) {
-                            if (replyTarget.equals(o.getUsername())) targetCommentId = o.getId();
-                        }
-                    }
-                    int shown = 0;
+
+                ctx.append("【当前记录全文（").append(r.getUsername()).append(" 的学习成果，不是你的经历）】\n")
+                   .append(truncate(plainOf(r.getContent()), MAX_RECORD_CHARS)).append("\n");
+
+                ctx.append("【该记录下的留言（按时间从旧到新，含回复关系）】\n");
+                List<Comment> list = comments.findByRecordIdInOrderByCreatedAtAsc(List.of(rid));
+                // 标注被回复者的最近一条留言，帮助 AI 理解「他」「这句话」等指代；AI 自己的留言标「你之前发的」
+                Long targetCommentId = null;
+                if (replyTarget != null && !replyTarget.isEmpty()) {
                     for (Comment o : list) {
-                        if (o.getId().equals(cid)) continue; // 触发留言单独列出
-                        if (shown++ >= MAX_COMMENTS_SHOWN) break;
-                        String tag;
-                        if (AI_NAME.equals(o.getUsername())) tag = "（你之前发的，不要照抄，也不要沿用其中的错误说法）";
-                        else if (o.getId().equals(targetCommentId)) tag = "（" + asker + " 回复的对象）";
-                        else tag = "";
-                        ctx.append("- ").append(o.getUsername()).append(tag).append("：").append(oneLine(o.getContent())).append("\n");
+                        if (replyTarget.equals(o.getUsername())) targetCommentId = o.getId();
                     }
-                    ctx.append("【").append(asker).append(" 刚刚留言");
-                    ctx.append(repliedDirectly ? "回复了你" : " @ 了你").append("】");
-                    if (replyTarget != null && !replyTarget.isEmpty() && !repliedDirectly) {
-                        ctx.append("（这条留言是在回复「").append(replyTarget).append("」的留言）");
-                    }
-                    ctx.append("\n").append(oneLine(question)).append("\n");
-                    ctx.append("请直接回复这条留言。如果用户提到「他」「这句话」「这条记录」等，请结合上文判断具体指代；" +
-                            "人物身份一律以【对话对象】为准，不要照抄你之前回复里用过的话。");
                 }
+                int shown = 0;
+                for (Comment o : list) {
+                    if (o.getId().equals(cid)) continue; // 触发留言单独列出
+                    if (shown++ >= MAX_COMMENTS_SHOWN) break;
+                    StringBuilder tag = new StringBuilder();
+                    if (AI_NAME.equals(o.getUsername())) tag.append("（你之前发的，不要照抄，也不要沿用其中的错误说法）");
+                    if (o.getId().equals(targetCommentId)) tag.append("（").append(asker).append(" 这次回复的对象）");
+                    else if (o.getReplyTo() != null && !o.getReplyTo().isEmpty()) tag.append("（回复 ").append(o.getReplyTo()).append("）");
+                    ctx.append("- ").append(o.getUsername()).append(tag).append("：").append(oneLine(o.getContent())).append("\n");
+                }
+                ctx.append("【").append(asker).append(" 刚刚留言");
+                ctx.append(repliedDirectly ? "回复了你" : " @ 了你").append("】");
+                if (replyTarget != null && !replyTarget.isEmpty() && !repliedDirectly) {
+                    ctx.append("（这条留言是在回复「").append(replyTarget).append("」的留言）");
+                }
+                ctx.append("\n").append(oneLine(question)).append("\n");
+                ctx.append("请直接回复这条留言。判断指代时以【人物与身份】为准：")
+                   .append("「我」是当前留言者 ").append(asker).append("，不是记录作者，也不是留言里提到的其他名字；")
+                   .append("不要把 ").append(r.getUsername()).append(" 的成果说成 ").append(asker).append(" 的，也不要夸你自己；")
+                   .append("如果对方要求夸他，就用上面属于他自己的学习记录来夸。")
+                   .append("不要照抄你之前回复里用过的话。");
                 String reply = chatOnce(SYSTEM_PROMPT, ctx.toString());
                 if (reply == null) return;
                 insertComment(rid, asker, reply, asker, cid);
@@ -344,23 +339,37 @@ public class AiAssistantService {
 
     // ---------- 文本工具 ----------
 
-    /** 留言者本人最近 2 条学习记录的摘要，为「夸我」类请求提供真实、属于他本人的素材。 */
-    private String selfRecordsContext(String asker) {
-        List<Record> own = records.findTop2ByUsernameOrderByCreatedAtDesc(asker);
+    /** 某用户最近 2 条学习记录的摘要（可排除当前记录），供模型了解当事人自己的真实进展。 */
+    private String recentRecordsContext(String username, Long excludeId) {
+        List<Record> own = records.findTop3ByUsernameOrderByCreatedAtDesc(username);
         StringBuilder sb = new StringBuilder();
         int n = 0;
         for (Record r : own) {
             if (n >= MAX_SELF_RECORDS) break;
+            if (excludeId != null && excludeId.equals(r.getId())) continue;
             String text = truncate(plainOf(r.getContent()), MAX_SELF_RECORD_CHARS);
             if (text.isEmpty()) continue;
-            sb.append("- ").append(asker).append(" 在")
+            sb.append("- ").append(username).append(" 在")
               .append(CN_DATE.format(r.getCreatedAt().atZoneSameInstant(CN_ZONE).toLocalDate()))
               .append("发布：").append(text).append("\n");
             n++;
         }
         return sb.length() == 0
-                ? "（他最近没有发布学习记录，缺少可夸的具体素材，可以请他分享最近在学什么）\n"
+                ? "（该用户最近没有发布学习记录）\n"
                 : sb.toString();
+    }
+
+    /** 站内注册用户名清单（不含管理员与 AI 自己），帮助模型区分站内用户与文本里提到的站外名字。 */
+    private String roster() {
+        StringBuilder sb = new StringBuilder();
+        int n = 0;
+        for (User u : users.findAll()) {
+            if (u.isAdmin() || AI_NAME.equals(u.getUsername())) continue;
+            if (n > 0) sb.append("、");
+            sb.append(u.getUsername());
+            if (++n >= 20) break;
+        }
+        return n == 0 ? "（暂无）" : sb.toString();
     }
 
     /** 富文本 HTML 转纯文本：标签替换为空格，解码常见 HTML 实体，压缩空白。 */
