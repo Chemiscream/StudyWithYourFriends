@@ -2,6 +2,13 @@
 import { computed } from "vue";
 import { state } from "../store.js";
 
+// days 传入时按外部数据（个人档案）渲染，否则用已加载的全站记录聚合
+const props = defineProps({
+  days: { type: Object, default: null },
+  heading: { type: String, default: "学习打卡" },
+  flat: { type: Boolean, default: false },
+});
+
 // 展示层聚合：用已加载的学习记录按上海时区统计每日打卡数，不新增任何接口请求
 const WEEKS = 32;
 const DAY_MS = 86400000;
@@ -23,8 +30,12 @@ function keyToUTC(key) {
 const todayKey = shanghaiKey(new Date());
 
 const countMap = computed(() => {
+  if (props.days) return props.days;
+  // 登录后只统计自己的学习记录（留言不算打卡）；未登录时没有「自己」，保持全站聚合
+  const me = state.user;
   const m = {};
   for (const r of state.records || []) {
+    if (me && r.username !== me) continue;
     if (!r.created_at) continue;
     const t = new Date(r.created_at);
     if (Number.isNaN(t.getTime())) continue;
@@ -108,9 +119,9 @@ function level(c) {
 </script>
 
 <template>
-  <section class="panel heatmap-panel">
+  <section class="panel heatmap-panel" :class="{ flat }">
     <div class="panel-head">
-      <h2><span class="heat-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>学习打卡</h2>
+      <h2><span class="heat-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>{{ heading }}</h2>
       <span class="heat-streak">连续 {{ streak }} 天</span>
     </div>
     <div class="heat-months">

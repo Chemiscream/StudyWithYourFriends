@@ -51,6 +51,14 @@ export const state = reactive({
   // emoji 面板（全站单例）
   emoji: { visible: false, kind: null, inputEl: null, savedRange: null, anchorEl: null },
   profileOpen: false,
+  // 个人档案页（五维人格指数 + 个人打卡）
+  persona: { open: false, username: "", loading: false, data: null, msg: "" },
+  // POINT UP 加分动画：实时行为与登录后合并的未读加分公司一份动画
+  pointFx: { show: false, gains: [], total: 0, pending: false },
+  // RANK UP 升级动画：一次可包含多个维度
+  rankFx: { show: false, items: [], pending: false },
+  // 播放 POINT UP / RANK UP 动画用的五维实时数据（圆圈大小、五角星形状都靠它）
+  fxStats: [],
   lightbox: null, // 图片放大预览 {src}
   settingsOpen: false, // ⚙️ 设置面板（修改个人信息 / 查看更新日志 / AI 设置入口）
   aiSettingsOpen: false, // AI 设置弹窗（服务器AI / 外部 API 切换）
@@ -150,6 +158,8 @@ export async function toggleLike(rid) {
       state.detailRecord.like_count = res.like_count;
       state.detailRecord.liked = res.liked;
     }
+    queuePointGains(res.gains); // 点赞自己获得体贴加点时即时 POINT UP
+    queueRankUps(res.rank_ups);
   } catch (e) { /* 网络错误不打断 */ }
 }
 
@@ -261,6 +271,8 @@ export function showHome() { state.view = "home"; location.hash = ""; }
 // ---------- 登录态 ----------
 function clearAuth() {
   state.token = ""; state.user = ""; state.myColor = ""; state.isAdmin = false; state.activeReply = null;
+  state.pointFx.show = false; state.pointFx.gains = []; state.pointFx.pending = false;
+  state.rankFx.show = false; state.rankFx.items = []; state.rankFx.pending = false;
   setToken("");
   localStorage.removeItem("studylog_user");
   localStorage.removeItem("studylog_admin");
@@ -307,6 +319,7 @@ export async function doAuth(mode, username, password) {
     showHome();
     loadNotifications();
     startNotifPoll();
+    loadPendingPoints(); // 登录后播放别人留下的未读加分
     return { ok: true };
   } catch (e) {
     return { ok: false, message: "网络错误" };
@@ -415,6 +428,8 @@ export async function submitRecord(html) {
       const quoted = !!state.quoteOf;
       cancelEdit();
       state.addMsg = { text: quoted ? "转发成功" : editing ? "已更新" : "已添加", cls: "ok" };
+      queuePointGains(res.gains); // 新记录的五维加分即时 POINT UP（编辑无加分）
+      queueRankUps(res.rank_ups);
       await loadRecords();
       return { ok: true };
     }
@@ -443,6 +458,8 @@ export async function sendComment(rid, content) {
   if (state.activeReply && state.activeReply.rid === rid) payload.reply_to = state.activeReply.name;
   const res = await request(`/api/records/${rid}/comments`, { method: "POST", body: JSON.stringify(payload) });
   if (res.ok) {
+    queuePointGains(res.gains); // 留言带来的体贴加点即时 POINT UP
+    queueRankUps(res.rank_ups);
     state.activeReply = null;
     loadRecords();
     if (state.detailId === rid) loadDetail();
@@ -479,6 +496,149 @@ export async function loadStats(range) {
     state.ranking = res.ranking || [];
     state.words = res.words || [];
   } catch (e) { /* 统计失败不影响主功能 */ }
+}
+
+// ---------- 个人档案 ----------
+export async function openPersona(username) {
+  const name = username || state.user;
+  if (!name) return;
+  state.persona.open = true;
+  state.persona.username = name;
+  state.persona.data = null;
+  state.persona.msg = "";
+  window.scrollTo(0, 0);
+  await loadPersona(name);
+}
+
+export function closePersona() {
+  state.persona.open = false;
+  state.persona.data = null;
+  state.persona.msg = "";
+}
+
+export async function loadPersona(username) {
+  const name = username || state.persona.username || state.user;
+  if (!name) return;
+  state.persona.loading = true;
+  state.persona.msg = "";
+  try {
+    // 自己的档案走 /me（公开接口对管理员返回 404，管理员需要看自己的档案）
+    const url = name === state.user ? "/api/persona/me" : "/api/persona/" + encodeURIComponent(name);
+    const res = await request(url);
+    if (!res.ok) {
+      state.persona.data = null;
+      state.persona.msg = res.message || "加载失败";
+      return;
+    }
+    // 请求返回前已切到别人/关闭页面时丢弃旧响应
+    if (state.persona.username === name && state.persona.open) state.persona.data = res;
+  } catch (e) {
+    state.persona.msg = "网络错误";
+  } finally {
+    state.persona.loading = false;
+  }
+}
+
+// ---------- POINT UP 加分动画 ----------
+const POINT_NAMES = { knowledge: "知识", courage: "勇气", dexterity: "灵巧", kindness: "体贴", charm: "魅力" };
+let pointFxTimer = null;
+
+/**
+ * 播放加分动画。gains 可以是 {stat: delta}（接口返回）或 [{key,name,delta}]（未读加分接口）。
+ * 短时间内的多次加分合并进同一个动画，不重复弹出。
+ */
+export function queuePointGains(gains, pending = false) {
+  if (!gains) return;
+  // 同时有 RANK UP 时只播 RANK UP，避免两个动画叠在一起
+  if (state.rankFx.show) return;
+  const list = Array.isArray(gains)
+    ? gains
+    : Object.entries(gains).map(([key, delta]) => ({ key, name: POINT_NAMES[key] || key, delta }));
+  const valid = list.filter((g) => g && g.delta > 0);
+  if (!valid.length) return;
+
+  // 上一轮动画已结束（show=false）时从头算起，避免旧加分混进新的 POINT UP
+  const base = state.pointFx.show ? state.pointFx.gains : [];
+  const merged = new Map(base.map((g) => [g.key, { ...g }]));
+  for (const g of valid) {
+    const cur = merged.get(g.key);
+    if (cur) cur.delta += g.delta;
+    else merged.set(g.key, { key: g.key, name: g.name || POINT_NAMES[g.key] || g.key, delta: g.delta });
+  }
+  state.pointFx.gains = [...merged.values()];
+  state.pointFx.total = state.pointFx.gains.reduce((n, g) => n + g.delta, 0);
+  state.pointFx.pending = pending || state.pointFx.pending;
+  state.pointFx.show = true;
+  loadFxStats();
+
+  clearTimeout(pointFxTimer);
+  pointFxTimer = setTimeout(hidePointFx, state.pointFx.pending ? 3600 : 3000);
+}
+
+function hidePointFx() {
+  state.pointFx.show = false;
+  // 未读加分播放完立即上报已读，避免下次打开站点重复弹
+  if (state.pointFx.pending) {
+    state.pointFx.pending = false;
+    request("/api/persona/pending/seen", { method: "POST" }).catch(() => {});
+  }
+  clearTimeout(pointFxTimer);
+  pointFxTimer = setTimeout(() => {
+    if (!state.pointFx.show) state.pointFx.gains = [];
+  }, 400);
+}
+
+/** 拉取五维实时数据供 POINT UP / RANK UP 动画绘制圆圈大小与五角星形状。 */
+export async function loadFxStats() {
+  if (!state.token) return;
+  try {
+    const res = await request("/api/persona/me");
+    if (res && res.ok && Array.isArray(res.stats)) state.fxStats = res.stats;
+  } catch (e) { /* 拉不到就用上一次的数据，动画不阻塞 */ }
+}
+
+/** 登录后拉取「别人带来的」未读加分并合并播放一次；没有未读时不弹任何东西。 */
+export async function loadPendingPoints() {
+  if (!state.token) return;
+  try {
+    const res = await request("/api/persona/pending");
+    if (!res.ok || !res.total) return;
+    queuePointGains(res.gains, true);
+    queueRankUps(res.rank_ups, true);
+  } catch (e) { /* 网络错误不打扰 */ }
+}
+
+// ---------- RANK UP 升级动画 ----------
+let rankFxTimer = null;
+
+/** 播放升级动画。同一维度多次升级合并，只保留最高等级；多个维度放进同一张卡片。 */
+export function queueRankUps(list, pending = false) {
+  if (!Array.isArray(list) || !list.length) return;
+  const merged = new Map((state.rankFx.show ? state.rankFx.items : []).map((i) => [i.key, { ...i }]));
+  for (const r of list) {
+    if (!r || !r.rank) continue;
+    const cur = merged.get(r.key);
+    if (!cur || r.rank > cur.rank) merged.set(r.key, { ...r });
+  }
+  if (!merged.size) return;
+  // POINT UP 与 RANK UP 同时出现时只播 RANK UP
+  if (state.pointFx.show) hidePointFx();
+  state.rankFx.items = [...merged.values()];
+  state.rankFx.pending = pending || state.rankFx.pending;
+  state.rankFx.show = true;
+  loadFxStats();
+
+  clearTimeout(rankFxTimer);
+  rankFxTimer = setTimeout(hideRankFx, 4600);
+}
+
+function hideRankFx() {
+  state.rankFx.show = false;
+  state.rankFx.pending = false;
+  clearTimeout(rankFxTimer);
+  rankFxTimer = setTimeout(() => {
+    if (!state.rankFx.show) state.rankFx.items = [];
+  }, 500);
 }
 
 // ---------- 版本 ----------
@@ -609,6 +769,7 @@ export async function init() {
     ensureUsers();
     loadNotifications();
     startNotifPoll();
+    loadPendingPoints(); // 别人带来的未读五维加分会合并成一次 POINT UP
   }
   await loadRecords();
   syncDetailFromHash(); // 直接打开 #record/id 链接（刷新/分享）时加载详情页

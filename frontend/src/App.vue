@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, onUnmounted, ref, computed } from "vue";
-import { state, init, syncDetailFromHash } from "./store.js";
+import { state, init, syncDetailFromHash, loadPendingPoints } from "./store.js";
 import AppHeader from "./components/AppHeader.vue";
 import LoginView from "./components/LoginView.vue";
 import StatsPanel from "./components/StatsPanel.vue";
@@ -14,6 +14,7 @@ import FilterBar from "./components/FilterBar.vue";
 import RecordList from "./components/RecordList.vue";
 import DetailView from "./components/DetailView.vue";
 import ProfileModal from "./components/ProfileModal.vue";
+import PersonaPage from "./components/PersonaPage.vue";
 import SettingsModal from "./components/SettingsModal.vue";
 import AiSettingsModal from "./components/AiSettingsModal.vue";
 import ChangelogModal from "./components/ChangelogModal.vue";
@@ -23,6 +24,7 @@ import FavoriteModal from "./components/FavoriteModal.vue";
 import UpdateModal from "./components/UpdateModal.vue";
 import EmojiPanel from "./components/EmojiPanel.vue";
 import AppDialog from "./components/AppDialog.vue";
+import PersonaFx from "./components/PersonaFx.vue";
 
 // 移动端模块分页：feed=动态、daily=日报、stats=统计（桌面端由 CSS 忽略，三个模块同屏并列）
 const tab = ref("feed");
@@ -73,8 +75,11 @@ const clock = computed(() => {
   return `${p(now.value.getHours())}:${p(now.value.getMinutes())}:${p(now.value.getSeconds())}`;
 });
 const dayMap = computed(() => {
+  // 与右侧「学习打卡」保持一致：登录后只算自己的记录，未登录时仍为全站
+  const me = state.user;
   const m = {};
   for (const r of state.records || []) {
+    if (me && r.username !== me) continue;
     if (!r.created_at) continue;
     const d = new Date(r.created_at);
     if (Number.isNaN(d.getTime())) continue;
@@ -99,12 +104,19 @@ const streak = computed(() => {
   return n;
 });
 
+// 切回标签页时再查一次未读加分（别人点赞/留言的累积会合并成一次动画）
+function onVisibility() {
+  if (document.visibilityState === "visible" && state.token) loadPendingPoints();
+}
+
 onMounted(() => {
   init();
   clockTimer = setInterval(() => { now.value = new Date(); }, 1000);
+  document.addEventListener("visibilitychange", onVisibility);
 });
 onUnmounted(() => {
   window.removeEventListener("hashchange", onHash);
+  document.removeEventListener("visibilitychange", onVisibility);
   clearInterval(clockTimer);
   clearTimeout(tabAnimTimer);
 });
@@ -122,7 +134,7 @@ onUnmounted(() => {
       <div class="bg-vignette"></div>
     </div>
     <AppHeader />
-    <section v-if="!state.detailId" class="hero" :class="{ 'hero-tab-hide': tab !== 'feed' }">
+    <section v-if="!state.detailId && !state.persona.open" class="hero" :class="{ 'hero-tab-hide': tab !== 'feed' }">
       <div class="hero-lines" aria-hidden="true"></div>
       <div class="hero-main">
         <div class="hero-eyebrow"><i class="dot"></i>{{ dateLabel }}<span class="sl">/</span>AFTER SCHOOL</div>
@@ -149,6 +161,7 @@ onUnmounted(() => {
       <div class="hero-code">ARCHIVE // 001</div>
     </section>
     <DetailView v-if="state.detailId" />
+    <PersonaPage v-else-if="state.persona.open" />
     <div v-else class="workspace" :data-tab="tab" :data-anim="tabAnim || undefined">
       <main class="col-main">
         <RecordEditor v-if="state.token" />
@@ -192,5 +205,6 @@ onUnmounted(() => {
   <DailyReportListModal v-if="state.daily.listOpen" />
   <DailyReportDetailModal v-if="state.daily.detailOpen" />
   <AppDialog />
+  <PersonaFx />
   <MascotWidget v-if="state.view !== 'login'" />
 </template>

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
-import { state, loadStats } from "../store.js";
+import { state, loadStats, openPersona } from "../store.js";
 
 // 折叠状态存 localStorage（与旧版 key 一致）
 const collapsed = ref(localStorage.getItem("studylog_collapse_stats") === "1");
@@ -125,6 +125,14 @@ onUnmounted(() => {
       <span class="record-time">共 {{ state.statsTotal }} 条记录</span>
     </div>
     <div class="collapse-body">
+      <button v-if="state.user" class="persona-entry" type="button" @click="openPersona(state.user)">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3.2l2.4 3.9 4.4 1.1-2.9 3.5.3 4.5-4.2-1.7-4.2 1.7.3-4.5-2.9-3.5 4.4-1.1z"/>
+          <circle cx="12" cy="12" r="9.2"/>
+        </svg>
+        <span>我的个人档案</span>
+        <small>五维人格指数</small>
+      </button>
       <div class="stats-range">
         <button
           v-for="r in RANGES"

@@ -163,6 +163,11 @@ public class AuthController {
                 .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
         em.createNativeQuery("UPDATE notifications SET actor = :n WHERE actor = :o")
                 .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
+        // 五维计分事件按用户名快照关联：迁移本人事件与「行为人」字段，否则改名后五维归零、旧点数会被同名新用户继承
+        em.createNativeQuery("UPDATE stat_events SET username = :n WHERE username = :o")
+                .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
+        em.createNativeQuery("UPDATE stat_events SET actor = :n WHERE actor = :o")
+                .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("ok", true);

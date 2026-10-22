@@ -8,6 +8,7 @@ import com.studylog.model.Record;
 import com.studylog.model.RecordFavorite;
 import com.studylog.model.RecordLike;
 import com.studylog.model.User;
+import com.studylog.persona.PersonaService;
 import com.studylog.repo.CommentLikeRepository;
 import com.studylog.repo.CommentRepository;
 import com.studylog.repo.NotificationRepository;
@@ -56,6 +57,7 @@ public class RecordController {
     private final Tokens tokens;
     private final EntityManager em;
     private final AiAssistantService aiAssistant;
+    private final PersonaService persona;
 
     public RecordController(RecordRepository records, CommentRepository comments,
                             UserRepository users, RecordLikeRepository likes,
@@ -63,7 +65,7 @@ public class RecordController {
                             RecordFavoriteRepository favorites,
                             NotificationRepository notifications,
                             Tokens tokens, EntityManager em,
-                            AiAssistantService aiAssistant) {
+                            AiAssistantService aiAssistant, PersonaService persona) {
         this.records = records;
         this.comments = comments;
         this.users = users;
@@ -74,6 +76,7 @@ public class RecordController {
         this.tokens = tokens;
         this.em = em;
         this.aiAssistant = aiAssistant;
+        this.persona = persona;
     }
 
     // ---------- 列表 + 筛选 ----------
@@ -231,6 +234,9 @@ public class RecordController {
         Record r = records.findById(rid)
                 .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "记录不存在"));
         boolean liked;
+        Map<String, Object> personaResult = new LinkedHashMap<>();
+        personaResult.put("gains", new LinkedHashMap<String, Integer>());
+        personaResult.put("rank_ups", List.of());
         var existing = likes.findByRecordIdAndUsername(rid, me);
         if (existing.isPresent()) {
             likes.delete(existing.get());
@@ -246,12 +252,14 @@ public class RecordController {
             liked = true;
             if (!r.getUsername().equals(me)) {
                 saveNotification(r.getUsername(), me, "like_record", rid, null, plainText(r.getContent()));
+                personaResult = persona.onLike(r.getUsername(), me, rid);
             }
         }
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("ok", true);
         m.put("liked", liked);
         m.put("like_count", likes.countByRecordId(rid));
+        m.putAll(personaResult); // 自己本次获得的加分与升级，前端即时播放 POINT UP / RANK UP
         return m;
     }
 
@@ -259,7 +267,8 @@ public class RecordController {
     @PostMapping("/records/{rid}/favorite")
     Map<String, Object> toggleFavorite(HttpServletRequest req, @PathVariable Long rid) {
         String me = requireLogin(req);
-        if (!records.existsById(rid)) throw new BizException(HttpStatus.NOT_FOUND, "记录不存在");
+        Record r = records.findById(rid)
+                .orElseThrow(() -> new BizException(HttpStatus.NOT_FOUND, "记录不存在"));
         boolean favorited;
         var existing = favorites.findByRecordIdAndUsername(rid, me);
         if (existing.isPresent()) {
@@ -272,6 +281,9 @@ public class RecordController {
             f.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
             favorites.save(f);
             favorited = true;
+            if (!r.getUsername().equals(me)) {
+                persona.onFavorite(r.getUsername(), me, rid);
+            }
         }
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("ok", true);
@@ -365,6 +377,8 @@ public class RecordController {
             r.setQuotedRecordId(src.getId());
         }
         records.save(r);
+        // 五维人格：记录创建计分（编辑、删除不计分也不扣分），返回本次加分与升级供前端播放动画
+        Map<String, Object> personaResult = persona.onRecordCreated(r);
         // 记录正文中的 @提及也推送通知（仅创建时解析，编辑不重复通知）
         notifyMentions(content, r, me, new HashSet<>());
         // 转发通知：告诉原作者有人转发了他的记录（跳转到转发记录详情）
@@ -382,6 +396,7 @@ public class RecordController {
         m.put("ok", true);
         m.put("id", r.getId());
         m.put("message", "已添加");
+        m.putAll(personaResult);
         return m;
     }
 
@@ -456,6 +471,8 @@ public class RecordController {
         c.setReplyTo(replyTo);
         c.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
         comments.save(c);
+        // 五维人格：留言计分（AI 助手作为留言者时忽略），返回自己本次加分与升级供前端播放动画
+        Map<String, Object> personaResult = persona.onComment(record, c);
         createNotifications(record, c, me);
         // 留言中 @AI助手：AI 异步读取记录与留言后回复该留言
         aiAssistant.replyToComment(record, c);
@@ -463,6 +480,7 @@ public class RecordController {
         m.put("ok", true);
         m.put("id", c.getId());
         m.put("message", "已留言");
+        m.putAll(personaResult);
         return m;
     }
 
