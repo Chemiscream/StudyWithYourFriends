@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { state, closeDailyDetail } from "../store.js";
+import { state, closeDailyDetail, openPersona } from "../store.js";
 import { mdRender, esc } from "../utils/md.js";
 
 const detail = computed(() => state.daily.detail);
@@ -9,6 +9,12 @@ const ranking = computed(() => stat.value.ranking || []);
 const words = computed(() => stat.value.words || []);
 
 function medal(i) { return i === 0 ? "01" : i === 1 ? "02" : i === 2 ? "03" : ""; }
+
+// 弹窗里的昵称：先关日报详情，再打开对应同学的档案页
+function pickUser(name) {
+  closeDailyDetail();
+  openPersona(name);
+}
 
 // 下载日报为文本文件
 function download() {
@@ -63,7 +69,7 @@ function download() {
         <div class="daily-rank">
           <div v-for="(r, i) in ranking" :key="r.username" class="daily-rank-row">
             <span class="daily-rank-medal">{{ medal(i) }}</span>
-            <span class="daily-rank-name" :style="{ color: '#' + r.color }">{{ r.username }}</span>
+            <span class="daily-rank-name name-link" title="查看个人档案" :style="{ color: '#' + r.color }" @click="pickUser(r.username)">{{ r.username }}</span>
             <span class="daily-rank-count">{{ r.count }} 条</span>
           </div>
         </div>

@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.14.0";
+    public static final String VERSION = "1.14.1";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.14.1", List.of(
+                    "点击别人的昵称可以直接进入对方的个人档案：记录作者、留言者、转发来源，以及提交排行里的名字都支持，悬停时会显示下划线。",
+                    "从记录详情页点昵称进入档案后，左上角「返回」会回到刚才那条记录，不会退回首页。"
+            )),
             new ReleaseNote("1.14.0", List.of(
                     "新增「个人档案」页：点击顶栏自己的昵称（或统计面板里的入口）进入，可查看五维人格、打卡热力图和个人学习摘要。",
                     "五维人格分为知识、勇气、灵巧、体贴、魅力，等级与称号随日常记录、打卡、点赞、留言等行为累积；加分和升级时会按当前主题播放专属动画。",

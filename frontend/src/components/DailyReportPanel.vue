@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { state, openDailyList, openDailyDetail } from "../store.js";
+import { state, openDailyList, openDailyDetail, openPersona } from "../store.js";
 import { mdRender } from "../utils/md.js";
 
 // expanded=true：移动端「日报」独立分页，直接铺开最新日报正文（数据与详情弹窗完全一致，不额外请求）
@@ -69,7 +69,7 @@ function openMore(e) {
           <div class="daily-rank">
             <div v-for="(r, i) in ranking" :key="r.username" class="daily-rank-row">
               <span class="daily-rank-medal">{{ medal(i) }}</span>
-              <span class="daily-rank-name" :style="{ color: '#' + r.color }">{{ r.username }}</span>
+              <span class="daily-rank-name name-link" title="查看个人档案" :style="{ color: '#' + r.color }" @click="openPersona(r.username)">{{ r.username }}</span>
               <span class="daily-rank-count">{{ r.count }} 条</span>
             </div>
           </div>

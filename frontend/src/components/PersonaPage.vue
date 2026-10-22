@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
-import { state, closePersona, openDetail } from "../store.js";
+import { state, closePersona, openDetail, backFromPersona } from "../store.js";
 import StudyHeatmap from "./StudyHeatmap.vue";
 import {
   PERSONA_ORDER as ORDER,
@@ -122,8 +122,7 @@ function fmtDay(v) {
   return d.toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" });
 }
 function back() {
-  closePersona();
-  window.scrollTo(0, 0);
+  backFromPersona();
 }
 function openRecent(rec) {
   closePersona();

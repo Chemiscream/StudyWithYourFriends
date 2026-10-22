@@ -257,6 +257,9 @@ html[data-theme="dark"] .editor { background: #0d1726; }
   background: var(--primary-soft); color: var(--primary-dark);
   font-size: 12px; font-weight: 800;
 }
+/* 可点击昵称：记录作者、留言者、提交排行、转发来源都能进入对应个人档案 */
+.name-link { cursor: pointer; }
+.name-link:hover { text-decoration: underline; text-underline-offset: 2px; }
 .record-time { color: var(--muted); font-size: 12px; }
 .record-content {
   color: var(--ink); line-height: 1.7; font-size: 14px;

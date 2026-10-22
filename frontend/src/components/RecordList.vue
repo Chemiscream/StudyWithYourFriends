@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive } from "vue";
-import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImage } from "../store.js";
+import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImage, openPersona } from "../store.js";
 import { renderMention } from "../utils/md.js";
 import { useMention } from "../useMention.js";
 
@@ -74,7 +74,7 @@ function onRecordClick(r, e) {
       >
         <div class="record-head">
           <div class="record-user">
-            <span class="role-tag" :style="{ background: '#' + (r.color || '4a90d9') + '22', color: '#' + (r.color || '4a90d9') }">{{ r.username }}</span>
+            <span class="role-tag name-link" title="查看个人档案" :style="{ background: '#' + (r.color || '4a90d9') + '22', color: '#' + (r.color || '4a90d9') }" @click.stop="openPersona(r.username)">{{ r.username }}</span>
             <span v-if="r.mine" class="record-time">我</span>
           </div>
           <span class="record-time" :title="r.updated_at ? '发布 ' + fmtTime(r.created_at) + '，最后编辑 ' + fmtTime(r.updated_at) : ''">
@@ -84,7 +84,7 @@ function onRecordClick(r, e) {
         <div class="record-content clickable" v-html="r.content || ''" title="点击查看详情"></div>
         <div v-if="r.quote" class="quote-card" type="button" @click.stop="openDetail(r.quote.id)">
           <template v-if="!r.quote.deleted">
-            <span class="quote-line"><svg class="quote-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8a3 3 0 0 0 3 3h11"/><path d="M15 11l4 4-4 4"/></svg>转发自 <b :style="{ color: '#' + (r.quote.color || '4a90d9') }">{{ r.quote.username }}</b></span>
+            <span class="quote-line"><svg class="quote-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8a3 3 0 0 0 3 3h11"/><path d="M15 11l4 4-4 4"/></svg>转发自 <b class="name-link" :style="{ color: '#' + (r.quote.color || '4a90d9') }" title="查看个人档案" @click.stop="openPersona(r.quote.username)">{{ r.quote.username }}</b></span>
             <span class="quote-preview">{{ r.quote.preview || "（无文字内容）" }}</span>
           </template>
           <span v-else class="quote-preview deleted"><svg class="quote-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v8a3 3 0 0 0 3 3h11"/><path d="M15 11l4 4-4 4"/></svg>原记录已删除</span>
@@ -110,7 +110,7 @@ function onRecordClick(r, e) {
         </div>
         <div class="comments">
           <div v-for="c in visibleComments(r)" :key="c.id" class="comment-item">
-            <span class="role-tag" :style="{ background: '#' + c.color + '22', color: '#' + c.color }">{{ c.username }}</span>
+            <span class="role-tag name-link" title="查看个人档案" :style="{ background: '#' + c.color + '22', color: '#' + c.color }" @click.stop="openPersona(c.username)">{{ c.username }}</span>
             <span v-if="c.reply_to" class="reply-badge">回复 <b>@{{ c.reply_to }}</b></span>
             <span class="comment-text" v-html="renderMention(c.content)"></span>
             <span class="comment-time">{{ fmtComment(c.created_at) }}</span>

@@ -52,7 +52,7 @@ export const state = reactive({
   emoji: { visible: false, kind: null, inputEl: null, savedRange: null, anchorEl: null },
   profileOpen: false,
   // 个人档案页（五维人格指数 + 个人打卡）
-  persona: { open: false, username: "", loading: false, data: null, msg: "" },
+  persona: { open: false, username: "", loading: false, data: null, msg: "", fromDetailId: null },
   // POINT UP 加分动画：实时行为与登录后合并的未读加分公司一份动画
   pointFx: { show: false, gains: [], total: 0, pending: false },
   // RANK UP 升级动画：一次可包含多个维度
@@ -499,15 +499,33 @@ export async function loadStats(range) {
 }
 
 // ---------- 个人档案 ----------
+// AI 助手是虚拟用户，公开档案接口不返回，点它的昵称不做跳转
+const AI_USERNAME = "AI助手";
+
 export async function openPersona(username) {
-  const name = username || state.user;
-  if (!name) return;
+  const name = (username || state.user || "").trim();
+  if (!name || name === AI_USERNAME) return;
+  // 从详情页的昵称进入时记住来路，「返回」可以回到那条记录
+  state.persona.fromDetailId = state.detailId || null;
+  if (state.detailId) {
+    state.detailReturnScroll = null;
+    closeDetail();
+  }
   state.persona.open = true;
   state.persona.username = name;
   state.persona.data = null;
   state.persona.msg = "";
   window.scrollTo(0, 0);
   await loadPersona(name);
+}
+
+/** 档案页「返回」：来自详情页就回到那条记录，否则回首页顶部。 */
+export function backFromPersona() {
+  const rid = state.persona.fromDetailId;
+  state.persona.fromDetailId = null;
+  closePersona();
+  if (rid) openDetail(rid);
+  else window.scrollTo(0, 0);
 }
 
 export function closePersona() {

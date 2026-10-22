@@ -147,7 +147,7 @@ onUnmounted(() => {
       <div class="rank-list">
         <div v-if="!ranking.length" class="rank-empty">暂无数据</div>
         <div v-for="(r, i) in visibleRanking" :key="r.username" class="rank-row">
-          <span class="rank-name" :style="{ color: '#' + r.color }"><span v-if="medal(i)" class="rank-medal">{{ medal(i) }}</span>{{ r.username }}</span>
+          <span class="rank-name name-link" title="查看个人档案" :style="{ color: '#' + r.color }" @click="openPersona(r.username)"><span v-if="medal(i)" class="rank-medal">{{ medal(i) }}</span>{{ r.username }}</span>
           <div class="rank-bar-wrap"><div class="rank-bar" :style="{ width: pct(r) + '%', background: '#' + r.color }"></div></div>
           <span class="rank-count">{{ r.count }} 条</span>
         </div>
