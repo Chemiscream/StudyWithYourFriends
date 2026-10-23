@@ -56,6 +56,8 @@ public class PersonaService {
 
     private static final String[] COURAGE_SOURCES = {"first_record", "media", "return"};
     private static final String[] DEXTERITY_SOURCES = {"checkin", "streak", "mention", "quote"};
+    /** 受每日上限约束的灵巧来源：里程碑奖励（streak）是额外奖励，既不占额度也不被裁剪 */
+    private static final String[] DEXTERITY_DAILY_SOURCES = {"checkin", "mention", "quote"};
     private static final String[] COMMENT_KINDNESS_SOURCES = {"comment", "reply"};
 
     /** @提及解析：与通知保持一致（@用户名，截到空白或常见中英文标点，最长 32 字符）。 */
@@ -316,9 +318,9 @@ public class PersonaService {
 
         // 灵巧：每日首次打卡
         addGain(gains, "dexterity",
-                award(u, "dexterity", 2, "checkin", epochDay, u, at, CAP_DEXTERITY, true, DEXTERITY_SOURCES));
+                award(u, "dexterity", 2, "checkin", epochDay, u, at, CAP_DEXTERITY, true, DEXTERITY_DAILY_SOURCES));
 
-        // 灵巧：连续打卡正好到 3/7/14/30 天
+        // 灵巧：连续打卡正好到 3/7/14/30 天（里程碑奖励不参与每日上限，否则 +25 会被裁成 10）
         int streak = streakOn(u, day);
         int streakBonus = switch (streak) {
             case 3 -> 5;
@@ -329,19 +331,19 @@ public class PersonaService {
         };
         if (streakBonus > 0) {
             addGain(gains, "dexterity",
-                    award(u, "dexterity", streakBonus, "streak", epochDay, u, at, CAP_DEXTERITY, true, DEXTERITY_SOURCES));
+                    award(u, "dexterity", streakBonus, "streak", epochDay, u, at, 0, true, DEXTERITY_SOURCES));
         }
 
         // 灵巧：@ 真实存在的非自己用户
         if (hasMention(plain, u)) {
             addGain(gains, "dexterity",
-                    award(u, "dexterity", 2, "mention", epochDay, u, at, CAP_DEXTERITY, true, DEXTERITY_SOURCES));
+                    award(u, "dexterity", 2, "mention", epochDay, u, at, CAP_DEXTERITY, true, DEXTERITY_DAILY_SOURCES));
         }
 
         // 灵巧：转发记录
         if (r.getQuotedRecordId() != null) {
             addGain(gains, "dexterity",
-                    award(u, "dexterity", 2, "quote", epochDay, u, at, CAP_DEXTERITY, true, DEXTERITY_SOURCES));
+                    award(u, "dexterity", 2, "quote", epochDay, u, at, CAP_DEXTERITY, true, DEXTERITY_DAILY_SOURCES));
         }
     }
 

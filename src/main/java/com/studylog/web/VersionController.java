@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.14.9";
+    public static final String VERSION = "1.14.10";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.14.10", List.of(
+                    "修复连续打卡奖励被每日上限截断的问题：14 天、30 天的里程碑奖励以前会被砍到 10 点，现在全额发放，并且不再占用当天打卡、@、转发的灵巧额度。"
+            )),
             new ReleaseNote("1.14.9", List.of(
                     "深色主题的五维星图改成「一颗会长的星」：中心固定一颗黄金色小星（等级一的大小，不随等级变化），升级后暗金色的星角从金星外侧继续伸长，按等级均分，满级几乎铺满灰色底盘；等级只有 1 的角没有外侧暗金部分。",
                     "星图的剪切幅度调整为 -9°，比上一版更斜，桌面和手机统一同一角度。",
