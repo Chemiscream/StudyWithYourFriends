@@ -54,7 +54,12 @@ export const state = reactive({
   emoji: { visible: false, kind: null, inputEl: null, savedRange: null, anchorEl: null },
   profileOpen: false,
   // 个人档案页（五维人格指数 + 个人打卡）
-  persona: { open: false, username: "", loading: false, data: null, msg: "", fromDetailId: null },
+  persona: {
+    open: false, username: "", loading: false, data: null, msg: "", fromDetailId: null,
+    // 档案页留言板：items 按 id 倒序（最新在前），hasMore 控制「加载更多」
+    board: { items: [], total: 0, hasMore: false, loading: false, posting: false, msg: "" },
+    jumpBoard: false, // 从「留言板」通知进来时，数据渲染后滚动到留言板
+  },
   // POINT UP 加分动画：实时行为与登录后合并的未读加分公司一份动画
   pointFx: { show: false, gains: [], total: 0, pending: false },
   // RANK UP 升级动画：一次可包含多个维度
@@ -240,6 +245,11 @@ export async function openNotification(n) {
   state.notif.open = false;
   if (!n.read) {
     request(`/api/notifications/${n.id}/read`, { method: "POST" }).then(loadNotifications);
+  }
+  // 留言板通知没有 record_id：打开自己的档案页并定位到留言板
+  if (n.type === "board") {
+    await openPersona(state.user, { jumpBoard: true });
+    return;
   }
   openDetail(n.record_id, true);
 }
@@ -517,7 +527,7 @@ export async function loadStats(range) {
 // AI 助手是虚拟用户，公开档案接口不返回，点它的昵称不做跳转
 const AI_USERNAME = "AI助手";
 
-export async function openPersona(username) {
+export async function openPersona(username, opts = {}) {
   const name = (username || state.user || "").trim();
   if (!name || name === AI_USERNAME) return;
   // 从详情页的昵称进入时记住来路，「返回」可以回到那条记录
@@ -530,8 +540,10 @@ export async function openPersona(username) {
   state.persona.username = name;
   state.persona.data = null;
   state.persona.msg = "";
+  resetBoard();
+  state.persona.jumpBoard = !!opts.jumpBoard; // 从留言板通知进来时，渲染后定位到留言板
   window.scrollTo(0, 0);
-  await loadPersona(name);
+  await Promise.all([loadPersona(name), loadBoard(name)]);
 }
 
 /** 档案页「返回」：来自详情页就回到那条记录，否则回首页顶部。 */
@@ -547,6 +559,70 @@ export function closePersona() {
   state.persona.open = false;
   state.persona.data = null;
   state.persona.msg = "";
+  resetBoard();
+}
+
+// ---------- 个人档案留言板 ----------
+export function resetBoard() {
+  state.persona.board = { items: [], total: 0, hasMore: false, loading: false, posting: false, msg: "" };
+  state.persona.jumpBoard = false;
+}
+
+/** 拉取留言板：more=true 时按最后一条 id 继续往前翻（游标分页，新留言插队不会导致重复）。 */
+export async function loadBoard(username, more = false) {
+  const name = username || state.persona.username;
+  const b = state.persona.board;
+  if (!name || b.loading) return;
+  b.loading = true;
+  if (!more) b.msg = "";
+  try {
+    const q = new URLSearchParams({ size: "8" });
+    if (more && b.items.length) q.set("before", String(b.items[b.items.length - 1].id));
+    const res = await request(`/api/persona/${encodeURIComponent(name)}/board?` + q.toString());
+    // 请求返回前已切到别人的档案时丢弃旧响应
+    if (state.persona.username !== name) return;
+    if (!res.ok) { b.msg = res.message || "留言板加载失败"; return; }
+    const list = res.items || [];
+    b.items = more ? [...b.items, ...list] : list;
+    b.total = res.total || 0;
+    b.hasMore = !!res.has_more;
+  } catch (e) {
+    b.msg = "网络错误";
+  } finally {
+    b.loading = false;
+  }
+}
+
+export async function sendBoardMessage(content) {
+  const name = state.persona.username;
+  const text = (content || "").trim();
+  if (!name || !text) return { ok: false };
+  if (!state.token) { showDialog("请先登录再留言"); return { ok: false }; }
+  const b = state.persona.board;
+  b.posting = true;
+  try {
+    const res = await request(`/api/persona/${encodeURIComponent(name)}/board`, {
+      method: "POST",
+      body: JSON.stringify({ content: text }),
+    });
+    if (!res.ok) { showDialog(res.message || "留言失败"); return { ok: false }; }
+    queuePointGains(res.gains); // 留言者体贴加分即时 POINT UP
+    queueRankUps(res.rank_ups);
+    await loadBoard(name);
+    return { ok: true };
+  } catch (e) {
+    showDialog("网络错误");
+    return { ok: false };
+  } finally {
+    b.posting = false;
+  }
+}
+
+export async function delBoardMessage(id) {
+  if (!(await askConfirm("确定删除这条留言？"))) return;
+  const res = await request(`/api/persona/board/${id}`, { method: "DELETE" });
+  if (res.ok) loadBoard(state.persona.username);
+  else showDialog(res.message || "删除失败");
 }
 
 export async function loadPersona(username) {

@@ -1,6 +1,10 @@
 <script setup>
-import { computed, ref } from "vue";
-import { state, closePersona, openDetail, backFromPersona } from "../store.js";
+import { computed, ref, watch, nextTick } from "vue";
+import {
+  state, closePersona, openDetail, backFromPersona, openPersona,
+  loadBoard, sendBoardMessage, delBoardMessage, toggleEmoji, showLogin, fmtComment,
+} from "../store.js";
+import { renderMention } from "../utils/md.js";
 import StudyHeatmap from "./StudyHeatmap.vue";
 import {
   PERSONA_ORDER as ORDER,
@@ -149,6 +153,44 @@ const TILES = [
   { key: "comments_given", label: "送出留言", unit: "条" },
   { key: "active_days", label: "活跃天数", unit: "天" },
 ];
+
+// ---------- 留言板 ----------
+const board = computed(() => state.persona.board);
+const draft = ref("");
+const boardInput = ref(null);
+
+function onBoardSend() {
+  const text = draft.value.trim();
+  if (!text || state.persona.board.posting) return;
+  sendBoardMessage(text).then((r) => {
+    if (r.ok) draft.value = "";
+  });
+}
+function onBoardKeydown(e) {
+  // Ctrl / Cmd + Enter 快捷发送；单独 Enter 保留换行
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    e.preventDefault();
+    onBoardSend();
+  }
+}
+function openBoardEmoji(e) {
+  // 传触发按钮作锚点，否则面板没有位置会出现在视口外
+  toggleEmoji("input", boardInput.value, null, e.currentTarget);
+}
+function openAuthor(name) {
+  if (!name || name === data.value?.username) return;
+  openPersona(name);
+}
+
+// 从「留言板」通知进来：档案渲染完成后滚动到留言板
+watch([() => state.persona.jumpBoard, () => p.value.data], () => {
+  if (!state.persona.jumpBoard || !p.value.data) return;
+  nextTick(() => {
+    const el = document.getElementById("persona-board");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    state.persona.jumpBoard = false;
+  });
+});
 </script>
 
 <template>
@@ -296,6 +338,72 @@ const TILES = [
         </section>
       </div>
     </div>
+
+    <section v-if="data" id="persona-board" class="panel persona-card persona-board-card">
+      <div class="persona-card-head">
+        <h2>留言板</h2>
+        <div class="persona-card-tools">
+          <span class="persona-sub">MESSAGE BOARD</span>
+          <span class="board-total">{{ board.total }} 条</span>
+        </div>
+      </div>
+
+      <div class="board-body">
+        <div class="board-write">
+          <div class="bw-head">
+            <span class="bw-to">TO // {{ data.username }}</span>
+            <span v-if="state.token" class="bw-count">{{ draft.length }}/500</span>
+          </div>
+          <template v-if="state.token">
+            <textarea
+              ref="boardInput"
+              v-model="draft"
+              class="board-input"
+              rows="4"
+              maxlength="500"
+              :placeholder="'给 ' + data.username + ' 留句话…（Ctrl + Enter 发送）'"
+              @keydown="onBoardKeydown"
+            ></textarea>
+            <div class="bw-foot">
+              <button class="btn ghost emoji-open board-emoji" type="button" title="插入 emoji" aria-label="插入 emoji" @click="openBoardEmoji">
+                <svg class="smile-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.4 14.2a4.6 4.6 0 0 0 7.2 0"/><path d="M9.2 9.8h.01M14.8 9.8h.01"/></svg>
+              </button>
+              <button class="btn primary board-send" type="button" :disabled="board.posting || !draft.trim()" @click="onBoardSend">
+                {{ board.posting ? "发送中…" : "留言" }}
+              </button>
+            </div>
+          </template>
+          <div v-else class="board-login">
+            <p>登录后就能在这里留句话</p>
+            <button class="btn primary" type="button" @click="showLogin">去登录</button>
+          </div>
+        </div>
+
+        <div class="board-list">
+          <div v-if="board.loading && !board.items.length" class="board-empty">留言读取中…</div>
+          <div v-else-if="board.msg" class="board-empty">{{ board.msg }}</div>
+          <div v-else-if="!board.items.length" class="board-empty">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 14a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>还没有人留言，来写第一句吧</span>
+          </div>
+          <article
+            v-for="m in board.items" :key="m.id"
+            class="board-msg" :style="{ '--c': '#' + (m.color || '4a90d9') }"
+          >
+            <div class="bm-head">
+              <span class="bm-name name-link" title="查看 TA 的档案" @click="openAuthor(m.username)">{{ m.username }}</span>
+              <span v-if="m.username === data.username" class="bm-owner">板主</span>
+              <span class="bm-time">{{ fmtComment(m.created_at) }}</span>
+              <button v-if="m.can_delete && state.token" class="bm-del" type="button" title="删除留言" @click="delBoardMessage(m.id)">✕</button>
+            </div>
+            <p class="bm-text" v-html="renderMention(m.content)"></p>
+          </article>
+          <button v-if="board.hasMore" class="board-more" type="button" :disabled="board.loading" @click="loadBoard(state.persona.username, true)">
+            {{ board.loading ? "加载中…" : "加载更多" }}
+          </button>
+        </div>
+      </div>
+    </section>
 
     <Teleport to="body">
       <div v-if="rulesOpen" class="modal-mask" @click.self="rulesOpen = false">

@@ -36,7 +36,7 @@ Start-Process "C:\Files\dev\jdk-21.0.12.1+1\bin\javaw.exe" -ArgumentList "-jar",
 Invoke-WebRequest http://localhost:8090/api/version -UseBasicParsing
 ```
 
-注意：JPA `ddl-auto:update` 会自动建新表/新列，但**不会放松已有列约束**（如 NOT NULL → NULL 需手动 `ALTER TABLE`）。
+注意：JPA `ddl-auto:update` 会自动建新表/新列，但**不会放松已有列约束**（如 NOT NULL → NULL 需手动 `ALTER TABLE`）。例：档案留言板通知没有记录，`notifications.record_id` 已手动改为可空（`ALTER TABLE notifications MODIFY record_id BIGINT NULL`），新库靠实体注解即可。
 
 ## 4. 浏览器验证
 
@@ -58,9 +58,9 @@ Invoke-WebRequest http://localhost:8090/api/version -UseBasicParsing
 
 ## 7. 代码红线（改相关代码时必须遵守）
 
-- **改名级联**：全库以 username 字符串快照关联（无外键）。`AuthController.rename` 在事务内级联 UPDATE users/records/comments/comments.reply_to/ai_messages/record_likes/comment_likes/notifications(recipient+actor)。**新增任何含 username 列的表，必须同步在该方法加 UPDATE。**
+- **改名级联**：全库以 username 字符串快照关联（无外键）。`AuthController.rename` 在事务内级联 UPDATE users/records/comments/comments.reply_to/ai_messages/record_likes/comment_likes/record_favorites/notifications(recipient+actor)/stat_events(username+actor)/profile_messages(username+profile_username)。**新增任何含 username 列的表，必须同步在该方法加 UPDATE。**
 - **token 语义**：`Tokens.currentUser` 统一做签名+过期+用户存在性三重校验；改名后旧 token 全站立即失效（前端 `/api/me` 收到 username:null 自动清理）。
 - **AI 安全**：用户提供 base_url 时只用用户自己的 api_key，绝不与服务端 key 混用；所有 `/api/ai/*` 需登录。
-- **通知**：评论/回复/点赞产生通知；自己操作自己不通知；取消点赞撤回对应通知；删除记录/留言时级联删其通知与点赞。
+- **通知**：评论/回复/点赞/留言板留言产生通知；自己操作自己不通知；取消点赞撤回对应通知；删除记录/留言/档案留言时级联删其通知与点赞。
 - **前端渲染**：自写轻量 Markdown/富文本渲染，先 HTML 转义再转换防 XSS；emoji 面板弹出必须传触发按钮作锚点，插入后手动派发 input 事件同步 v-model。
 - 记录正文渲染需隐藏媒体后多余的 `<br>`；新增记录提交成功后清空编辑器。

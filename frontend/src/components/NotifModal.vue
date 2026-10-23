@@ -7,6 +7,7 @@ function typeText(t) {
   if (t === "like_comment") return "赞了你的留言";
   if (t === "mention") return "在留言中@了你";
   if (t === "quote") return "转发了你的记录";
+  if (t === "board") return "在你的留言板留言";
   return "评论了你的记录";
 }
 async function onClear() {

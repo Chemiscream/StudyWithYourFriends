@@ -14,10 +14,16 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.14.10";
+    public static final String VERSION = "1.15.0";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.0", List.of(
+                    "个人档案新增留言板：在任意同学的档案页底部都能留一句话（最多 500 字，支持 emoji 和换行，Ctrl+Enter 发送），留言按时间倒序排列，可以继续加载更早的留言。",
+                    "留言作者、板主和管理员都能删除留言；板主自己的留言会带上「板主」标记。",
+                    "别人在你板上留言时，消息中心会收到提醒，点一下直接打开你的档案并定位到留言板。",
+                    "留言会积累五维：留言者体贴 +3，板主魅力 +2。"
+            )),
             new ReleaseNote("1.14.10", List.of(
                     "修复连续打卡奖励被每日上限截断的问题：14 天、30 天的里程碑奖励以前会被砍到 10 点，现在全额发放，并且不再占用当天打卡、@、转发的灵巧额度。"
             )),

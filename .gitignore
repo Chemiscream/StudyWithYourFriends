@@ -7,6 +7,8 @@ out/
 frontend/node_modules/
 # 前端外置静态目录（运行时由 sync-static.js 生成，内容与 jar 内副本一致）
 static-frontend/
+# 8091 验收实例的独立静态目录（不影响正式站热更）
+static-frontend-8091/
 
 # 日志
 *.log

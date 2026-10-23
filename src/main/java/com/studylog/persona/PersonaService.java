@@ -2,6 +2,7 @@ package com.studylog.persona;
 
 import com.studylog.ai.AiAssistantService;
 import com.studylog.model.Comment;
+import com.studylog.model.ProfileMessage;
 import com.studylog.model.Record;
 import com.studylog.model.RecordFavorite;
 import com.studylog.model.RecordLike;
@@ -131,6 +132,26 @@ public class PersonaService {
         Map<String, Integer> before = commenter == null ? Map.of() : totalsOf(commenter);
         awardComment(record.getUsername(), c, c.getCreatedAt(), gains);
         return result(gains, commenter == null ? List.of() : rankUps(before, totalsOf(commenter)));
+    }
+
+    /** 档案留言板留言：留言者体贴 +3，板主魅力 +2（留作未读）。返回留言者本次的分与升级。 */
+    public Map<String, Object> onBoardMessage(String boardOwner, ProfileMessage m) {
+        Map<String, Integer> gains = new LinkedHashMap<>();
+        if (m == null || m.getId() == null) return result(gains, List.of());
+        String author = m.getUsername();
+        Map<String, Integer> before = author == null ? Map.of() : totalsOf(author);
+        // 留言者体贴：与记录留言共用同一个每日额度上限，但来源单独分组，互不挤占
+        if (!isIgnored(author)) {
+            addGain(gains, "kindness",
+                    award(author, "kindness", 3, "board_msg", m.getId(), "", m.getCreatedAt(),
+                            CAP_COMMENT_KINDNESS, true, new String[]{"board_msg"}));
+        }
+        // 板主魅力：本人不在线看不到，保持未读，等下次打开站点合并播放
+        if (boardOwner != null && !isIgnored(boardOwner) && !boardOwner.equals(author)) {
+            award(boardOwner, "charm", 2, "board_received", m.getId(), author, m.getCreatedAt(),
+                    CAP_COMMENT_RECEIVED, false, new String[]{"board_received"});
+        }
+        return result(gains, author == null ? List.of() : rankUps(before, totalsOf(author)));
     }
 
     /** 登录后待播放的未读加分：把别人点赞/收藏/留言带来的提升按维度合并成一份，并附带跨过的等级。 */

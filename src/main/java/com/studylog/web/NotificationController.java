@@ -41,6 +41,7 @@ public class NotificationController {
             m.put("type", n.getType());
             m.put("actor", n.getActor());
             m.put("record_id", n.getRecordId());
+            m.put("board_id", n.getBoardId());
             m.put("preview", n.getPreview());
             m.put("read", n.isRead());
             m.put("created_at", n.getCreatedAt());

@@ -26,12 +26,17 @@ public class Notification {
     @Column(nullable = false, length = 16)
     private String type;
 
-    @Column(name = "record_id", nullable = false)
+    /** 关联记录；留言板通知（board）没有记录，为 null。 */
+    @Column(name = "record_id")
     private Long recordId;
 
     /** 关联留言；记录点赞通知（like_record）无关联留言，为 null。 */
     @Column(name = "comment_id")
     private Long commentId;
+
+    /** 关联档案留言板留言（board 类型使用），其他类型为 null。 */
+    @Column(name = "board_id")
+    private Long boardId;
 
     /** 留言内容摘要（截断），便于列表直接展示。 */
     @Column(length = 120)
@@ -55,6 +60,8 @@ public class Notification {
     public void setRecordId(Long recordId) { this.recordId = recordId; }
     public Long getCommentId() { return commentId; }
     public void setCommentId(Long commentId) { this.commentId = commentId; }
+    public Long getBoardId() { return boardId; }
+    public void setBoardId(Long boardId) { this.boardId = boardId; }
     public String getPreview() { return preview; }
     public void setPreview(String preview) { this.preview = preview; }
     public boolean isRead() { return read; }

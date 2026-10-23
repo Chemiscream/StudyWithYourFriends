@@ -10,6 +10,7 @@
 - 发布富文本学习记录：emoji 表情、图片（≤5MB）、视频（≤40MB，mp4/webm/mov）
 - 记录搜索：一个关键词同时模糊匹配用户名和正文，支持日期区间筛选
 - 留言与回复：任何记录下都可留言，支持回复他人留言；留言超过 3 条自动折叠可展开
+- 个人档案留言板：在任意同学的档案页留一句话（≤500 字，支持 emoji 与换行，Ctrl+Enter 发送）；板主、留言作者、管理员可删除；留言者 +3 体贴、板主 +2 魅力，并给板主推送消息
 - 点赞：记录和留言均可点赞/取消（👍），显示点赞数
 - 收藏：每条记录可 ☆ 收藏/取消，顶栏 ⭐ 入口查看收藏列表
 - 转发 / 引用：🔁 转发任意记录，正文独立编辑，原文以引用卡片展示（原记录被删后仍保留，显示「原记录已删除」）
@@ -108,6 +109,9 @@ npm run build   # 产物同时输出到 ../static-frontend/（外置热更）和
 | GET | `/api/daily-reports/latest` | 最新一条日报（首页卡片用；未登录可读） |
 | GET | `/api/daily-reports/{date}` | 指定日期日报详情（未登录可读） |
 | POST | `/api/daily-reports/generate` | 生成指定日期日报（登录；body: `{date}`） |
+| GET | `/api/persona/{username}/board?before=&size=` | 个人档案留言板列表（公开；游标分页，`before` 传上一页最后一条 id） |
+| POST | `/api/persona/{username}/board` | 在他人档案留言板留言（登录；body: `{content}`，≤500 字） |
+| DELETE | `/api/persona/board/{id}` | 删除档案留言（留言作者 / 板主 / 管理员） |
 
 > AI 模型服务配置见 `application.yml` 的 `app.ai.*`（默认 `http://localhost:1234/v1`，并发/队列/超时/上下文预算均可用环境变量覆盖）。
 
