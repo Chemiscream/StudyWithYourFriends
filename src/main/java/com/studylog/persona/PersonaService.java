@@ -48,14 +48,15 @@ public class PersonaService {
     private static final int[] THRESHOLDS = {0, 40, 120, 300, 700};
 
     private static final int CAP_KNOWLEDGE = 12;
-    private static final int CAP_COURAGE = 10;
+    private static final int CAP_COURAGE = 12;
     private static final int CAP_DEXTERITY = 12;
     private static final int CAP_GIVE_LIKE = 5;
     private static final int CAP_COMMENT_KINDNESS = 6;
     private static final int CAP_COMMENT_RECEIVED = 6;
     private static final int CAP_REPLY_RECEIVED = 6;
 
-    private static final String[] COURAGE_SOURCES = {"first_record", "media", "return"};
+    /** 受勇气每日上限约束的来源；「首次主动留言」这类终身一次奖励不参与额度裁剪 */
+    private static final String[] COURAGE_SOURCES = {"first_record", "media", "return", "quote"};
     private static final String[] DEXTERITY_SOURCES = {"checkin", "streak", "mention", "quote"};
     /** 受每日上限约束的灵巧来源：里程碑奖励（streak）是额外奖励，既不占额度也不被裁剪 */
     private static final String[] DEXTERITY_DAILY_SOURCES = {"checkin", "mention", "quote"};
@@ -145,6 +146,12 @@ public class PersonaService {
             addGain(gains, "kindness",
                     award(author, "kindness", 3, "board_msg", m.getId(), "", m.getCreatedAt(),
                             CAP_COMMENT_KINDNESS, true, new String[]{"board_msg"}));
+        }
+        // 勇气：第一次主动给他人档案留言 +5，终身一次，不占每日额度
+        if (!isIgnored(author) && boardOwner != null && !boardOwner.equals(author)
+                && !events.existsByUsernameAndSourceType(author, "first_comment")) {
+            addGain(gains, "courage",
+                    award(author, "courage", 5, "first_comment", 0L, author, m.getCreatedAt(), 0, true));
         }
         // 板主魅力：本人不在线看不到，保持未读，等下次打开站点合并播放
         if (boardOwner != null && !isIgnored(boardOwner) && !boardOwner.equals(author)) {
@@ -337,6 +344,16 @@ public class PersonaService {
             }
         }
 
+        // 勇气：转发他人的记录每天一次（自己转发自己不算）
+        Long quotedId = r.getQuotedRecordId();
+        if (quotedId != null) {
+            String quotedOwner = records.findById(quotedId).map(Record::getUsername).orElse(null);
+            if (quotedOwner != null && !quotedOwner.equals(u)) {
+                addGain(gains, "courage",
+                        award(u, "courage", 2, "quote", epochDay, u, at, CAP_COURAGE, true, COURAGE_SOURCES));
+            }
+        }
+
         // 灵巧：每日首次打卡
         addGain(gains, "dexterity",
                 award(u, "dexterity", 2, "checkin", epochDay, u, at, CAP_DEXTERITY, true, DEXTERITY_DAILY_SOURCES));
@@ -399,6 +416,13 @@ public class PersonaService {
             addGain(gains, "kindness",
                     award(commenter, "kindness", 2, "reply", c.getId(), "", at,
                             CAP_COMMENT_KINDNESS, true, COMMENT_KINDNESS_SOURCES));
+        }
+
+        // 勇气：第一次主动给别人的记录留言 +5，终身一次，不占每日额度
+        if (owner != null && !isIgnored(owner) && !owner.equals(commenter)
+                && !events.existsByUsernameAndSourceType(commenter, "first_comment")) {
+            addGain(gains, "courage",
+                    award(commenter, "courage", 5, "first_comment", 0L, commenter, at, 0, true));
         }
 
         if (owner == null || isIgnored(owner)) return;

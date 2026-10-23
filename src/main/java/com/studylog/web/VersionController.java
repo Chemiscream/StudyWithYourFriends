@@ -14,10 +14,15 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.0";
+    public static final String VERSION = "1.15.1";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.1", List.of(
+                    "个人档案页的「人格指数」与「最近记录」两栏下沿改为严格对齐，无论最近记录有多少条都不会一高一低。",
+                    "勇气新增两条获取途径：转发他人记录 +2（每日一次）；第一次主动留言（在他人记录下留言或到他人档案留言）+5（每个账号仅一次，不占每日额度）。",
+                    "勇气每日上限从 10 点提高到 12 点，「计分规则」弹窗已同步更新。"
+            )),
             new ReleaseNote("1.15.0", List.of(
                     "个人档案新增留言板：在任意同学的档案页底部都能留一句话（最多 500 字，支持 emoji 和换行，Ctrl+Enter 发送），留言按时间倒序排列，可以继续加载更早的留言。",
                     "留言作者、板主和管理员都能删除留言；板主自己的留言会带上「板主」标记。",

@@ -2877,10 +2877,13 @@ html[data-theme="dark"] .persona-entry:hover { color: #e60012; box-shadow: 3px 3
 .persona-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
-  gap: 18px; align-items: start;
+  /* 左右两栏拉成同高，保证「人格指数」和「最近记录」的下沿对齐 */
+  gap: 18px; align-items: stretch;
   margin-top: 18px;
 }
 .persona-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+/* 右栏多出来的高度由最末的「最近记录」吸收，面板底色一直铺到与左栏齐平 */
+.persona-side > .persona-recent-card { flex: 1 1 auto; }
 .persona-card { padding: 18px 20px; min-width: 0; }
 .persona-card-head {
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
