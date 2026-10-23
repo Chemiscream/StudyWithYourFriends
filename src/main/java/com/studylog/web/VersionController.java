@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.1";
+    public static final String VERSION = "1.15.2";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.2", List.of(
+                    "知识计分不再要求正文满 6 个字：任何学习记录都按「当天第一条 +5、之后每条 +2」计分，每日上限 12 点不变。",
+                    "「计分规则」弹窗同步更新了这条说明。"
+            )),
             new ReleaseNote("1.15.1", List.of(
                     "个人档案页的「人格指数」与「最近记录」两栏下沿改为严格对齐，无论最近记录有多少条都不会一高一低。",
                     "勇气新增两条获取途径：转发他人记录 +2（每日一次）；第一次主动留言（在他人记录下留言或到他人档案留言）+5（每个账号仅一次，不占每日额度）。",

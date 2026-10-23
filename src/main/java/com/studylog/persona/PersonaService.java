@@ -320,13 +320,11 @@ public class PersonaService {
                     award(u, "courage", 8, "first_record", 0L, u, at, CAP_COURAGE, true, COURAGE_SOURCES));
         }
 
-        // 知识：正文纯文本 >= 6 字（门槛放低，短记录也能拿到正反馈），当天第一条 +5，之后每条 +2
-        if (plain.length() >= 6) {
-            int used = dailyUsed(u, "knowledge", at, new String[]{"record"});
-            addGain(gains, "knowledge",
-                    award(u, "knowledge", used == 0 ? 5 : 2, "record", r.getId(), "", at,
-                            CAP_KNOWLEDGE, true, new String[]{"record"}));
-        }
+        // 知识：发布记录即计分（不限制正文字数），当天第一条 +5，之后每条 +2
+        int used = dailyUsed(u, "knowledge", at, new String[]{"record"});
+        addGain(gains, "knowledge",
+                award(u, "knowledge", used == 0 ? 5 : 2, "record", r.getId(), "", at,
+                        CAP_KNOWLEDGE, true, new String[]{"record"}));
 
         // 勇气：媒体记录每天一次（按日来源按行为人区分用户，避免不同用户同一 epochDay 冲突）
         if (MEDIA_TAG_RE.matcher(content).find()) {
