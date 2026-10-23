@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.14.7";
+    public static final String VERSION = "1.14.8";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.14.8", List.of(
+                    "深色主题的五维星图重新压斜：保留金色双锥折面和内金外灰的配色，用剪切把整颗星斜过来（幅度约为上一版的一半），四周标签跟着星形一起倾斜、文字本身不变形。"
+            )),
             new ReleaseNote("1.14.7", List.of(
                     "深色主题的五维星图重做立体感：星形不再整体倾斜，改为一颗正面朝上的金色双锥星，十个折面按光从左上、视线从右下取六档深浅金色，中心加了一层下陷阴影。",
                     "星图改为内圈金色、外圈深灰：当前等级对应金色星，更高等级的外侧底盘是更深的灰色；金色星满级时几乎铺满底盘，只留一圈窄边。"
