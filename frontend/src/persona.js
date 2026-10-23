@@ -72,15 +72,32 @@ export const PERSONA_RULES = [
   },
 ];
 
-// P5 五维金星的折面取色：10 个三角面按朝向与正反取 6 档金色，
-// 光从左上打来、视线从右下方看，相邻面一亮一暗形成双锥的棱线
-const P5_FACET_TONES = ["#b56500", "#c97300", "#dc8500", "#ee9b00", "#f9b006", "#ffc21b"];
-export function p5FacetColor(i) {
+// P5 五维金星的折面取色：10 个三角面按朝向与正反取 6 档，
+// 光从左上打来、视线从右下方看，相邻面一亮一暗形成双锥的棱线。
+// 外圈星体用偏深的暗金，中心再叠一颗黄金色小星（见 p5CoreColor），
+// 对应原作「里面那颗是亮金色、外面星角更暗」的层次
+const P5_FACET_TONES = ["#8a4400", "#9d5000", "#ae5c00", "#bf6900", "#cf7700", "#dd8800"];
+const P5_CORE_TONES = ["#e89b00", "#f5a900", "#ffb700", "#ffc21b", "#ffcf45", "#ffdf6b"];
+function p5Tone(tones, i) {
   const mid = -72 + i * 36;
   const lit = Math.cos(((mid - 245) * Math.PI) / 180);
   const side = i % 2 ? 0.12 : -0.12;
   const b = Math.min(1, Math.max(0, 0.5 + 0.42 * lit + side));
-  return P5_FACET_TONES[Math.min(P5_FACET_TONES.length - 1, Math.round(b * (P5_FACET_TONES.length - 1)))];
+  return tones[Math.min(tones.length - 1, Math.round(b * (tones.length - 1)))];
+}
+export function p5FacetColor(i) {
+  return p5Tone(P5_FACET_TONES, i);
+}
+export function p5CoreColor(i) {
+  return p5Tone(P5_CORE_TONES, i);
+}
+
+// 黄金小星 = 等级一时的星形，占比固定；暗金角按等级均分剩余的四段，
+// 满级（LV.5）星角伸到最外，几乎铺满灰色底盘
+export const GOLD_RATIO = 0.5;
+export function p5ArmRatio(rank) {
+  const r = Math.min(5, Math.max(1, rank || 1));
+  return GOLD_RATIO + (1 - GOLD_RATIO) * (r - 1) / 4;
 }
 
 export const PERSONA_COMMON_RULES = [

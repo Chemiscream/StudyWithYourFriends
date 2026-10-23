@@ -1320,9 +1320,9 @@ html[data-theme="dark"] .color-palette { border: 2px solid rgba(247, 243, 230, .
 .hero-title .line:nth-child(3) > span { animation-delay: .42s; }
 .hero-title .outline { color: transparent; -webkit-text-stroke: 1.4px rgba(14, 50, 80, .55); }
 .hero-title .cursor { font-style: normal; color: var(--primary); animation: p3blink 1s steps(2) infinite; margin-left: 4px; }
-/* 标题三行落位（1.32s）之后再缓缓带出副标题与三项统计；translate 独立属性，不影响 P5 的斜切 transform */
-.hero-sub { margin-top: 14px; font-size: 13px; letter-spacing: .2em; color: var(--muted); animation: heroRise 1s cubic-bezier(.2,.8,.2,1) 1.42s both; }
-.hero-stats { display: flex; gap: 34px; margin-top: 22px; animation: heroRise 1s cubic-bezier(.2,.8,.2,1) 1.62s both; }
+/* 标题三行落位（1.32s）之后再带出副标题与三项统计；translate 独立属性，不影响 P5 的斜切 transform */
+.hero-sub { margin-top: 14px; font-size: 13px; letter-spacing: .2em; color: var(--muted); animation: heroRise .55s cubic-bezier(.2,.8,.2,1) .95s both; }
+.hero-stats { display: flex; gap: 34px; margin-top: 22px; animation: heroRise .55s cubic-bezier(.2,.8,.2,1) 1.08s both; }
 @keyframes heroRise {
   from { opacity: 0; translate: 0 10px; }
   to   { opacity: 1; translate: 0 0; }
@@ -2948,7 +2948,8 @@ html:not([data-theme="dark"]) .star-tag { display: none; }
 html:not([data-theme="dark"]) .t-p3 { display: inline; }
 html:not([data-theme="dark"]) .p3-chart { display: block; }
 html:not([data-theme="dark"]) .persona-star { transform: none; }
-html[data-theme="dark"] .persona-star { --star-skew: -5deg; }
+/* 剪切角挂在 html 上：档案页星图与 POINT UP 动画星图共用同一个变量 */
+html[data-theme="dark"] { --star-skew: -9deg; }
 .p3-star {
   fill: rgba(255, 255, 255, .9); stroke: #00c8f0; stroke-width: 2.4; stroke-linejoin: miter;
   filter: drop-shadow(0 0 7px rgba(0, 200, 255, .85));
@@ -3121,7 +3122,6 @@ html[data-theme="dark"] .persona-tile {
   .persona-grid { grid-template-columns: 1fr; gap: 14px; margin-top: 14px; }
   .persona-card { padding: 15px 15px; }
   .persona-star { width: min(100%, 300px); }
-  html[data-theme="dark"] .persona-star { --star-skew: -3deg; }
   .st-label { font-size: 10.5px; padding: 2px 7px; }
   .st-label em { font-size: 8.5px; }
   .star-tag small { font-size: 9.5px; }
@@ -3211,8 +3211,7 @@ html[data-theme="dark"] .pfx-p5 { display: block; }
   100% { fill: #08455c; }
 }
 
-/* P5：金色数据星 + 对应角闪烁（与档案页同款折面与剪切角度） */
-html[data-theme="dark"] .pfx-starwrap { --star-skew: -5deg; }
+/* P5：金色数据星 + 对应角闪烁（与档案页同款折面与剪切角度，角度继承自 html） */
 .pfx-frame { fill: url(#pfxFrame); stroke: rgba(247, 243, 230, .2); stroke-width: 1.2; stroke-linejoin: miter; }
 .pfx-frame-dot { fill: rgba(0, 0, 0, .55); }
 .pfx-facet { stroke: rgba(92, 53, 0, .38); stroke-width: .7; }
@@ -3249,7 +3248,6 @@ html[data-theme="dark"] .pfx-tag { color: #c9c1b2; }
 @media (max-width: 820px) {
   .pfx-title { font-size: 32px; }
   .pfx-starwrap { width: min(84vw, 340px); }
-  html[data-theme="dark"] .pfx-starwrap { --star-skew: -3deg; }
   .pfx-glow { width: 400px; height: 400px; }
 }
 

@@ -9,6 +9,9 @@ import {
   PERSONA_RULES,
   PERSONA_COMMON_RULES,
   p5FacetColor,
+  p5CoreColor,
+  GOLD_RATIO,
+  p5ArmRatio,
 } from "../persona.js";
 
 const rulesOpen = ref(false);
@@ -30,12 +33,9 @@ function ptAt(deg, radius) {
   return [CX + Math.cos(a) * radius, CY + Math.sin(a) * radius];
 }
 
-// 五维星图：单维满值 700（LV5 阈值）。先开方压缩，再保底 35% 半径：
-// 低等级账号的星臂如果按比例直接缩到两成，形状会退化成一团锯齿，看着就像「缺角」
-const ratios = computed(() => ORDER.map((k) => {
-  const v = Math.max(0, statMap.value[k]?.value || 0);
-  return 0.35 + 0.65 * Math.min(1, Math.sqrt(v / 700));
-}));
+// 五维星图：星臂长度按等级均分——等级一只有黄金小星，之后每升一级
+// 暗金角往外多伸四分之一，满级几乎铺满灰色底盘
+const ratios = computed(() => ORDER.map((k) => p5ArmRatio(statMap.value[k]?.rank)));
 
 /** 外角与内凹点交替，按五个维度数值生成不规则五角星 */
 function starPoints(list, maxR) {
@@ -61,6 +61,15 @@ const dataPts = computed(() => starPoints(ratios.value, DATA_R));
 const dataStar = computed(() => toPoly(dataPts.value));
 const starFacets = computed(() => dataPts.value.map((p, i) => {
   const next = dataPts.value[(i + 1) % dataPts.value.length];
+  return `${CX},${CY} ${p[0].toFixed(1)},${p[1].toFixed(1)} ${next[0].toFixed(1)},${next[1].toFixed(1)}`;
+}));
+// 中心金星 = 等级一时的星形，大小固定、不随等级变化；
+// 之后每升一级，暗金色的星角再从这颗金星外侧继续伸长，
+// 所以等级只有 1 的角根本没有外侧暗金部分
+const goldPts = starPoints([GOLD_RATIO, GOLD_RATIO, GOLD_RATIO, GOLD_RATIO, GOLD_RATIO], DATA_R);
+const goldStar = toPoly(goldPts);
+const goldFacets = computed(() => goldPts.map((p, i) => {
+  const next = goldPts[(i + 1) % goldPts.length];
   return `${CX},${CY} ${p[0].toFixed(1)},${p[1].toFixed(1)} ${next[0].toFixed(1)},${next[1].toFixed(1)}`;
 }));
 // 原作只在内凹处点小圆点，不标外角；圆点半径跟着星的大小缩放，
@@ -188,11 +197,6 @@ const TILES = [
                 <stop offset="0" stop-color="#454545" />
                 <stop offset="1" stop-color="#2c2c2c" />
               </linearGradient>
-              <!-- 折面交会处的「赤道」阴影：让中心微微下陷，强化双锥的立体感 -->
-              <radialGradient id="starCore">
-                <stop offset="0" stop-color="#8a4c00" stop-opacity=".42" />
-                <stop offset="1" stop-color="#8a4c00" stop-opacity="0" />
-              </radialGradient>
             </defs>
             <!-- P5（深色）：外框底盘 + 折面数据星 -->
             <g class="p5-chart">
@@ -205,8 +209,12 @@ const TILES = [
                 v-for="(f, i) in starFacets" :key="'f' + i"
                 class="star-facet" :fill="p5FacetColor(i)" :points="f"
               />
-              <circle cx="150" cy="150" r="26" fill="url(#starCore)" />
+              <polygon
+                v-for="(f, i) in goldFacets" :key="'cf' + i"
+                class="star-facet" :fill="p5CoreColor(i)" :points="f"
+              />
               <polygon class="star-outline" :points="dataStar" />
+              <polygon class="star-outline" :points="goldStar" />
               <circle
                 v-for="(d, i) in starDots" :key="'d' + i"
                 class="star-dot" :cx="d[0]" :cy="d[1]" :r="starDotR"

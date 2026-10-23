@@ -14,10 +14,15 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.14.8";
+    public static final String VERSION = "1.14.9";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.14.9", List.of(
+                    "深色主题的五维星图改成「一颗会长的星」：中心固定一颗黄金色小星（等级一的大小，不随等级变化），升级后暗金色的星角从金星外侧继续伸长，按等级均分，满级几乎铺满灰色底盘；等级只有 1 的角没有外侧暗金部分。",
+                    "星图的剪切幅度调整为 -9°，比上一版更斜，桌面和手机统一同一角度。",
+                    "首页副标题和三项统计的出现时间提前，标题落位后几乎紧接着淡入。"
+            )),
             new ReleaseNote("1.14.8", List.of(
                     "深色主题的五维星图重新压斜：保留金色双锥折面和内金外灰的配色，用剪切把整颗星斜过来（幅度约为上一版的一半），四周标签跟着星形一起倾斜、文字本身不变形。"
             )),

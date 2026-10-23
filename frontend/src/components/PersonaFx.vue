@@ -5,8 +5,10 @@ import {
   PERSONA_ORDER as ORDER,
   PERSONA_NAMES as NAMES,
   PERSONA_TITLES as TITLES,
-  PERSONA_THRESHOLDS as THRESH,
   p5FacetColor,
+  p5CoreColor,
+  GOLD_RATIO,
+  p5ArmRatio,
 } from "../persona.js";
 
 const CX = 150;
@@ -47,11 +49,8 @@ function starPoints(list, maxR) {
 function toPoly(pts) {
   return pts.map((p) => p.map((n) => n.toFixed(1)).join(",")).join(" ");
 }
-function ratioOfValue(v) {
-  return 0.35 + 0.65 * Math.min(1, Math.sqrt(Math.max(0, v) / 700));
-}
 function ratioOfRank(rank) {
-  return ratioOfValue(THRESH[Math.min(5, Math.max(1, rank)) - 1] ?? 0);
+  return p5ArmRatio(rank);
 }
 
 const p3Star = toPoly(starPoints([1, 1, 1, 1, 1], P3_R));
@@ -118,8 +117,8 @@ const dots = computed(() => ORDER.map((k, i) => {
     grow: !!(isUp && grown.value[i]),
     scaleFrom: (rFrom / rTo).toFixed(3),
     delay: RING_DELAY + idx * STEP_DELAY,
-    ratio: ratioOfValue(s.value || 0),
-    fromRatio: isUp ? ratioOfRank(fromRank) : ratioOfValue(s.value || 0),
+    ratio: ratioOfRank(rank),
+    fromRatio: isUp ? ratioOfRank(fromRank) : ratioOfRank(rank),
   };
 }));
 
@@ -132,6 +131,14 @@ const facets = computed(() => starPoints(animRatios.value, DATA_R).map((p, i, ar
   return `${CX},${CY} ${p[0].toFixed(1)},${p[1].toFixed(1)} ${next[0].toFixed(1)},${next[1].toFixed(1)}`;
 }));
 const dataDots = computed(() => starPoints(animRatios.value, DATA_R).filter((_, i) => i % 2 === 1));
+// 中心金星 = 等级一时的星形，大小固定不随等级变化；
+// 暗金色星角随升级从金星外侧继续伸长（与档案页同一套几何）
+const goldPts = starPoints([GOLD_RATIO, GOLD_RATIO, GOLD_RATIO, GOLD_RATIO, GOLD_RATIO], DATA_R);
+const goldStar = toPoly(goldPts);
+const goldFacets = computed(() => goldPts.map((p, i) => {
+  const next = goldPts[(i + 1) % goldPts.length];
+  return `${CX},${CY} ${p[0].toFixed(1)},${p[1].toFixed(1)} ${next[0].toFixed(1)},${next[1].toFixed(1)}`;
+}));
 const dataDotR = computed(() => {
   const avg = animRatios.value.reduce((a, b) => a + b, 0) / 5;
   return Math.max(1.0, Math.min(1.9, avg * 1.9)).toFixed(2);
@@ -253,15 +260,11 @@ onBeforeUnmount(clearAnim);
         <div v-if="ready" class="pfx-starwrap">
           <svg :key="fxKey" class="pfx-chart" viewBox="0 0 300 300" aria-hidden="true">
           <defs>
-            <!-- 与档案页一致的深灰底盘与赤道阴影 -->
+            <!-- 与档案页一致的深灰底盘 -->
             <linearGradient id="pfxFrame" gradientUnits="userSpaceOnUse" x1="40" y1="30" x2="250" y2="280">
               <stop offset="0" stop-color="#454545" />
               <stop offset="1" stop-color="#2c2c2c" />
             </linearGradient>
-            <radialGradient id="pfxCore">
-              <stop offset="0" stop-color="#8a4c00" stop-opacity=".42" />
-              <stop offset="1" stop-color="#8a4c00" stop-opacity="0" />
-            </radialGradient>
           </defs>
 
           <!-- P3（浅色）：圆圈 → 从画面外收进来的圆环 → 圈内闪光两次 →（RANK UP）圆圈长大 -->
@@ -308,8 +311,12 @@ onBeforeUnmount(clearAnim);
               v-for="(f, i) in facets" :key="'fa' + i"
               class="pfx-facet" :fill="p5FacetColor(i)" :points="f"
             />
-            <circle cx="150" cy="150" r="26" fill="url(#pfxCore)" />
+            <polygon
+              v-for="(f, i) in goldFacets" :key="'cf' + i"
+              class="pfx-facet" :fill="p5CoreColor(i)" :points="f"
+            />
             <polygon class="pfx-outline" :points="dataStar" />
+            <polygon class="pfx-outline" :points="goldStar" />
             <circle
               v-for="(d, i) in dataDots" :key="'dd' + i"
               class="pfx-data-dot" :cx="d[0]" :cy="d[1]" :r="dataDotR"
