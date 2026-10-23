@@ -1,6 +1,11 @@
 # StudyWithYourFriends · 学习记录
 
-> 当前版本 **v1.9.7**
+<p align="center">
+  <a href="docs/screenshots/home-light.png"><img src="docs/screenshots/home-light.png" width="48%" alt="浅色主题首页（P3 风格）"></a>&nbsp;<a href="docs/screenshots/home-dark.png"><img src="docs/screenshots/home-dark.png" width="48%" alt="深色主题首页（P5 风格）"></a>
+</p>
+<p align="center"><sub>浅色主题（P3 风格）· 深色主题（P5 风格）</sub></p>
+
+> 当前版本 **v1.15.3**
 
 和朋友一起打卡学习的轻量社区网站：记录每天的学习、配图配视频、互相留言打气。
 
