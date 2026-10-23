@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.2";
+    public static final String VERSION = "1.15.3";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.3", List.of(
+                    "修复库莉姆聊天气泡在长回复时文字压出黑色气泡边框的问题：气泡的不规则缺口改为固定像素，不再随气泡高度按比例放大；自己的长留言气泡同步修复。"
+            )),
             new ReleaseNote("1.15.2", List.of(
                     "知识计分不再要求正文满 6 个字：任何学习记录都按「当天第一条 +5、之后每条 +2」计分，每日上限 12 点不变。",
                     "「计分规则」弹窗同步更新了这条说明。"

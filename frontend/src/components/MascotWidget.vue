@@ -540,14 +540,16 @@ html[data-theme="dark"] .mascot-chat .chat-msg .chat-bubble {
   filter: none;
   transform: rotate(-0.4deg);
 }
-/* 斜切分镜只画在背景层，文字层不参与裁剪，避免笔画被斜线切掉 */
+/* 斜切分镜只画在背景层，文字层不参与裁剪，避免笔画被斜线切掉。
+   缺口一律用固定像素而不是百分比：长回复会把百分比缺口按比例放大，
+   底边会切进最后几行文字（气泡越高压得越多） */
 html[data-theme="dark"] .mascot-chat .chat-msg .chat-bubble::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   background: #0b0b0b;
-  clip-path: polygon(0 10%, 12% 0, 100% 4%, 97% 100%, 10% 96%, 5% 100%, 3% 84%, 0 76%);
+  clip-path: polygon(0 12px, 12% 0, 100% 4px, 100% calc(100% - 2px), 10% calc(100% - 4px), 5% 100%, 3% calc(100% - 12px), 0 calc(100% - 18px));
   filter: drop-shadow(3px 0 0 #f7f3e6) drop-shadow(-3px 0 0 #f7f3e6) drop-shadow(0 3px 0 #f7f3e6) drop-shadow(0 -3px 0 #f7f3e6);
 }
 html[data-theme="dark"] .mascot-chat .chat-msg.user .chat-bubble {
@@ -565,7 +567,7 @@ html[data-theme="dark"] .mascot-chat .chat-msg.user .chat-bubble::before {
   inset: 0;
   z-index: -1;
   background: #f7f3e6;
-  clip-path: polygon(3% 6%, 86% 0, 100% 14%, 100% 72%, 96% 80%, 98% 100%, 8% 94%, 4% 72%, 0 62%);
+  clip-path: polygon(3% 6px, 86% 0, 100% 14px, 100% calc(100% - 4px), 96% calc(100% - 10px), 98% 100%, 8% calc(100% - 4px), 4% calc(100% - 20px), 0 calc(100% - 30px));
   filter: drop-shadow(3px 0 0 #111) drop-shadow(-3px 0 0 #111) drop-shadow(0 3px 0 #111) drop-shadow(0 -3px 0 #111);
 }
 html[data-theme="dark"] .mascot-form { background: #080808; border-top: 3px solid #f7f3e6; }
