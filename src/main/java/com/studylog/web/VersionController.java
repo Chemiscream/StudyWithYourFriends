@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.14.5";
+    public static final String VERSION = "1.14.6";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.14.6", List.of(
+                    "深色主题的五维星图改为按原作方式剪切倾斜（不再是整体旋转），星形和四周标签一起落在同一斜坐标系里，更接近 P5 的人格指数画面。"
+            )),
             new ReleaseNote("1.14.5", List.of(
                     "AI 日报的提交排行不再把 AI 助手算进同学名单。",
                     "学习统计里的「查看更多」改为弹出完整排行，展开名单不会再把关键词词云往下挤。",

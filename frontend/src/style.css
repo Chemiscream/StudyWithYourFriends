@@ -2926,7 +2926,9 @@ html[data-theme="dark"] .persona-entry:hover { color: #e60012; box-shadow: 3px 3
   width: min(100%, 360px);
   margin: 4px auto 12px;
   aspect-ratio: 1 / 1;
-  transform: rotate(9deg);
+  /* 原作不是把星图整体旋转，而是用剪切（skewX）让星形沿纵向倾斜；
+     标签跟随同一剪切坐标系，再由各自规则反向剪切抵消文字变形 */
+  transform: skewX(var(--star-skew, 0deg));
 }
 .persona-star svg { display: block; width: 100%; height: 100%; overflow: visible; }
 /* 外框：满值五角星底盘（原作是扁平的深灰星，立体感靠整体倾斜） */
@@ -2947,6 +2949,7 @@ html:not([data-theme="dark"]) .star-tag { display: none; }
 html:not([data-theme="dark"]) .t-p3 { display: inline; }
 html:not([data-theme="dark"]) .p3-chart { display: block; }
 html:not([data-theme="dark"]) .persona-star { transform: none; }
+html[data-theme="dark"] .persona-star { --star-skew: -10deg; }
 .p3-star {
   fill: rgba(255, 255, 255, .9); stroke: #00c8f0; stroke-width: 2.4; stroke-linejoin: miter;
   filter: drop-shadow(0 0 7px rgba(0, 200, 255, .85));
@@ -2981,11 +2984,11 @@ html:not([data-theme="dark"]) .persona-star { transform: none; }
 .st-label b { font-weight: inherit; }
 .st-label em { font-style: normal; font-family: var(--mono); font-size: 9px; opacity: .92; }
 .star-tag small { font-size: 10px; color: var(--muted); letter-spacing: .04em; }
-.st-knowledge { left: 50%; top: 0; transform: translateX(-50%) rotate(3deg); align-items: center; }
-.st-charm { left: 0; top: 26%; transform: rotate(2deg); }
-.st-courage { right: 0; top: 24%; align-items: flex-end; transform: rotate(1deg); }
-.st-kindness { left: 0; bottom: 20%; transform: rotate(-4deg); }
-.st-dexterity { right: 0; bottom: 21%; align-items: flex-end; transform: rotate(-12deg); }
+.st-knowledge { left: 50%; top: 0; transform: translateX(-50%) skewX(calc(var(--star-skew, 0deg) * -1)) rotate(3deg); align-items: center; }
+.st-charm { left: 0; top: 26%; transform: skewX(calc(var(--star-skew, 0deg) * -1)) rotate(2deg); }
+.st-courage { right: 0; top: 24%; align-items: flex-end; transform: skewX(calc(var(--star-skew, 0deg) * -1)) rotate(1deg); }
+.st-kindness { left: 0; bottom: 20%; transform: skewX(calc(var(--star-skew, 0deg) * -1)) rotate(-4deg); }
+.st-dexterity { right: 0; bottom: 21%; align-items: flex-end; transform: skewX(calc(var(--star-skew, 0deg) * -1)) rotate(-12deg); }
 
 /* 五维进度 */
 .persona-stats { display: flex; flex-direction: column; gap: 10px; }
@@ -3120,7 +3123,8 @@ html[data-theme="dark"] .persona-tile {
   .persona-meta { font-size: 10px; gap: 4px 7px; }
   .persona-grid { grid-template-columns: 1fr; gap: 14px; margin-top: 14px; }
   .persona-card { padding: 15px 15px; }
-  .persona-star { width: min(100%, 300px); transform: rotate(6deg); }
+  .persona-star { width: min(100%, 300px); }
+  html[data-theme="dark"] .persona-star { --star-skew: -7deg; }
   .st-label { font-size: 10.5px; padding: 2px 7px; }
   .st-label em { font-size: 8.5px; }
   .star-tag small { font-size: 9.5px; }
@@ -3154,6 +3158,8 @@ html[data-theme="dark"] .persona-tile {
 .pfx-starwrap {
   position: relative; width: min(88vw, 430px); margin-top: 8px;
   aspect-ratio: 1 / 1;
+  /* 与档案页一致：深色主题用剪切而不是旋转 */
+  transform: skewX(var(--star-skew, 0deg));
 }
 .pfx-chart { display: block; width: 100%; height: auto; overflow: visible; }
 .pfx-starwrap .star-tag { animation: pfx-label .32s ease both; }
@@ -3209,7 +3215,7 @@ html[data-theme="dark"] .pfx-p5 { display: block; }
 }
 
 /* P5：金色数据星 + 对应角闪烁（与档案页同款倾斜与深浅折面） */
-html[data-theme="dark"] .pfx-starwrap { transform: rotate(9deg); }
+html[data-theme="dark"] .pfx-starwrap { --star-skew: -10deg; }
 .pfx-frame { fill: var(--panel-soft); stroke: rgba(247, 243, 230, .2); stroke-width: 1.2; stroke-linejoin: miter; }
 .pfx-frame-dot { fill: rgba(247, 243, 230, .3); }
 .pfx-facet { fill: url(#pfxGoldA); stroke: rgba(92, 53, 0, .42); stroke-width: .8; }
@@ -3247,7 +3253,7 @@ html[data-theme="dark"] .pfx-tag { color: #c9c1b2; }
 @media (max-width: 820px) {
   .pfx-title { font-size: 32px; }
   .pfx-starwrap { width: min(84vw, 340px); }
-  html[data-theme="dark"] .pfx-starwrap { transform: rotate(6deg); }
+  html[data-theme="dark"] .pfx-starwrap { --star-skew: -7deg; }
   .pfx-glow { width: 400px; height: 400px; }
 }
 
