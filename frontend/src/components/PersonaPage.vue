@@ -8,6 +8,7 @@ import {
   PERSONA_THRESHOLDS,
   PERSONA_RULES,
   PERSONA_COMMON_RULES,
+  p5FacetColor,
 } from "../persona.js";
 
 const rulesOpen = ref(false);
@@ -21,7 +22,7 @@ const statMap = computed(() => Object.fromEntries(stats.value.map((s) => [s.key,
 const CX = 150;
 const CY = 150;
 const FRAME_R = 112;             // 外框五角星半径（四周留出贴纸标签的空间）
-const DATA_R = FRAME_R * 0.68;   // 数据星满值半径：原作 MAX 时也不顶到框尖
+const DATA_R = FRAME_R * 0.8;    // 数据星满值半径：原作 MAX 时几乎铺满灰色底盘，只留一圈窄边
 const IR_RATIO = 0.42;           // 五角星内凹半径 / 外角半径
 
 function ptAt(deg, radius) {
@@ -182,32 +183,16 @@ const TILES = [
         <div class="persona-star">
           <svg viewBox="0 0 300 300" role="img" aria-label="五维人格星图">
             <defs>
-              <!-- 星形底盘：深灰渐变（P5）/ 浅灰（P3） -->
+              <!-- 星形底盘：原作里是一整块比金色星更深的灰色五角星 -->
               <linearGradient id="starFrame" gradientUnits="userSpaceOnUse" x1="40" y1="30" x2="250" y2="280">
-                <stop offset="0" stop-color="#4c4c4c" />
-                <stop offset="1" stop-color="#2b2b2b" />
+                <stop offset="0" stop-color="#454545" />
+                <stop offset="1" stop-color="#2c2c2c" />
               </linearGradient>
-              <!-- 数据星折面：P3 青蓝双色，P5 金色双色（对齐原作） -->
-              <linearGradient id="starFaceA" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="250" y2="280">
-                <stop offset="0" stop-color="#a8e7f6" />
-                <stop offset=".55" stop-color="#1aa7cc" />
-                <stop offset="1" stop-color="#007f9c" />
-              </linearGradient>
-              <linearGradient id="starFaceB" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="250" y2="280">
-                <stop offset="0" stop-color="#7fd0e8" />
-                <stop offset=".55" stop-color="#0090b4" />
-                <stop offset="1" stop-color="#005f76" />
-              </linearGradient>
-              <linearGradient id="starGoldA" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="250" y2="280">
-                <stop offset="0" stop-color="#fff7c4" />
-                <stop offset=".52" stop-color="#ffd23f" />
-                <stop offset="1" stop-color="#efa000" />
-              </linearGradient>
-              <linearGradient id="starGoldB" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="250" y2="280">
-                <stop offset="0" stop-color="#ffd76b" />
-                <stop offset=".52" stop-color="#e09d05" />
-                <stop offset="1" stop-color="#9d6000" />
-              </linearGradient>
+              <!-- 折面交会处的「赤道」阴影：让中心微微下陷，强化双锥的立体感 -->
+              <radialGradient id="starCore">
+                <stop offset="0" stop-color="#8a4c00" stop-opacity=".42" />
+                <stop offset="1" stop-color="#8a4c00" stop-opacity="0" />
+              </radialGradient>
             </defs>
             <!-- P5（深色）：外框底盘 + 折面数据星 -->
             <g class="p5-chart">
@@ -218,8 +203,9 @@ const TILES = [
               />
               <polygon
                 v-for="(f, i) in starFacets" :key="'f' + i"
-                class="star-facet" :class="{ alt: i % 2 }" :points="f"
+                class="star-facet" :fill="p5FacetColor(i)" :points="f"
               />
+              <circle cx="150" cy="150" r="26" fill="url(#starCore)" />
               <polygon class="star-outline" :points="dataStar" />
               <circle
                 v-for="(d, i) in starDots" :key="'d' + i"

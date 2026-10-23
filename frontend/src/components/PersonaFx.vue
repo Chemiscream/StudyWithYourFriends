@@ -6,6 +6,7 @@ import {
   PERSONA_NAMES as NAMES,
   PERSONA_TITLES as TITLES,
   PERSONA_THRESHOLDS as THRESH,
+  p5FacetColor,
 } from "../persona.js";
 
 const CX = 150;
@@ -21,7 +22,7 @@ const P3_TEXT_OFFSET = [[0, 0], [0, 0], [6, 0], [-6, 0], [0, 0]];
 const P3_TAG_OFFSET = [[0, -40], [0, 34], [10, 34], [-14, 34], [-4, 34]];
 // P5：外框星 + 数据星
 const FRAME_R = 112;
-const DATA_R = FRAME_R * 0.68;
+const DATA_R = FRAME_R * 0.8;
 // P3 / P5 统一节奏：圆环收拢 → 闪光两下 →（RANK UP）圆圈长大 / 角伸长后再闪
 const RING_MS = 850;
 const FLASH_MS = 780;
@@ -252,16 +253,15 @@ onBeforeUnmount(clearAnim);
         <div v-if="ready" class="pfx-starwrap">
           <svg :key="fxKey" class="pfx-chart" viewBox="0 0 300 300" aria-hidden="true">
           <defs>
-            <linearGradient id="pfxGoldA" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="250" y2="280">
-              <stop offset="0" stop-color="#fff7c4" />
-              <stop offset=".52" stop-color="#ffd23f" />
-              <stop offset="1" stop-color="#efa000" />
+            <!-- 与档案页一致的深灰底盘与赤道阴影 -->
+            <linearGradient id="pfxFrame" gradientUnits="userSpaceOnUse" x1="40" y1="30" x2="250" y2="280">
+              <stop offset="0" stop-color="#454545" />
+              <stop offset="1" stop-color="#2c2c2c" />
             </linearGradient>
-            <linearGradient id="pfxGoldB" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="250" y2="280">
-              <stop offset="0" stop-color="#ffd76b" />
-              <stop offset=".52" stop-color="#e09d05" />
-              <stop offset="1" stop-color="#9d6000" />
-            </linearGradient>
+            <radialGradient id="pfxCore">
+              <stop offset="0" stop-color="#8a4c00" stop-opacity=".42" />
+              <stop offset="1" stop-color="#8a4c00" stop-opacity="0" />
+            </radialGradient>
           </defs>
 
           <!-- P3（浅色）：圆圈 → 从画面外收进来的圆环 → 圈内闪光两次 →（RANK UP）圆圈长大 -->
@@ -306,8 +306,9 @@ onBeforeUnmount(clearAnim);
             />
             <polygon
               v-for="(f, i) in facets" :key="'fa' + i"
-              class="pfx-facet" :class="{ alt: i % 2 }" :points="f"
+              class="pfx-facet" :fill="p5FacetColor(i)" :points="f"
             />
+            <circle cx="150" cy="150" r="26" fill="url(#pfxCore)" />
             <polygon class="pfx-outline" :points="dataStar" />
             <circle
               v-for="(d, i) in dataDots" :key="'dd' + i"

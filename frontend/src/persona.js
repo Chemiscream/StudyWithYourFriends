@@ -72,6 +72,17 @@ export const PERSONA_RULES = [
   },
 ];
 
+// P5 五维金星的折面取色：10 个三角面按朝向与正反取 6 档金色，
+// 光从左上打来、视线从右下方看，相邻面一亮一暗形成双锥的棱线
+const P5_FACET_TONES = ["#b56500", "#c97300", "#dc8500", "#ee9b00", "#f9b006", "#ffc21b"];
+export function p5FacetColor(i) {
+  const mid = -72 + i * 36;
+  const lit = Math.cos(((mid - 245) * Math.PI) / 180);
+  const side = i % 2 ? 0.12 : -0.12;
+  const b = Math.min(1, Math.max(0, 0.5 + 0.42 * lit + side));
+  return P5_FACET_TONES[Math.min(P5_FACET_TONES.length - 1, Math.round(b * (P5_FACET_TONES.length - 1)))];
+}
+
 export const PERSONA_COMMON_RULES = [
   "只增不减：取消点赞、取消收藏或删除内容都不会扣分",
   "自己的行为不给自己计分，同一来源只计一次",
