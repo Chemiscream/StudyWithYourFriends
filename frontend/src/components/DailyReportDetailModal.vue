@@ -5,7 +5,8 @@ import { mdRender, esc } from "../utils/md.js";
 
 const detail = computed(() => state.daily.detail);
 const stat = computed(() => detail.value?.stat || {});
-const ranking = computed(() => stat.value.ranking || []);
+// 旧日报的统计数据里可能残留 AI 助手的播报记录，展示时一并过滤
+const ranking = computed(() => (stat.value.ranking || []).filter((r) => r.username !== "AI助手"));
 const words = computed(() => stat.value.words || []);
 
 function medal(i) { return i === 0 ? "01" : i === 1 ? "02" : i === 2 ? "03" : ""; }

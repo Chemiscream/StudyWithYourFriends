@@ -6,13 +6,11 @@ import { state, loadStats, openPersona } from "../store.js";
 const collapsed = ref(localStorage.getItem("studylog_collapse_stats") === "1");
 const cloudCanvas = ref(null);
 
-// 提交排行不展示 AI 虚拟用户；默认只露前三名，可展开
+// 提交排行不展示 AI 虚拟用户；侧栏只露前三名，完整名单在弹窗里看，避免撑高侧栏把词云挤下去
 const AI_NAME = "AI助手";
 const ranking = computed(() => state.ranking.filter((r) => r.username !== AI_NAME));
-const showAllRanking = ref(false);
-const visibleRanking = computed(() =>
-  showAllRanking.value ? ranking.value : ranking.value.slice(0, 3)
-);
+const topRanking = computed(() => ranking.value.slice(0, 3));
+const rankOpen = ref(false);
 
 const RANGES = [
   { key: "all", label: "全部" },
@@ -95,7 +93,10 @@ function drawCloud() {
 }
 
 function medal(i) { return i === 0 ? "01" : i === 1 ? "02" : i === 2 ? "03" : ""; }
+function rankNo(i) { return String(i + 1).padStart(2, "0"); }
 function pct(r) { return Math.max(4, Math.round(r.count / maxOf() * 100)); }
+// 弹窗里点昵称：先关弹窗再进对应同学的档案页
+function pickUser(name) { rankOpen.value = false; openPersona(name); }
 
 watch(() => state.words, () => nextTick(drawCloud));
 watch(() => state.statsRange, () => nextTick(drawCloud));
@@ -146,17 +147,36 @@ onUnmounted(() => {
       <h3 class="stats-sub">提交排行</h3>
       <div class="rank-list">
         <div v-if="!ranking.length" class="rank-empty">暂无数据</div>
-        <div v-for="(r, i) in visibleRanking" :key="r.username" class="rank-row">
+        <div v-for="(r, i) in topRanking" :key="r.username" class="rank-row">
           <span class="rank-name name-link" title="查看个人档案" :style="{ color: '#' + r.color }" @click="openPersona(r.username)"><span v-if="medal(i)" class="rank-medal">{{ medal(i) }}</span>{{ r.username }}</span>
           <div class="rank-bar-wrap"><div class="rank-bar" :style="{ width: pct(r) + '%', background: '#' + r.color }"></div></div>
           <span class="rank-count">{{ r.count }} 条</span>
         </div>
       </div>
-      <button v-if="ranking.length > 3" type="button" class="rank-more" @click="showAllRanking = !showAllRanking">
-        {{ showAllRanking ? '收起排名' : '查看更多（共 ' + ranking.length + ' 人）' }}
+      <button v-if="ranking.length > 3" type="button" class="rank-more" @click="rankOpen = true">
+        {{ '查看完整排名（共 ' + ranking.length + ' 人）' }}
       </button>
       <h3 class="stats-sub">关键词词云</h3>
       <canvas ref="cloudCanvas" class="cloud-canvas"></canvas>
     </div>
+
+    <Teleport to="body">
+      <div v-if="rankOpen" class="modal-mask" @click.self="rankOpen = false">
+        <div class="modal-card rank-modal-card">
+          <div class="rank-modal-head">
+            <h2>提交排行</h2>
+            <button class="modal-close" type="button" title="关闭" @click="rankOpen = false">✕</button>
+          </div>
+          <p class="rank-modal-sub">共 {{ ranking.length }} 位同学 · 按提交条数排序</p>
+          <div class="rank-list rank-modal-list">
+            <div v-for="(r, i) in ranking" :key="r.username" class="rank-row">
+              <span class="rank-name name-link" title="查看个人档案" :style="{ color: '#' + r.color }" @click="pickUser(r.username)"><span class="rank-medal">{{ rankNo(i) }}</span>{{ r.username }}</span>
+              <div class="rank-bar-wrap"><div class="rank-bar" :style="{ width: pct(r) + '%', background: '#' + r.color }"></div></div>
+              <span class="rank-count">{{ r.count }} 条</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </section>
 </template>

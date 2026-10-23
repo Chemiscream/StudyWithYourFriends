@@ -2,6 +2,7 @@ package com.studylog.daily;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.studylog.ai.AiAssistantService;
 import com.studylog.model.DailyReport;
 import com.studylog.repo.DailyReportRepository;
 import com.studylog.stats.WordExtractor;
@@ -142,6 +143,7 @@ public class DailyReportService {
         Map<String, Integer> cnt = new LinkedHashMap<>();
         Map<String, String> colorOf = new LinkedHashMap<>();
         for (RecordRow r : rows) {
+            if (AiAssistantService.AI_NAME.equals(r.username)) continue; // AI 助手是虚拟用户，不计入提交排行
             cnt.merge(r.username, 1, Integer::sum);
             colorOf.putIfAbsent(r.username, r.color);
         }

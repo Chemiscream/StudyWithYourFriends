@@ -14,10 +14,15 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.14.4";
+    public static final String VERSION = "1.14.5";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.14.5", List.of(
+                    "AI 日报的提交排行不再把 AI 助手算进同学名单。",
+                    "学习统计里的「查看更多」改为弹出完整排行，展开名单不会再把关键词词云往下挤。",
+                    "首页标题「STUDY WITH YOUR FRIENDS」落位之后，副标题和三项统计再缓缓浮现。"
+            )),
             new ReleaseNote("1.14.4", List.of(
                     "看板娘的 10 张立绘全部重新抠图：图片边缘不再有白色残留和背景色块，深色主题下轮廓更干净。",
                     "重新抠图保留了羽毛、星星、发饰等小细节，头像恢复了左侧辫子；头像上残缺的星星和左缘的杂点也已去掉。",
