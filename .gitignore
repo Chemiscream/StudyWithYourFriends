@@ -32,6 +32,10 @@ application-local.yml
 application-local.properties
 admin-credentials.properties
 
+# 开发流程说明（AI/本地开发用，不对外发布）
+AGENT.MD
+AGENT.md
+
 # 本地私密待办记录（含未发布计划与个人信息，不提交）
 BACKLOG.md
 
