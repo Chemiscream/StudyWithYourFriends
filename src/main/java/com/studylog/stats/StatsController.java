@@ -1,5 +1,6 @@
 package com.studylog.stats;
 
+import com.studylog.ai.AiAssistantService;
 import jakarta.persistence.EntityManager;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,8 +55,12 @@ public class StatsController {
         }
 
         Map<String, Long> counter = new HashMap<>();
+        // 词云统计排除 AI助手 的播报记录，避免「日报」「发布」这类词进入关键词（排行在前端过滤，词云在源头过滤）
+        String cloudCond = cond.isEmpty()
+                ? "WHERE r.username <> '" + AiAssistantService.AI_NAME + "'"
+                : cond + " AND r.username <> '" + AiAssistantService.AI_NAME + "'";
         @SuppressWarnings("unchecked")
-        List<String> contents = em.createNativeQuery("SELECT content FROM records r " + cond)
+        List<String> contents = em.createNativeQuery("SELECT content FROM records r " + cloudCond)
                 .getResultList();
         for (String content : contents) {
             for (String w : wordExtractor.extract(content)) {

@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.4";
+    public static final String VERSION = "1.15.5";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.5", List.of(
+                    "关键词词云不再统计 AI助手 发布的记录，「日报」「发布」等播报用词不会再进入词云。"
+            )),
             new ReleaseNote("1.15.4", List.of(
                     "深色主题下，留言板的昵称改为跟随留言者自己的主题色（黑底上做了适当提亮，深色主题色也能看清），不再统一显示为黄色。",
                     "AI 助手的日报播报文案更新：日报现在在右侧边栏的「AI 日报」面板里，手机端点底部「日报」标签即可查看。"
