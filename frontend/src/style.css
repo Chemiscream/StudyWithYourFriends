@@ -3234,7 +3234,8 @@ html[data-theme="dark"] .board-msg {
   box-shadow: 3px 3px 0 rgba(0, 0, 0, .85);
 }
 html[data-theme="dark"] .board-msg:hover { border-color: rgba(230, 0, 18, .55); border-left-color: var(--c, var(--primary)); }
-html[data-theme="dark"] .bm-name { color: #ffe600; }
+/* 昵称跟随留言者自己的主题色；黑底上提亮一档，保证深色主题色也看得清 */
+html[data-theme="dark"] .bm-name { color: color-mix(in srgb, var(--c, #ffe600) 68%, #f7f3e6); }
 html[data-theme="dark"] .bm-owner { border-color: rgba(247, 243, 230, .35); color: #ffd23f; }
 html[data-theme="dark"] .bm-time { color: #a39c8f; }
 html[data-theme="dark"] .bm-del { color: #a39c8f; }

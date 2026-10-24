@@ -214,7 +214,7 @@ public class AiAssistantService {
             Record r = new Record();
             r.setUserId(ai.getId());
             r.setUsername(AI_NAME);
-            r.setContent("<p>" + CN_DATE.format(reportDate) + " 的学习日报已发布，点击首页顶部的「日报」卡片即可查看～</p>");
+            r.setContent("<p>" + CN_DATE.format(reportDate) + " 的学习日报已发布，在右侧边栏的「AI 日报」面板点开卡片即可查看（手机端点底部「日报」标签）～</p>");
             r.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
             records.save(r);
             System.out.println("[AI助手] 已播报 " + reportDate + " 日报");
