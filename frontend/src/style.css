@@ -2013,6 +2013,13 @@ html[data-theme="dark"] .quote-editing {
 }
 html[data-theme="dark"] .quote-line, html[data-theme="dark"] .quote-preview { color: #fff; }
 html[data-theme="dark"] .quote-line b { color: #fff; text-shadow: 2px 2px 0 #111; }
+/* 转发卡片里的昵称：米白贴纸底衬 + 保留各自主题色，红底上清晰且不再有厚重的黑色描边 */
+html[data-theme="dark"] .quote-line b.name-link {
+  background: #f7f3e6;
+  padding: 0 5px;
+  text-shadow: none;
+  box-shadow: 2px 2px 0 #111;
+}
 html[data-theme="dark"] .comment-item { color: #f7f3e6; }
 html[data-theme="dark"] .comment-text { color: #f7f3e6; }
 html[data-theme="dark"] .comments { border-top: 2px dashed rgba(247, 243, 230, .35); }

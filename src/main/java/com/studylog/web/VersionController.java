@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.8";
+    public static final String VERSION = "1.15.9";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.9", List.of(
+                    "深色主题下转发卡片里的昵称改为米白贴纸底衬：去掉了厚重的黑色描边，昵称仍保留各自的主题色，红底卡片上也清晰易读。"
+            )),
             new ReleaseNote("1.15.8", List.of(
                     "看板娘头像取景调整：聊天消息左侧头像和面板顶部头像都放大了一号，不再只截取脸部局部，整张脸和头发都能完整看到。"
             )),
