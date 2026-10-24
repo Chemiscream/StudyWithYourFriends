@@ -326,29 +326,29 @@ public class PersonaService {
                 award(u, "knowledge", used == 0 ? 5 : 2, "record", r.getId(), "", at,
                         CAP_KNOWLEDGE, true, new String[]{"record"}));
 
-        // 勇气：媒体记录每天一次（按日来源按行为人区分用户，避免不同用户同一 epochDay 冲突）
+        // 勇气：带媒体的记录每条都计分（sourceId 用记录 id，不再限每日一次；仍受每日总额度约束）
         if (MEDIA_TAG_RE.matcher(content).find()) {
             addGain(gains, "courage",
-                    award(u, "courage", 3, "media", epochDay, u, at, CAP_COURAGE, true, COURAGE_SOURCES));
+                    award(u, "courage", 3, "media", r.getId(), u, at, CAP_COURAGE, true, COURAGE_SOURCES));
         }
 
-        // 勇气：距上一条记录 >= 3 天，每天一次（按自增 id 找上一条）
+        // 勇气：距上一条记录 >= 3 天（条件本身保证间隔，同一天不会重复触发；sourceId 用记录 id 便于去重）
         List<Record> prev = records.findPrevious(u, r.getId(), PageRequest.of(0, 1));
         if (!prev.isEmpty()) {
             LocalDate prevDay = shanghaiDay(prev.get(0).getCreatedAt());
             if (day.toEpochDay() - prevDay.toEpochDay() >= 3) {
                 addGain(gains, "courage",
-                        award(u, "courage", 5, "return", epochDay, u, at, CAP_COURAGE, true, COURAGE_SOURCES));
+                        award(u, "courage", 5, "return", r.getId(), u, at, CAP_COURAGE, true, COURAGE_SOURCES));
             }
         }
 
-        // 勇气：转发他人的记录每天一次（自己转发自己不算）
+        // 勇气：转发他人的记录每次都计分（自己转发自己不算；仍受每日总额度约束）
         Long quotedId = r.getQuotedRecordId();
         if (quotedId != null) {
             String quotedOwner = records.findById(quotedId).map(Record::getUsername).orElse(null);
             if (quotedOwner != null && !quotedOwner.equals(u)) {
                 addGain(gains, "courage",
-                        award(u, "courage", 2, "quote", epochDay, u, at, CAP_COURAGE, true, COURAGE_SOURCES));
+                        award(u, "courage", 2, "quote", r.getId(), u, at, CAP_COURAGE, true, COURAGE_SOURCES));
             }
         }
 

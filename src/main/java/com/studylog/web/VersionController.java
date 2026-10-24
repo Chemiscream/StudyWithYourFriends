@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.5";
+    public static final String VERSION = "1.15.6";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.6", List.of(
+                    "勇气的三条获取途径不再限制每日一次：带图片或视频的记录每条 +3、转发他人记录每次 +2、满 3 天回归 +5；每日上限 12 点保持不变。"
+            )),
             new ReleaseNote("1.15.5", List.of(
                     "关键词词云不再统计 AI助手 发布的记录，「日报」「发布」等播报用词不会再进入词云。"
             )),
