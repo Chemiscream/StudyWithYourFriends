@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.9";
+    public static final String VERSION = "1.15.10";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.10", List.of(
+                    "修复同一天日报被重复生成时 AI助手 会重复发播报的问题：现在只有首次发布才播报，覆盖已有日报不再重复发。",
+                    "日报统计排除 AI助手 的播报记录：播报里的「日报」「发布」等词不会再进入当日热词，记录总数也不再计入播报。"
+            )),
             new ReleaseNote("1.15.9", List.of(
                     "深色主题下转发卡片里的昵称改为米白贴纸底衬：去掉了厚重的黑色描边，昵称仍保留各自的主题色，红底卡片上也清晰易读。"
             )),

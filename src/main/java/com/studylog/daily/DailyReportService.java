@@ -85,15 +85,16 @@ public class DailyReportService {
             // 模型离线：不保存，留给补生成任务重试
             if (ai == null) return null;
 
-            DailyReport r = repo.findByReportDate(date).orElseGet(DailyReport::new);
+            DailyReport existing = repo.findByReportDate(date).orElse(null);
+            DailyReport r = existing == null ? new DailyReport() : existing;
             r.setReportDate(date);
             r.setContent(toJson(stat));
             r.setSummary(ai.summary());
             r.setSubtitle(ai.subtitle());
             r.setCreatedAt(OffsetDateTime.now(ZoneOffset.UTC));
             repo.save(r);
-            // 日报发布成功后由 AI 助手发一条播报记录（同事务，生成失败则不播报）
-            aiAssistant.announceReport(date);
+            // 日报首次发布时由 AI 助手发一条播报记录（同事务）；覆盖已有日报（手动重新生成）不再重复播报
+            if (existing == null) aiAssistant.announceReport(date);
             return true;
         } finally {
             generating.set(false);
@@ -180,13 +181,14 @@ public class DailyReportService {
         return out;
     }
 
-    /** 取指定上海日期的全站记录（created_at 存 UTC，+8h 转上海日期）。 */
+    /** 取指定上海日期的全站记录（created_at 存 UTC，+8h 转上海日期）；排除 AI助手 的播报记录，避免「日报」「发布」等词进入热词与统计。 */
     @SuppressWarnings("unchecked")
     private List<RecordRow> fetchRecordsOfDate(LocalDate date) {
         List<Object[]> rows = em.createNativeQuery(
                 "SELECT r.id, r.username, r.content, COALESCE(u.color, '4a90d9') " +
                 "FROM records r LEFT JOIN users u ON u.username = r.username " +
                 "WHERE DATE(r.created_at + INTERVAL 8 HOUR) = :date " +
+                "AND r.username <> '" + AiAssistantService.AI_NAME + "' " +
                 "ORDER BY r.created_at ASC")
                 .setParameter("date", date)
                 .getResultList();
