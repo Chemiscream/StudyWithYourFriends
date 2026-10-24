@@ -370,16 +370,16 @@ public class PersonaService {
                     award(u, "dexterity", streakBonus, "streak", epochDay, u, at, 0, true, DEXTERITY_SOURCES));
         }
 
-        // 灵巧：@ 真实存在的非自己用户
+        // 灵巧：@ 真实存在的非自己用户，每条记录都计分（仍受每日总额度约束）
         if (hasMention(plain, u)) {
             addGain(gains, "dexterity",
-                    award(u, "dexterity", 2, "mention", epochDay, u, at, CAP_DEXTERITY, true, DEXTERITY_DAILY_SOURCES));
+                    award(u, "dexterity", 2, "mention", r.getId(), u, at, CAP_DEXTERITY, true, DEXTERITY_DAILY_SOURCES));
         }
 
-        // 灵巧：转发记录
+        // 灵巧：转发记录每次都计分（仍受每日总额度约束）
         if (r.getQuotedRecordId() != null) {
             addGain(gains, "dexterity",
-                    award(u, "dexterity", 2, "quote", epochDay, u, at, CAP_DEXTERITY, true, DEXTERITY_DAILY_SOURCES));
+                    award(u, "dexterity", 2, "quote", r.getId(), u, at, CAP_DEXTERITY, true, DEXTERITY_DAILY_SOURCES));
         }
     }
 
