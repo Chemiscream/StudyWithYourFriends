@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.7";
+    public static final String VERSION = "1.15.8";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.8", List.of(
+                    "看板娘头像取景调整：聊天消息左侧头像和面板顶部头像都放大了一号，不再只截取脸部局部，整张脸和头发都能完整看到。"
+            )),
             new ReleaseNote("1.15.7", List.of(
                     "灵巧的 @ 提及与转发也不再限制每日一次：含 @ 的记录每条 +2、转发每次 +2；每日上限 12 点与连续打卡里程碑规则不变。"
             )),

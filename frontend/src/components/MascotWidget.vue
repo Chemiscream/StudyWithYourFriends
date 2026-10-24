@@ -280,22 +280,22 @@ onUnmounted(() => {
   background: var(--panel-soft);
 }
 .mascot-head-ava {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 50%;
   border: 1px solid var(--primary);
   background: #fff;
 }
-/* 头像放大取景：避开原图边缘的碎星和书本，只保留脸与头发 */
+/* 头像取景：保留整张脸与头发，只裁掉原图最外圈的空白 */
 .mascot-head-img {
   display: block;
   position: relative;
-  left: -17%;
-  top: -13%;
-  width: 134%;
-  height: 134%;
+  left: -8%;
+  top: -6%;
+  width: 116%;
+  height: 116%;
   object-fit: cover;
 }
 .mascot-title { flex: 1; min-width: 0; }
@@ -457,7 +457,7 @@ html[data-theme="dark"] .mascot-panel {
 html[data-theme="dark"] .mp-status { display: none; }
 html[data-theme="dark"] .mascot-head { background: #080808; border-bottom: 3px solid #e60012; }
 html[data-theme="dark"] .mascot-head-ava {
-  width: 44px; height: 46px;
+  width: 50px; height: 50px;
   border: 3px solid #f7f3e6;
   border-radius: 0;
   background: #111;
@@ -465,8 +465,8 @@ html[data-theme="dark"] .mascot-head-ava {
   transform: rotate(-4deg);
 }
 html[data-theme="dark"] .mascot-head-img {
-  left: -25%; top: -16%;
-  width: 150%; height: 150%;
+  left: -8%; top: -6%;
+  width: 116%; height: 116%;
   filter:
     drop-shadow(1px 0 0 #111) drop-shadow(-1px 0 0 #111)
     drop-shadow(0 1px 0 #111) drop-shadow(0 -1px 0 #111);
@@ -506,7 +506,7 @@ html[data-theme="dark"] .chat-who { display: none; }
 html[data-theme="dark"] .chat-ava {
   display: block;
   position: relative;
-  width: 42px; height: 46px;
+  width: 54px; height: 56px;
   flex: none;
   overflow: hidden;
   background: #ffd400;
@@ -514,11 +514,11 @@ html[data-theme="dark"] .chat-ava {
   box-shadow: 3px 3px 0 #f7f3e6;
   transform: rotate(-4deg);
 }
-/* 放大并上移取景：裁掉原图边缘的碎星与书本残留，再用 1px 黑描边盖住抠图毛边 */
+/* 取景保留整张脸和头发，只裁掉最外圈空白，再用 1px 黑描边盖住抠图毛边 */
 html[data-theme="dark"] .chat-ava img {
   position: absolute;
-  left: -28%; top: -14%;
-  width: 152%; height: 152%;
+  left: -12%; top: -8%;
+  width: 116%; height: 116%;
   object-fit: cover;
   filter:
     drop-shadow(1px 0 0 #111) drop-shadow(-1px 0 0 #111)
