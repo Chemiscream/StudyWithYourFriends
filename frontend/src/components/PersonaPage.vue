@@ -3,9 +3,11 @@ import { computed, ref, watch, nextTick } from "vue";
 import {
   state, closePersona, openDetail, backFromPersona, openPersona,
   loadBoard, sendBoardMessage, delBoardMessage, toggleEmoji, showLogin, fmtComment,
+  viewUserRecords,
 } from "../store.js";
 import { renderMention } from "../utils/md.js";
 import StudyHeatmap from "./StudyHeatmap.vue";
+import SkinRadar from "./SkinRadar.vue";
 import {
   PERSONA_ORDER as ORDER,
   PERSONA_TITLES,
@@ -19,6 +21,8 @@ import {
 } from "../persona.js";
 
 const rulesOpen = ref(false);
+// Aero 皮肤下用雷达图替换五角星
+const isAero = computed(() => state.skin === "aero");
 
 const p = computed(() => state.persona);
 const data = computed(() => p.value.data);
@@ -142,6 +146,10 @@ function openRecent(rec) {
   closePersona();
   openDetail(rec.id);
 }
+// 最近记录只展示最近几条，这里跳到动态页并把筛选切到当前档案的用户
+function viewAllRecords() {
+  viewUserRecords(data.value?.username || "");
+}
 
 const TILES = [
   { key: "records", label: "累计记录", unit: "条" },
@@ -232,6 +240,9 @@ watch([() => state.persona.jumpBoard, () => p.value.data], () => {
         </div>
 
         <div class="persona-star">
+          <!-- Aero 皮肤：换成五维雷达图 -->
+          <SkinRadar v-if="isAero" :stats="stats" />
+          <template v-else>
           <svg viewBox="0 0 300 300" role="img" aria-label="五维人格星图">
             <defs>
               <!-- 星形底盘：原作里是一整块比金色星更深的灰色五角星 -->
@@ -286,6 +297,7 @@ watch([() => state.persona.jumpBoard, () => p.value.data], () => {
             </span>
             <small>{{ s.title }}</small>
           </div>
+          </template>
         </div>
 
         <div class="persona-stats">
@@ -309,7 +321,7 @@ watch([() => state.persona.jumpBoard, () => p.value.data], () => {
           <StudyHeatmap :days="data.days || {}" heading="学习打卡" flat />
         </section>
 
-        <section class="panel persona-card">
+        <section class="panel persona-card persona-summary-card">
           <div class="persona-card-head">
             <h2>档案摘要</h2>
             <span class="persona-sub">ARCHIVE</span>
@@ -325,7 +337,10 @@ watch([() => state.persona.jumpBoard, () => p.value.data], () => {
         <section class="panel persona-card persona-recent-card">
           <div class="persona-card-head">
             <h2>最近记录</h2>
-            <span class="persona-sub">RECENT</span>
+            <div class="persona-card-tools">
+              <span class="persona-sub">RECENT</span>
+              <button class="persona-more-btn" type="button" @click="viewAllRecords">查看所有记录</button>
+            </div>
           </div>
           <div v-if="!(data.recent || []).length" class="persona-empty">还没有发布过学习记录</div>
           <button

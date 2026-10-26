@@ -827,9 +827,14 @@ html[data-skin="aero"] .persona-rules-btn {
   border-radius: 3px; border: 1px solid #8e8f8f; background: var(--aero-btn); color: #14364b;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85);
 }
+html[data-skin="aero"] .persona-more-btn {
+  border-radius: 3px; border: 1px solid #8e8f8f; background: var(--aero-btn); color: #14364b;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85);
+}
+html[data-skin="aero"] .persona-more-btn:hover { border-color: #3c7fb1; background: var(--aero-btn-h); }
 html[data-skin="aero"] .persona-star-card {
   display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
-  gap: 6px 18px; align-items: start; align-content: start; align-self: start;
+  gap: 6px 18px; align-items: start; align-content: start; align-self: stretch;
 }
 html[data-skin="aero"] .persona-star-card > .persona-card-head { grid-column: 1 / -1; }
 html[data-skin="aero"] .persona-star { width: 100%; margin: 0; transform: none; }
@@ -881,6 +886,10 @@ html[data-skin="aero"][data-theme="dark"] .persona-card-head h2 {
 }
 html[data-skin="aero"][data-theme="dark"] .persona-sub { color: #22303f; font-family: "Consolas", monospace; }
 html[data-skin="aero"][data-theme="dark"] .persona-rules-btn {
+  border: 2px solid; border-color: #cfe0f2 #26303f #131a26 #a9bccf;
+  border-radius: 0; background: var(--y2k-chrome); color: #08101c; font-family: "Consolas", monospace;
+}
+html[data-skin="aero"][data-theme="dark"] .persona-more-btn {
   border: 2px solid; border-color: #cfe0f2 #26303f #131a26 #a9bccf;
   border-radius: 0; background: var(--y2k-chrome); color: #08101c; font-family: "Consolas", monospace;
 }

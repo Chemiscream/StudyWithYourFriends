@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.15";
+    public static final String VERSION = "1.15.16";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.16", List.of(
+                    "修复个人档案页排版错位：之前做 Aero 皮肤时把「档案摘要」挪到了左栏，右栏的「最近记录」为了对齐被拉得很长、下面留出一大块空白。现在档案摘要回到右栏、排在最近记录之上，两块拼起来正好铺满右栏，左右两栏下沿重新对齐。",
+                    "最近记录右上角新增「查看所有记录」按钮：点一下回到动态页，并自动把筛选切到这位同学，一次看完 TA 的全部记录，不用再手动输入用户名。"
+            )),
             new ReleaseNote("1.15.15", List.of(
                     "修复查询筛选「按用户 / 内容」失效：之前是拿关键词直接去匹配记录里原样的 HTML，而图片是 base64 内嵌在标签里的，短关键词会在乱码串里随机命中，搜出来一堆不相干的记录（比如搜「jojo」会带出 18 条别人的记录）。现在先剥掉 HTML 标签、只对看得见的文字做模糊匹配，搜什么就出什么。"
             )),

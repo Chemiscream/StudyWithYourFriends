@@ -51,6 +51,11 @@ function switchTab(key) {
   window.scrollTo({ top: 0, behavior: state.skin === "aero" ? "auto" : "smooth" });
 }
 
+// 其他组件请求切到某个模块（个人档案「查看所有记录」→ 动态页）
+function onTabEvent(e) {
+  if (TAB_ORDER.includes(e.detail)) switchTab(e.detail);
+}
+
 // hash ↔ 视图双向同步（#login 为登录视图，兼容旧 /login.html 跳转；#record/id 为详情页）
 function onHash() {
   state.view = location.hash === "#login" ? "login" : "home";
@@ -129,11 +134,13 @@ onMounted(() => {
   clockTimer = setInterval(() => { now.value = new Date(); }, 1000);
   document.addEventListener("visibilitychange", onVisibility);
   document.addEventListener("click", trackFocus, true);
+  window.addEventListener("studylog:tab", onTabEvent);
 });
 onUnmounted(() => {
   window.removeEventListener("hashchange", onHash);
   document.removeEventListener("visibilitychange", onVisibility);
   document.removeEventListener("click", trackFocus, true);
+  window.removeEventListener("studylog:tab", onTabEvent);
   clearInterval(clockTimer);
   clearTimeout(tabAnimTimer);
 });

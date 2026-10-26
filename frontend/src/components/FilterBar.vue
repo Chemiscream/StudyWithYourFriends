@@ -1,8 +1,13 @@
 <script setup>
-import { reactive } from "vue";
+import { reactive, watch } from "vue";
 import { search, loadRecords, state } from "../store.js";
 
 const f = reactive({ q: state.filter.q, from: state.filter.from, to: state.filter.to });
+
+// 别处（如档案页「查看所有记录」）改了筛选条件时，把输入框同步过来
+watch(() => state.filter, (v) => {
+  f.q = v.q; f.from = v.from; f.to = v.to;
+}, { deep: true });
 
 async function doSearch() {
   await search(f);

@@ -17,6 +17,8 @@ export const state = reactive({
   myColor: "",
   // 动效偏好（站内「减少动态效果」开关，持久化到 localStorage）
   reduceMotion: false,
+  // 皮肤预设：default = 原版 P3/P5；aero = 白天 Aero / 夜间 Y2K
+  skin: localStorage.getItem("studylog_skin") === "aero" ? "aero" : "default",
   // 视图：home / login（hash 同步，兼容旧 /login.html → /#login）
   view: location.hash === "#login" ? "login" : "home",
   // 记录
@@ -68,6 +70,7 @@ export const state = reactive({
   fxStats: [],
   lightbox: null, // 图片放大预览 {src}
   settingsOpen: false, // ⚙️ 设置面板（修改个人信息 / 查看更新日志 / AI 设置入口）
+  skinSettingsOpen: false, // 皮肤预置选择弹窗（Persona / Frutiger Aero）
   aiSettingsOpen: false, // AI 设置弹窗（服务器AI / 外部 API 切换）
   changelogOpen: false, // 历史更新日志弹窗
   // AI 日报
@@ -272,6 +275,21 @@ export function applyTheme(t) {
   window.dispatchEvent(new CustomEvent("studylog:theme", { detail: t }));
 }
 applyTheme(localStorage.getItem("studylog_theme") || "light");
+
+// ---------- 皮肤预设 ----------
+// 只切换 <html data-skin>，配色全部在 skin.css，默认值不加载任何覆盖
+export function applySkin(s) {
+  const skin = s === "aero" ? "aero" : "default";
+  if (skin === "aero") document.documentElement.setAttribute("data-skin", "aero");
+  else document.documentElement.removeAttribute("data-skin");
+  state.skin = skin;
+  localStorage.setItem("studylog_skin", skin);
+  // Aero 是单一白天皮肤；旧版 Y2K 夜间已废弃，清掉遗留的 dark 主题。
+  if (skin === "aero" && document.documentElement.getAttribute("data-theme") === "dark") {
+    applyTheme("light");
+  }
+}
+applySkin(state.skin);
 export function toggleTheme() {
   applyTheme((localStorage.getItem("studylog_theme") || "light") === "dark" ? "light" : "dark");
 }
@@ -560,6 +578,18 @@ export function closePersona() {
   state.persona.data = null;
   state.persona.msg = "";
   resetBoard();
+}
+
+/** 档案页「查看所有记录」：关掉档案、把动态列表筛选到该用户并切到动态页。 */
+export function viewUserRecords(name) {
+  closePersona();
+  search({ q: name, from: "", to: "" });
+  window.dispatchEvent(new CustomEvent("studylog:tab", { detail: "feed" }));
+  // workspace 是重新挂载出来的，等两帧再把视线落到动态列表，不用手动往下滚
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const el = document.querySelector(".panel.record-panel");
+    if (el) el.scrollIntoView({ block: "start", behavior: "auto" });
+  }));
 }
 
 // ---------- 个人档案留言板 ----------
