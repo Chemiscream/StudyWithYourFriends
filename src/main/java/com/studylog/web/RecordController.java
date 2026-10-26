@@ -105,10 +105,10 @@ public class RecordController {
                     "OR LOWER(REGEXP_REPLACE(r.content, '<[^>]*>', '')) LIKE LOWER(:q) ESCAPE '\\\\')");
             params.put("q", kw);
         }
-        // 兼容旧参数 username（仅按角色）
+        // 兼容旧参数 username：精确按角色过滤（用户名唯一，不受记录内容里提到该名字的干扰）
         if (!username.isEmpty()) {
-            sql.append(" AND LOWER(r.username) LIKE LOWER(:uname) ESCAPE '\\\\'");
-            params.put("uname", "%" + escapeLike(username) + "%");
+            sql.append(" AND r.username = :uname");
+            params.put("uname", username);
         }
         if (!dateFrom.isEmpty()) {
             sql.append(" AND DATE(r.created_at) >= :from");

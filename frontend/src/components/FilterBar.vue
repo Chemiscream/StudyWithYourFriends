@@ -12,9 +12,14 @@ watch(() => state.filter, (v) => {
 async function doSearch() {
   await search(f);
 }
+// 只清掉「仅看某用户」，保留关键词与日期
+async function clearUser() {
+  state.filter = { ...state.filter, user: "" };
+  await loadRecords();
+}
 async function doReset() {
   f.q = ""; f.from = ""; f.to = "";
-  state.filter = { q: "", from: "", to: "" };
+  state.filter = { q: "", user: "", from: "", to: "" };
   await loadRecords();
 }
 </script>
@@ -34,6 +39,10 @@ async function doReset() {
       </div>
       <button class="btn primary" type="button" @click="doSearch">查询</button>
       <button class="btn ghost" type="button" @click="doReset">重置</button>
+    </div>
+    <div v-if="state.filter.user" class="filter-chip">
+      <span>仅看 <b>@{{ state.filter.user }}</b> 的记录</span>
+      <button type="button" title="清除按用户筛选" @click="clearUser">✕</button>
     </div>
   </section>
 </template>

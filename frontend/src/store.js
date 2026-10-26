@@ -23,7 +23,8 @@ export const state = reactive({
   view: location.hash === "#login" ? "login" : "home",
   // 记录
   records: [],
-  filter: { q: "", from: "", to: "" },
+  // user：精确按用户名筛选（档案页「查看所有记录」用），与 q 的模糊搜索互不影响
+  filter: { q: "", user: "", from: "", to: "" },
   activeReply: null, // {rid, name} 普通留言时为 null
   // 详情页（hash #record/id 同步，占满页面）
   detailId: parseDetailHash(),
@@ -405,6 +406,7 @@ export async function changePassword(oldPwd, newPwd) {
 export async function loadRecords() {
   const params = new URLSearchParams();
   if (state.filter.q) params.set("q", state.filter.q);
+  if (state.filter.user) params.set("username", state.filter.user);
   if (state.filter.from) params.set("from", state.filter.from);
   if (state.filter.to) params.set("to", state.filter.to);
   const res = await request("/api/records?" + params.toString());
@@ -413,7 +415,8 @@ export async function loadRecords() {
 }
 
 export async function search(f) {
-  state.filter = { q: f.q.trim(), from: f.from, to: f.to };
+  // 保留「仅看某用户」这条约束：它是独立的精确筛选，不随输入框里的关键词一起被覆盖
+  state.filter = { q: f.q.trim(), user: state.filter.user, from: f.from, to: f.to };
   await loadRecords();
 }
 
@@ -580,10 +583,11 @@ export function closePersona() {
   resetBoard();
 }
 
-/** 档案页「查看所有记录」：关掉档案、把动态列表筛选到该用户并切到动态页。 */
+/** 档案页「查看所有记录」：关掉档案，只按用户名精确筛选并切到动态页（不做内容模糊匹配）。 */
 export function viewUserRecords(name) {
   closePersona();
-  search({ q: name, from: "", to: "" });
+  state.filter = { q: "", user: name, from: "", to: "" };
+  loadRecords();
   window.dispatchEvent(new CustomEvent("studylog:tab", { detail: "feed" }));
   // workspace 是重新挂载出来的，等两帧再把视线落到动态列表，不用手动往下滚
   requestAnimationFrame(() => requestAnimationFrame(() => {

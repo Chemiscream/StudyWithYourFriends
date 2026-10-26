@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.16";
+    public static final String VERSION = "1.15.17";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.17", List.of(
+                    "「查看所有记录」改成真正的按人筛选：之前是借用模糊搜索，只要别人记录正文里提到这个名字也会被带出来；现在按用户名精确定位，只出这位同学自己的记录。",
+                    "查询筛选面板会多出一条「仅看 @某人 的记录」标签，点 ✕ 或「重置」即可解除；带着这条标签时再输入关键词查询会叠加筛选，不会互相覆盖。"
+            )),
             new ReleaseNote("1.15.16", List.of(
                     "修复个人档案页排版错位：之前做 Aero 皮肤时把「档案摘要」挪到了左栏，右栏的「最近记录」为了对齐被拉得很长、下面留出一大块空白。现在档案摘要回到右栏、排在最近记录之上，两块拼起来正好铺满右栏，左右两栏下沿重新对齐。",
                     "最近记录右上角新增「查看所有记录」按钮：点一下回到动态页，并自动把筛选切到这位同学，一次看完 TA 的全部记录，不用再手动输入用户名。"
