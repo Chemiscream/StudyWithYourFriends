@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.12";
+    public static final String VERSION = "1.15.13";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.13", List.of(
+                    "Frutiger Aero 皮肤全局去斜切：点赞、收藏、转发、顶栏按钮、主按钮、底栏 tab 等所有按钮不再用 Persona 的斜角 clip-path，改为方正或圆角的 Vista 风格。",
+                    "Frutiger Aero 皮肤底栏 tab 隐藏 SVG 图标，只保留「动态 01 / 日报 02 / 统计 03」的文字+编号形式。"
+            )),
             new ReleaseNote("1.15.12", List.of(
                     "修复移动端从日报页切到动态页时先跳页再翻页的顿挫感：翻页特效现在是先滑出旧页、再滑入新页，顺序正确。",
                     "Frutiger Aero 皮肤移动端底栏改成 Vista 工具栏按钮风格（圆角、渐变、选中发光）；顶栏 6 个按钮统一压缩，退出按钮不再挤到第二行。"
