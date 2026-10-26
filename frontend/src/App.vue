@@ -16,6 +16,7 @@ import DetailView from "./components/DetailView.vue";
 import ProfileModal from "./components/ProfileModal.vue";
 import PersonaPage from "./components/PersonaPage.vue";
 import SettingsModal from "./components/SettingsModal.vue";
+import SkinSettingsModal from "./components/SkinSettingsModal.vue";
 import AiSettingsModal from "./components/AiSettingsModal.vue";
 import ChangelogModal from "./components/ChangelogModal.vue";
 import ImageLightbox from "./components/ImageLightbox.vue";
@@ -37,14 +38,17 @@ let tabAnimTimer = null;
 function switchTab(key) {
   if (tab.value === key) return;
   const dir = TAB_ORDER.indexOf(key) > TAB_ORDER.indexOf(tab.value) ? "next" : "prev";
-  tab.value = key;
-  if (key === "stats") statsKey.value++;
-  // 先清空再在下一帧挂上方向，保证连续两次同方向切换也能重新播放
-  tabAnim.value = "";
-  requestAnimationFrame(() => { tabAnim.value = dir; });
+  // 先挂方向类让当前 tab 滑出，下一帧再切 tab 让 CSS 属性选择器命中新 tab 开始滑入。
+  // 如果先切 tab 再挂方向类，第一帧 DOM 已经是新页占位，方向类挂上去时旧 tab 已经被替换，
+  // 用户会看到"先跳到新页，再翻页"的顿挫感。
+  tabAnim.value = dir;
+  requestAnimationFrame(() => {
+    tab.value = key;
+    if (key === "stats") statsKey.value++;
+  });
   clearTimeout(tabAnimTimer);
   tabAnimTimer = setTimeout(() => { tabAnim.value = ""; }, 640);
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.scrollTo({ top: 0, behavior: state.skin === "aero" ? "auto" : "smooth" });
 }
 
 // hash ↔ 视图双向同步（#login 为登录视图，兼容旧 /login.html 跳转；#record/id 为详情页）
@@ -211,6 +215,7 @@ onUnmounted(() => {
   <FavoriteModal v-if="state.favorites.open" />
   <ProfileModal v-if="state.profileOpen" />
   <SettingsModal v-if="state.settingsOpen" />
+  <SkinSettingsModal v-if="state.skinSettingsOpen" />
   <AiSettingsModal v-if="state.aiSettingsOpen" />
   <ChangelogModal v-if="state.changelogOpen" />
   <ImageLightbox v-if="state.lightbox" />
@@ -218,6 +223,6 @@ onUnmounted(() => {
   <DailyReportListModal v-if="state.daily.listOpen" />
   <DailyReportDetailModal v-if="state.daily.detailOpen" />
   <AppDialog />
-  <PersonaFx />
+  <PersonaFx v-if="state.skin !== 'aero'" />
   <MascotWidget v-if="state.view !== 'login'" />
 </template>

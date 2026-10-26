@@ -1,0 +1,2200 @@
+/* ==========================================================================
+   皮肤预设 B · Aero 白天（Windows 7 / Vista 玻璃）
+   注：Y2K 夜间方案已废弃，不再对外提供；遗留选择器仅保留作历史记录。
+   --------------------------------------------------------------------------
+   只在 <html data-skin="aero"> 时生效。参考实现：
+   - 7.css（Windows 7 UI 复刻）：窗口 6px 圆角 / 70% 黑边框 / 1px 白内环 /
+     40% 处的玻璃高光带 / 横向「亮-暗-亮」扫光 / Vista 按钮 45% 硬分界渐变
+   - 98.css 系列的 2px 立体边框做法，用于夜间的铬金属面板
+   视觉基调刻意与原站 P3/P5 完全不同：小圆角、硬边框、高密度、重质感。
+   ========================================================================== */
+
+/* ---------- 1. 变量 ---------- */
+html[data-skin="aero"]:not([data-theme="dark"]) {
+  --bg: #bfe6fb;
+  --panel: #f0f0f0;
+  --panel-soft: #fafafa;
+  --ink: #14202b;
+  --muted: #5d7285;
+  --line: #b8c6d4;
+  --line-strong: #8e9aa8;
+  --primary: #1f6fb2;
+  --primary-dark: #14507f;
+  --primary-soft: #d6ecfb;
+  --danger: #b3261e;
+  --danger-soft: #fbe3e1;
+  --success: #3d8b2f;
+  --warn: #9a6a00;
+  --shadow: 0 2px 10px rgba(0, 40, 80, .30);
+  --shadow-soft: 0 1px 4px rgba(0, 40, 80, .18);
+  --radius: 6px;
+  --font-display: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --mono: "Consolas", "Segoe UI", monospace;
+  --panel-shadow: 0 2px 10px 1px rgba(0, 0, 0, .32), inset 0 0 0 1px rgba(255, 255, 255, .8);
+  --heat-0: #e8f1f8;
+  --heat-1: #b6ddf3;
+  --heat-2: #79c2e8;
+  --heat-3: #3f9fd4;
+  --heat-4: #1c74ab;
+  /* 皮肤私有 */
+  --aero-body: #f0f0f0;
+  --aero-body-2: #ffffff;
+  --aero-frame: rgba(0, 0, 0, .70);
+  --aero-el-bd: #8e8f8f;
+  --aero-el-bd-h: #3c7fb1;
+  --aero-blue: #4580c4;
+  --aero-gloss: linear-gradient(transparent 20%, rgba(255, 255, 255, .62) 40%, transparent 41%);
+  --aero-sweep: linear-gradient(to right, rgba(255, 255, 255, .42), rgba(0, 0, 0, .10) 46%, rgba(255, 255, 255, .26));
+  --aero-glass: linear-gradient(180deg, #eaf7ff 0%, #c8e5f8 46%, #aed4ee 54%, #d9eefc 100%);
+  --aero-btn: linear-gradient(#f4f4f4 45%, #ececec 45%, #cfcfcf 100%);
+  --aero-btn-h: linear-gradient(#eaf6fd 45%, #bee6fd 45%, #a7d9f5 100%);
+  --aero-btn-a: linear-gradient(#e5f4fc 0%, #c4e5f6 30%, #98d1ef 50%, #68b3db 100%);
+}
+html[data-skin="aero"][data-theme="dark"] {
+  --bg: #04030e;
+  --panel: #0b0f1d;
+  --panel-soft: #111828;
+  --ink: #dcf5ff;
+  --muted: #8fa9c4;
+  --line: #2c3a52;
+  --line-strong: #45586f;
+  --primary: #00e5ff;
+  --primary-dark: #7ff4ff;
+  --primary-soft: rgba(0, 229, 255, .14);
+  --danger: #ff4fa3;
+  --danger-soft: rgba(255, 79, 163, .16);
+  --success: #5cffb0;
+  --warn: #ffd166;
+  --shadow: 0 0 30px rgba(0, 229, 255, .18);
+  --shadow-soft: 0 0 16px rgba(0, 229, 255, .14);
+  --radius: 2px;
+  --font-display: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  --mono: "Consolas", "Cascadia Mono", monospace;
+  --panel-shadow: 0 0 0 1px rgba(0, 229, 255, .10), 0 8px 30px rgba(0, 0, 0, .7);
+  --heat-0: rgba(0, 229, 255, .08);
+  --heat-1: rgba(0, 229, 255, .28);
+  --heat-2: rgba(0, 229, 255, .5);
+  --heat-3: rgba(140, 90, 255, .7);
+  --heat-4: #ff2fd0;
+  /* 皮肤私有 */
+  --y2k-chrome: linear-gradient(180deg, #f8fbff 0%, #d3dfef 44%, #a3b4cc 52%, #e3edf9 100%);
+  --y2k-chrome-d: linear-gradient(180deg, #dfe9f7 0%, #b3c3d9 46%, #8296b2 54%, #c7d6e8 100%);
+  --y2k-metal: linear-gradient(180deg, #1b2740 0%, #0b1120 60%, #060a14 100%);
+  --y2k-cyan: #00e5ff;
+  --y2k-magenta: #ff2fd0;
+}
+
+/* ---------- 2. 背景 ---------- */
+html[data-skin="aero"] body {
+  font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  font-size: 12.5px;
+}
+
+/* 白天：蓝天 + 草地 + 云 + 气泡 */
+html[data-skin="aero"]:not([data-theme="dark"]) .bg-grad {
+  background:
+    radial-gradient(46% 34% at 80% 4%, rgba(255, 253, 226, .95), rgba(255, 253, 226, 0) 62%),
+    linear-gradient(180deg, #3f9fdd 0%, #6fc0ee 22%, #a8dcf7 46%, #d6f0fd 68%, #eefaff 100%);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .bg-moon {
+  top: 2vw; right: 6vw; width: 12vw; height: 12vw;
+  border: 0;
+  background: radial-gradient(circle at 50% 50%, #ffffff 0%, #fffbe0 42%, rgba(255, 246, 190, .35) 62%, rgba(255, 246, 190, 0) 74%);
+  box-shadow: 0 0 90px 30px rgba(255, 250, 205, .55);
+  animation: aeroSunPulse 9s ease-in-out infinite;
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .bg-rings { inset: 0; top: 0; right: 0; width: auto; height: auto; }
+html[data-skin="aero"]:not([data-theme="dark"]) .bg-rings i {
+  position: absolute; inset: auto;
+  border: 1px solid rgba(255, 255, 255, .9);
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, .98) 0%, rgba(255, 255, 255, .42) 16%, rgba(180, 232, 255, .18) 46%, rgba(120, 200, 240, .10) 72%, rgba(255, 255, 255, .28) 100%);
+  box-shadow: inset -6px -8px 16px rgba(30, 110, 165, .28), inset 6px 8px 12px rgba(255, 255, 255, .75), 0 6px 18px rgba(20, 90, 140, .12);
+  animation: aeroFloat 18s ease-in-out infinite;
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .bg-rings i:nth-child(1) { width: 150px; height: 150px; left: 4%; top: 18%; }
+html[data-skin="aero"]:not([data-theme="dark"]) .bg-rings i:nth-child(2) { width: 86px; height: 86px; left: 88%; top: 44%; animation-delay: -6s; }
+html[data-skin="aero"]:not([data-theme="dark"]) .bg-rings i:nth-child(3) { width: 46px; height: 46px; left: 72%; top: 12%; animation-delay: -11s; }
+html[data-skin="aero"]:not([data-theme="dark"]) .bg-grid {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(20% 9% at 16% 12%, rgba(255, 255, 255, .95), transparent 72%),
+    radial-gradient(14% 7% at 58% 7%, rgba(255, 255, 255, .9), transparent 74%),
+    radial-gradient(24% 10% at 38% 22%, rgba(255, 255, 255, .62), transparent 76%),
+    radial-gradient(16% 8% at 86% 26%, rgba(255, 255, 255, .7), transparent 74%);
+  filter: blur(9px);
+  animation: aeroCloudDrift 60s linear infinite alternate;
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .bg-scan {
+  background: linear-gradient(108deg, transparent 34%, rgba(255, 255, 255, .38) 46%, rgba(255, 255, 255, .06) 54%, transparent 64%);
+  opacity: .9;
+}
+/* 草地：底部一条实心绿坡 */
+html[data-skin="aero"]:not([data-theme="dark"]) .bg-vignette {
+  background:
+    radial-gradient(80% 26% at 20% 108%, #6cbb45 0%, #4e9a30 60%, transparent 72%),
+    radial-gradient(90% 30% at 82% 112%, #7ecb4f 0%, #549f34 58%, transparent 70%),
+    linear-gradient(180deg, transparent 84%, rgba(94, 168, 60, .9) 92%, rgba(72, 138, 44, .95) 100%);
+}
+
+/* 夜间：深空 + 星野 + 透视网格 + 铬球 */
+html[data-skin="aero"][data-theme="dark"] .bg-grad {
+  background:
+    radial-gradient(50% 32% at 82% 4%, rgba(120, 60, 255, .34), transparent 64%),
+    radial-gradient(40% 26% at 12% 18%, rgba(0, 220, 255, .14), transparent 66%),
+    linear-gradient(180deg, #02010a 0%, #060418 38%, #0a0726 66%, #0f0a33 100%);
+}
+html[data-skin="aero"][data-theme="dark"] .bg-moon {
+  top: -10vw; right: -6vw; width: 40vw; height: 40vw;
+  border: 1px solid rgba(200, 235, 255, .35);
+  background:
+    radial-gradient(circle at 34% 26%, #ffffff 0%, #e3f2ff 8%, #b9d2ec 24%, #7d97ba 44%, #40527a 66%, #141a33 86%, #05070f 100%);
+  box-shadow: 0 0 120px rgba(60, 180, 255, .35), inset -30px -40px 80px rgba(0, 0, 0, .7);
+  animation: aeroPlanetFloat 24s ease-in-out infinite;
+}
+html[data-skin="aero"][data-theme="dark"] .bg-rings { inset: 0; top: -6vw; right: -12vw; width: 52vw; height: 52vw; }
+html[data-skin="aero"][data-theme="dark"] .bg-rings i {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 1px solid rgba(0, 229, 255, .18);
+  animation: aeroOrbit 100s linear infinite;
+}
+html[data-skin="aero"][data-theme="dark"] .bg-rings i:nth-child(2) { inset: 9%; border-style: dashed; border-color: rgba(255, 47, 208, .22); animation-duration: 70s; animation-direction: reverse; }
+html[data-skin="aero"][data-theme="dark"] .bg-rings i:nth-child(3) { inset: 20%; border-color: rgba(160, 255, 255, .16); animation-duration: 140s; }
+html[data-skin="aero"][data-theme="dark"] .bg-grid {
+  position: absolute; inset: 0; opacity: .95;
+  background-image:
+    radial-gradient(1.7px 1.7px at 22px 34px, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 130px 88px, rgba(160, 240, 255, .9), transparent),
+    radial-gradient(1px 1px at 64px 152px, rgba(255, 255, 255, .75), transparent),
+    radial-gradient(1.6px 1.6px at 190px 42px, rgba(255, 160, 240, .85), transparent),
+    radial-gradient(1px 1px at 238px 186px, rgba(255, 255, 255, .65), transparent),
+    radial-gradient(1.3px 1.3px at 10px 210px, rgba(180, 245, 255, .8), transparent);
+  background-size: 280px 240px;
+  animation: aeroStarTwinkle 6s ease-in-out infinite;
+}
+/* 透视网格地面 */
+html[data-skin="aero"][data-theme="dark"] .bg-scan {
+  top: auto; bottom: 0; height: 44vh; opacity: .75;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 229, 255, .22) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(0deg, rgba(255, 47, 208, .16) 0 1px, transparent 1px 44px);
+  transform: perspective(300px) rotateX(64deg);
+  transform-origin: 50% 100%;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 55%, #000 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 55%, #000 100%);
+}
+html[data-skin="aero"][data-theme="dark"] .bg-vignette {
+  background: radial-gradient(110% 80% at 50% 30%, transparent 38%, rgba(2, 1, 8, .78) 100%);
+}
+
+@keyframes aeroSunPulse { 0%, 100% { transform: scale(1); opacity: .95; } 50% { transform: scale(1.05); opacity: 1; } }
+@keyframes aeroFloat { 0%, 100% { transform: translateY(0) translateX(0); } 50% { transform: translateY(-28px) translateX(8px); } }
+@keyframes aeroCloudDrift { from { transform: translateX(-2%); } to { transform: translateX(3%); } }
+@keyframes aeroPlanetFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes aeroOrbit { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes aeroStarTwinkle { 0%, 100% { opacity: .68; } 50% { opacity: 1; } }
+
+/* ---------- 3. 排版 ---------- */
+html[data-skin="aero"] .hero-title,
+html[data-skin="aero"] .hs b,
+html[data-skin="aero"] .moon-core span,
+html[data-skin="aero"] .moon-tag,
+html[data-skin="aero"] .brand-text b,
+html[data-skin="aero"] .record::before,
+html[data-skin="aero"] .persona-name,
+html[data-skin="aero"] .persona-tile b,
+html[data-skin="aero"] .modal-head h2,
+html[data-skin="aero"] .modal-head h3,
+html[data-skin="aero"] .auth-card h1,
+html[data-skin="aero"] .daily-card-title,
+html[data-skin="aero"] .daily-hero-date,
+html[data-skin="aero"] .pfx-title,
+html[data-skin="aero"] .panel-head h2 {
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+/* ---------- 4. 顶栏 = 窗口标题栏 ---------- */
+html[data-skin="aero"] header.app-bar {
+  border-radius: 6px 6px 0 0;
+  border: 1px solid rgba(0, 0, 0, .72);
+  border-bottom-color: rgba(0, 0, 0, .55);
+  padding: 7px 10px;
+  background:
+    var(--aero-gloss),
+    var(--aero-sweep),
+    var(--aero-glass);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, .75),
+    inset 0 -1px 0 rgba(0, 0, 0, .22),
+    0 2px 8px rgba(0, 30, 60, .35);
+  backdrop-filter: none;
+}
+html[data-skin="aero"] header.app-bar::before { content: none; }
+html[data-skin="aero"] .brand-emblem {
+  width: 30px; height: 30px; padding: 5px;
+  border-radius: 50%;
+  color: #fff;
+  background: radial-gradient(circle at 32% 26%, #d9f2ff 0%, #7fc4ee 26%, #2f86c6 62%, #14507f 100%);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, .9), inset 0 -2px 4px rgba(0, 40, 80, .45), 0 1px 2px rgba(0, 30, 60, .35);
+  filter: none;
+}
+html[data-skin="aero"] .brand-text b {
+  font-size: 15px; font-weight: 700; color: #0b2130;
+  text-shadow: 0 0 8px #fff, 0 0 10px #fff, 0 0 12px #fff;
+  transform: none;
+}
+html[data-skin="aero"] .brand-text b .sl { color: #14507f; }
+html[data-skin="aero"] .brand-text small {
+  font-size: 8px; letter-spacing: .08em; color: #24445c;
+  text-shadow: 0 0 6px rgba(255, 255, 255, .9);
+  background: none; padding: 0;
+}
+html[data-skin="aero"] .header-mid .hm-text {
+  font-size: 7.5px; letter-spacing: .14em; color: #33556e;
+  text-shadow: 0 0 6px rgba(255, 255, 255, .9);
+}
+html[data-skin="aero"] .header-mid .hm-line { background: linear-gradient(90deg, transparent, rgba(20, 80, 127, .45), transparent); }
+
+/* 顶栏按钮 = Vista 工具栏按钮 */
+html[data-skin="aero"] .hbtn {
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: none;
+  color: #14364b;
+  box-shadow: none;
+  transform: none;
+  text-shadow: 0 0 6px rgba(255, 255, 255, .9);
+}
+html[data-skin="aero"] .hbtn:hover {
+  border-color: #3c7fb1;
+  background: var(--aero-btn-h);
+  color: #0b2130;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .8);
+}
+html[data-skin="aero"] .hbtn.quit { color: #6b3a35; }
+html[data-skin="aero"] .user-tag {
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, .18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9);
+  font-weight: 700;
+}
+html[data-skin="aero"] .notif-badge {
+  border-radius: 999px;
+  border: 1px solid #fff;
+  background: #d33a2c;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+}
+
+/* ---------- 5. Hero = 桌面壁纸横幅 ---------- */
+html[data-skin="aero"]:not([data-theme="dark"]) .hero {
+  border-radius: 6px;
+  clip-path: none;
+  border: 1px solid rgba(0, 0, 0, .55);
+  background:
+    radial-gradient(52% 80% at 88% 6%, rgba(255, 255, 255, .85), transparent 58%),
+    linear-gradient(180deg, #3f9fdd 0%, #6fc0ee 34%, #a8dcf7 68%, #cfeefc 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55), 0 2px 10px rgba(0, 30, 60, .35);
+  overflow: hidden;
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 120% at 10% -20%, rgba(255, 255, 255, .55), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, .35) 0%, transparent 42%);
+  border: 0; box-shadow: none; transform: none;
+  width: auto; height: auto;
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero::after { content: none; }
+html[data-skin="aero"] .hero-lines { display: none; }
+html[data-skin="aero"] .hero-eyebrow {
+  display: inline-flex; gap: 8px; align-items: center;
+  padding: 3px 9px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, .65);
+  background: rgba(255, 255, 255, .28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+  color: #0d3a55;
+  font-size: 9px; font-weight: 700; letter-spacing: .12em;
+  text-shadow: 0 0 6px rgba(255, 255, 255, .9);
+}
+html[data-skin="aero"] .hero-eyebrow .dot {
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #fff, #7fd0f5 46%, #1a7cb4 100%);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .55);
+  transform: none;
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-title .line > span {
+  transform: none;
+  animation: aeroTitleIn .7s cubic-bezier(.2, .8, .2, 1) forwards;
+  background: none;
+  -webkit-text-stroke: 0;
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(9, 62, 96, .45), 0 8px 22px rgba(6, 48, 80, .38);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-title .line:nth-child(1) > span { animation-delay: .06s; }
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-title .line:nth-child(2) > span { animation-delay: .14s; }
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-title .line:nth-child(3) > span { animation-delay: .22s; }
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-title .outline {
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, .95);
+  text-shadow: 0 8px 22px rgba(6, 48, 80, .3);
+}
+html[data-skin="aero"] .hero-title .cursor { color: #fff; text-shadow: 0 0 10px #fff; }
+@keyframes aeroTitleIn { from { opacity: 0; transform: translateY(60%); } to { opacity: 1; transform: translateY(0); } }
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-sub {
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: .16em;
+  text-shadow: 0 1px 4px rgba(6, 48, 80, .6);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-stats { gap: 10px; }
+html[data-skin="aero"]:not([data-theme="dark"]) .hs {
+  align-items: center; gap: 7px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, .55);
+  background: linear-gradient(180deg, rgba(8, 60, 96, .34), rgba(8, 60, 96, .18));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 1px 3px rgba(0, 40, 80, .2);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hs b {
+  font-size: 24px; color: #fff;
+  text-shadow: 0 2px 0 rgba(9, 62, 96, .45);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hs span { color: #eaf7ff; font-size: 8px; text-shadow: 0 1px 3px rgba(6, 48, 80, .6); }
+
+/* 时钟：玻璃水滴球 */
+html[data-skin="aero"] .moon-core,
+html[data-skin="aero"] .moon-ring,
+html[data-skin="aero"] .moon-halo { border-radius: 50%; }
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-halo {
+  background: radial-gradient(circle, rgba(255, 255, 255, .55), transparent 66%);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-ring.r1 { border-color: rgba(255, 255, 255, .75); border-style: solid; }
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-ring.r2 { border-color: rgba(255, 255, 255, .35); }
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-ring.r1::before,
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-ring.r2::before { background: #fff; box-shadow: 0 0 10px #fff; border-radius: 50%; }
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-core {
+  background:
+    radial-gradient(circle at 34% 22%, #ffffff 0%, #f2fbff 10%, #b7e6fb 30%, #6cc0ea 58%, #2a86c0 84%, #10507f 100%);
+  border: 1px solid rgba(255, 255, 255, .95);
+  box-shadow:
+    inset -10px -14px 26px rgba(6, 60, 100, .38),
+    inset 8px 10px 18px rgba(255, 255, 255, .7),
+    0 10px 26px rgba(6, 60, 100, .35);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-core::after { border-color: rgba(255, 255, 255, .55); }
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-core span { color: #fff; text-shadow: 0 2px 6px rgba(4, 50, 85, .6); }
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-core small { color: rgba(255, 255, 255, .95); }
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-moon .moon-tag {
+  color: #08324a; font-weight: 700; transform: rotate(-6deg);
+  text-shadow: 0 0 6px rgba(255, 255, 255, .75);
+}
+/* 原站 P3/P5 的贴纸式装饰（AFTER SCHOOL 标签、竖排档案号）不属于 Aero 语言，直接去掉 */
+html[data-skin="aero"] .moon-tag,
+html[data-skin="aero"] .hero-code { display: none; }
+
+/* Hero 夜间：HUD 横幅 */
+html[data-skin="aero"][data-theme="dark"] .hero {
+  border-radius: 2px;
+  clip-path: none;
+  border: 1px solid rgba(0, 229, 255, .45);
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 229, 255, .05) 0 1px, transparent 1px 4px),
+    radial-gradient(50% 90% at 88% 0%, rgba(255, 47, 208, .22), transparent 62%),
+    linear-gradient(160deg, #071026 0%, #04060f 60%, #0a0518 100%);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, .18), 0 0 40px rgba(0, 229, 255, .12), inset 0 0 60px rgba(0, 229, 255, .06);
+  overflow: hidden;
+}
+html[data-skin="aero"][data-theme="dark"] .hero::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(0, 229, 255, .10) 1px, transparent 1px) 0 0 / 48px 100%,
+              linear-gradient(0deg, rgba(0, 229, 255, .08) 1px, transparent 1px) 0 0 / 100% 48px;
+  border: 0; box-shadow: none; transform: none; width: auto; height: auto;
+  opacity: .5;
+}
+html[data-skin="aero"][data-theme="dark"] .hero::after { content: none; }
+html[data-skin="aero"][data-theme="dark"] .hero-eyebrow {
+  display: inline-flex; gap: 8px; align-items: center;
+  padding: 3px 9px; border-radius: 0;
+  border: 1px solid rgba(0, 229, 255, .55);
+  background: rgba(0, 229, 255, .08);
+  color: #9ff8ff; font: 9px/1 "Consolas", monospace; letter-spacing: .18em;
+  box-shadow: 0 0 12px rgba(0, 229, 255, .25);
+}
+html[data-skin="aero"][data-theme="dark"] .hero-eyebrow .dot {
+  border-radius: 0; width: 5px; height: 9px;
+  background: #00e5ff; box-shadow: 0 0 10px #00e5ff; transform: none;
+}
+html[data-skin="aero"][data-theme="dark"] .hero-title .line > span {
+  transform: none;
+  animation: aeroTitleIn .7s cubic-bezier(.2, .8, .2, 1) forwards;
+  background: none;
+  color: #eafcff;
+  text-shadow: 0 0 18px rgba(0, 229, 255, .55);
+}
+html[data-skin="aero"][data-theme="dark"] .hero-title .line:nth-child(1) > span { animation-delay: .06s; }
+html[data-skin="aero"][data-theme="dark"] .hero-title .line:nth-child(2) > span { animation-delay: .14s; }
+html[data-skin="aero"][data-theme="dark"] .hero-title .line:nth-child(3) > span { animation-delay: .22s; }
+html[data-skin="aero"][data-theme="dark"] .hero-title .outline {
+  color: transparent;
+  -webkit-text-stroke: 1.6px rgba(255, 47, 208, .85);
+  text-shadow: 0 0 20px rgba(255, 47, 208, .5);
+}
+html[data-skin="aero"][data-theme="dark"] .hero-title .cursor { color: #00e5ff; text-shadow: 0 0 12px #00e5ff; }
+html[data-skin="aero"][data-theme="dark"] .hero-sub {
+  color: #8fd7ea; font: 10px/1.6 "Consolas", monospace; letter-spacing: .22em;
+}
+html[data-skin="aero"][data-theme="dark"] .hs {
+  align-items: center; gap: 7px; padding: 5px 12px;
+  border: 1px solid rgba(0, 229, 255, .35);
+  background: linear-gradient(180deg, rgba(0, 229, 255, .12), rgba(0, 229, 255, .02));
+  box-shadow: inset 0 0 12px rgba(0, 229, 255, .12);
+}
+html[data-skin="aero"][data-theme="dark"] .hs b {
+  font: 700 22px/1 "Consolas", monospace; color: #eafcff; text-shadow: 0 0 14px rgba(0, 229, 255, .8);
+}
+html[data-skin="aero"][data-theme="dark"] .hs span { color: #7fd6e8; font: 8px/1.5 "Consolas", monospace; letter-spacing: .14em; }
+html[data-skin="aero"][data-theme="dark"] .moon-halo { background: radial-gradient(circle, rgba(0, 229, 255, .35), transparent 66%); }
+html[data-skin="aero"][data-theme="dark"] .moon-ring.r1 { border-color: rgba(0, 229, 255, .55); border-style: dashed; }
+html[data-skin="aero"][data-theme="dark"] .moon-ring.r2 { border-color: rgba(255, 47, 208, .35); }
+html[data-skin="aero"][data-theme="dark"] .moon-ring.r1::before,
+html[data-skin="aero"][data-theme="dark"] .moon-ring.r2::before { background: #00e5ff; box-shadow: 0 0 10px #00e5ff; border-radius: 0; }
+html[data-skin="aero"][data-theme="dark"] .moon-core {
+  background:
+    radial-gradient(circle at 32% 22%, #ffffff 0%, #d8f6ff 10%, #8fd6ec 30%, #3d7fa8 58%, #123248 82%, #04080f 100%);
+  border: 1px solid rgba(0, 229, 255, .7);
+  box-shadow: 0 0 40px rgba(0, 229, 255, .45), inset -12px -16px 28px rgba(0, 0, 0, .75);
+}
+html[data-skin="aero"][data-theme="dark"] .moon-core::after { border-color: rgba(0, 229, 255, .4); border-style: dashed; }
+html[data-skin="aero"][data-theme="dark"] .moon-core span { color: #eafcff; font-family: "Consolas", monospace; text-shadow: 0 0 14px rgba(0, 229, 255, .9); }
+html[data-skin="aero"][data-theme="dark"] .moon-core small { color: #8fe8f8; font-family: "Consolas", monospace; }
+html[data-skin="aero"][data-theme="dark"] .moon-tag { color: #ff2fd0; font: 700 11px/1.1 "Consolas", monospace; text-shadow: 0 0 12px rgba(255, 47, 208, .8); }
+html[data-skin="aero"][data-theme="dark"] .hero-code { color: rgba(0, 229, 255, .55); }
+
+/* ---------- 6. 面板 = 窗口 ---------- */
+html[data-skin="aero"] .panel {
+  padding: 17px 18px;
+  border: 1px solid var(--aero-frame);
+  border-radius: 6px;
+  background: var(--aero-body);
+  box-shadow: var(--panel-shadow);
+  clip-path: none;
+  backdrop-filter: none;
+}
+html[data-skin="aero"] .panel::before { content: none; }
+html[data-skin="aero"] .panel::after { content: none; }
+html[data-skin="aero"] .panel-head {
+  margin: -17px -18px 13px;
+  padding: 6px 10px 7px;
+  border-radius: 5px 5px 0 0;
+  background: var(--aero-gloss), var(--aero-sweep), var(--aero-glass);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7), inset 0 -1px 0 rgba(0, 0, 0, .18);
+  border-bottom: 1px solid rgba(0, 0, 0, .32);
+  min-height: 30px;
+}
+html[data-skin="aero"] .panel-head h2 {
+  font-size: 12.5px; font-weight: 700; color: #0b2130;
+  text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 12px #fff;
+}
+html[data-skin="aero"] .panel-head h2::before { content: none; }
+html[data-skin="aero"] .panel-head .record-time { color: #274a63; text-shadow: 0 0 6px rgba(255, 255, 255, .9); }
+html[data-skin="aero"] .collapse-head .chev { color: #14507f; }
+
+/* 夜间：铬金属面板 */
+html[data-skin="aero"][data-theme="dark"] .panel {
+  border: 2px solid;
+  border-color: #4b6076 #0a0f1a #05080f #33465c;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 229, 255, .035) 0 1px, transparent 1px 3px),
+    var(--y2k-metal);
+  box-shadow: inset 1px 1px 0 rgba(180, 230, 255, .10), inset -1px -1px 0 rgba(0, 0, 0, .7), 0 0 24px rgba(0, 229, 255, .08);
+}
+html[data-skin="aero"][data-theme="dark"] .panel-head {
+  margin: -17px -18px 13px;
+  padding: 6px 10px 7px;
+  border-radius: 0;
+  background: var(--y2k-chrome);
+  border-bottom: 2px solid #3d4d63;
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(0, 0, 0, .25);
+  min-height: 30px;
+}
+html[data-skin="aero"][data-theme="dark"] .panel-head h2 {
+  font: 700 11px/1.4 "Consolas", monospace;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #0a1220;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .8);
+}
+html[data-skin="aero"][data-theme="dark"] .panel-head .record-time { color: #22303f; font-family: "Consolas", monospace; }
+html[data-skin="aero"][data-theme="dark"] .collapse-head .chev { color: #0a1220; }
+
+/* ---------- 7. 按钮 / 表单 ---------- */
+html[data-skin="aero"] .btn {
+  border: 1px solid var(--aero-el-bd);
+  border-radius: 3px;
+  background: var(--aero-btn);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85);
+  color: #1a1a1a;
+  font: 12px/1 "Segoe UI", "Microsoft YaHei", sans-serif;
+  min-height: 27px;
+  padding: 0 13px;
+  clip-path: none;
+  text-shadow: none;
+  font-weight: 400;
+}
+html[data-skin="aero"] .btn:hover {
+  border-color: var(--aero-el-bd-h);
+  background: var(--aero-btn-h);
+  color: #0b2130;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9);
+}
+html[data-skin="aero"] .btn:active {
+  border-color: #6d91ab;
+  background: var(--aero-btn-a);
+  box-shadow: inset 0 1px 2px rgba(0, 40, 80, .35);
+}
+html[data-skin="aero"] .btn.primary {
+  border-color: #2c6b9b;
+  background: linear-gradient(#e5f4fc 0%, #c4e5f6 30%, #98d1ef 50%, #68b3db 100%);
+  color: #08293d;
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .6);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .8);
+}
+html[data-skin="aero"] .btn.primary:hover { background: linear-gradient(#f2fbff 0%, #d8f0fd 30%, #a9dcf7 50%, #7cc4e8 100%); }
+html[data-skin="aero"] .btn.ghost { background: linear-gradient(#fbfbfb, #ececec 50%, #dedede); }
+
+html[data-skin="aero"] input, html[data-skin="aero"] textarea, html[data-skin="aero"] select,
+html[data-skin="aero"] .input {
+  border: 1px solid #7a7a7a;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .14);
+  color: #111;
+  font: 12px/1.6 "Segoe UI", "Microsoft YaHei", sans-serif;
+  min-height: 28px;
+}
+html[data-skin="aero"] input:focus, html[data-skin="aero"] textarea:focus,
+html[data-skin="aero"] select:focus, html[data-skin="aero"] .editor:focus {
+  border-color: #3c7fb1;
+  box-shadow: 0 0 0 2px rgba(120, 190, 235, .45), inset 0 1px 2px rgba(0, 0, 0, .1);
+  outline: none;
+}
+html[data-skin="aero"] .editor {
+  border: 1px solid #7a7a7a;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .12);
+  min-height: 90px;
+  font-size: 12.5px;
+}
+html[data-skin="aero"] .field label { font-size: 11.5px; font-weight: 700; color: #26445c; }
+html[data-skin="aero"] .field label span { font-size: 8.5px; letter-spacing: .08em; color: #6b8199; }
+
+/* 夜间：铬按钮 */
+html[data-skin="aero"][data-theme="dark"] .btn {
+  border: 2px solid;
+  border-color: #cfe0f2 #26303f #131a26 #a9bccf;
+  border-radius: 0;
+  background: var(--y2k-chrome);
+  color: #08101c;
+  font: 700 11px/1 "Consolas", monospace;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 0 #fff;
+}
+html[data-skin="aero"][data-theme="dark"] .btn:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #e6f6ff 44%, #b8e8ff 52%, #ddf6ff 100%);
+  color: #04121c;
+  box-shadow: 0 0 14px rgba(0, 229, 255, .55), inset 0 1px 0 #fff;
+}
+html[data-skin="aero"][data-theme="dark"] .btn.primary {
+  border-color: #b9f6ff #0b5f70 #053a46 #7fe8f5;
+  background: linear-gradient(180deg, #d8feff 0%, #6ff0ff 44%, #17b9d6 52%, #0a8fb0 100%);
+  color: #021014;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .6);
+  box-shadow: 0 0 18px rgba(0, 229, 255, .5), inset 0 1px 0 #fff;
+}
+html[data-skin="aero"][data-theme="dark"] .btn.ghost {
+  background: linear-gradient(180deg, #3a4a60 0%, #232e3f 46%, #131a26 54%, #2c394d 100%);
+  border-color: #5d7188 #0a0f18 #05080f #3f5064;
+  color: #cfe9f7;
+}
+html[data-skin="aero"][data-theme="dark"] input,
+html[data-skin="aero"][data-theme="dark"] textarea,
+html[data-skin="aero"][data-theme="dark"] select,
+html[data-skin="aero"][data-theme="dark"] .input {
+  border: 1px solid #4a6076;
+  border-radius: 0;
+  background: #04070f;
+  color: #d8f4ff;
+  font-family: "Consolas", monospace;
+  box-shadow: inset 0 0 12px rgba(0, 229, 255, .10);
+}
+html[data-skin="aero"][data-theme="dark"] .editor {
+  border: 1px solid #4a6076;
+  border-radius: 0;
+  background: #04070f;
+  color: #d8f4ff;
+  box-shadow: inset 0 0 14px rgba(0, 229, 255, .10);
+}
+html[data-skin="aero"][data-theme="dark"] .field label { color: #8fd7ea; font-family: "Consolas", monospace; letter-spacing: .1em; }
+html[data-skin="aero"][data-theme="dark"] .field label span { color: #5d7d95; }
+
+/* ---------- 8. 记录卡 ---------- */
+html[data-skin="aero"] .record {
+  border: 1px solid #b9c7d5;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #ffffff 0%, #f6fafd 100%);
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0, 40, 80, .08);
+  padding: 11px 13px;
+}
+html[data-skin="aero"] .record::before { content: none; }
+html[data-skin="aero"] .record:hover {
+  border-color: #6aa9d6;
+  transform: none;
+  box-shadow: 0 0 0 1px rgba(120, 190, 235, .5), 0 2px 6px rgba(0, 40, 80, .12);
+}
+html[data-skin="aero"] .record.mine { background: linear-gradient(180deg, #f4fbff 0%, #e8f5fd 100%); }
+html[data-skin="aero"] .record-head { margin-bottom: 7px; }
+html[data-skin="aero"] .role-tag {
+  border-radius: 3px;
+  clip-path: none;
+  min-height: 20px; padding: 0 8px;
+  font-size: 11px; font-weight: 700;
+  border: 1px solid rgba(0, 0, 0, .12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+}
+html[data-skin="aero"] .record-time { font-size: 10px; color: #6b8199; }
+html[data-skin="aero"] .record-content { font-size: 13px; line-height: 1.75; color: #1a2a38; }
+html[data-skin="aero"] .quote-card {
+  border-radius: 3px;
+  border: 1px solid #c3d4e2;
+  background: #f3f9fd;
+  box-shadow: inset 0 1px 0 #fff;
+}
+html[data-skin="aero"] .record-foot { border-top: 1px solid #dbe6ef; padding-top: 7px; }
+html[data-skin="aero"] .like-btn, html[data-skin="aero"] .fav-btn, html[data-skin="aero"] .quote-btn {
+  border: 1px solid #b9c7d5;
+  border-radius: 3px;
+  background: linear-gradient(#fbfbfb, #eef2f6);
+  color: #3c566b;
+  padding: 1px 8px;
+  font-size: 11px;
+  box-shadow: inset 0 1px 0 #fff;
+}
+html[data-skin="aero"] .like-btn:hover, html[data-skin="aero"] .fav-btn:hover, html[data-skin="aero"] .quote-btn:hover {
+  border-color: #3c7fb1;
+  background: var(--aero-btn-h);
+  color: #0b2130;
+}
+
+html[data-skin="aero"][data-theme="dark"] .record {
+  border: 1px solid #2f4058;
+  border-left: 3px solid var(--primary);
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 229, 255, .03) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #0c1424 0%, #070c16 100%);
+  box-shadow: inset 0 0 20px rgba(0, 229, 255, .05);
+}
+html[data-skin="aero"][data-theme="dark"] .record:hover {
+  border-color: #00e5ff;
+  box-shadow: 0 0 18px rgba(0, 229, 255, .25), inset 0 0 20px rgba(0, 229, 255, .08);
+}
+html[data-skin="aero"][data-theme="dark"] .record.mine { background: linear-gradient(180deg, #0d1a2c 0%, #08101c 100%); }
+html[data-skin="aero"][data-theme="dark"] .role-tag {
+  border-radius: 0;
+  border: 1px solid rgba(0, 229, 255, .3);
+  font-family: "Consolas", monospace;
+  letter-spacing: .08em;
+  box-shadow: 0 0 10px rgba(0, 229, 255, .15);
+}
+html[data-skin="aero"][data-theme="dark"] .record-time { font-family: "Consolas", monospace; color: #6f8ca6; }
+html[data-skin="aero"][data-theme="dark"] .record-content { color: #d4ecf7; }
+html[data-skin="aero"][data-theme="dark"] .quote-card { border: 1px solid #2f4058; background: #0a1220; }
+html[data-skin="aero"][data-theme="dark"] .record-foot { border-top: 1px solid #22303f; }
+html[data-skin="aero"][data-theme="dark"] .like-btn,
+html[data-skin="aero"][data-theme="dark"] .fav-btn,
+html[data-skin="aero"][data-theme="dark"] .quote-btn {
+  border: 1px solid #3a4c63;
+  border-radius: 0;
+  background: linear-gradient(180deg, #243246, #131b28);
+  color: #9fc6dd;
+  font-family: "Consolas", monospace;
+}
+
+/* ---------- 9. 评论 ---------- */
+html[data-skin="aero"] .comments { border-top: 1px solid #dbe6ef; }
+html[data-skin="aero"] .comment-form .input { border-radius: 2px; }
+html[data-skin="aero"] .reply-state { border-radius: 2px; background: #e6f2fa; border: 1px solid #bcd6e8; }
+html[data-skin="aero"][data-theme="dark"] .comments { border-top: 1px solid #22303f; }
+html[data-skin="aero"][data-theme="dark"] .reply-state { border-radius: 0; background: rgba(0, 229, 255, .08); border-color: rgba(0, 229, 255, .3); }
+
+/* ---------- 10. 弹窗 ---------- */
+html[data-skin="aero"] .modal-mask { background: rgba(8, 30, 50, .45); backdrop-filter: none; }
+html[data-skin="aero"] .modal-card {
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, .72);
+  background: var(--aero-body);
+  box-shadow: 0 8px 30px rgba(0, 20, 40, .45), inset 0 0 0 1px rgba(255, 255, 255, .85);
+  clip-path: none;
+  padding-top: 0;
+}
+html[data-skin="aero"] .modal-head {
+  margin: 0 -18px 14px;
+  padding: 6px 10px 7px;
+  border-radius: 5px 5px 0 0;
+  background: var(--aero-gloss), var(--aero-sweep), var(--aero-glass);
+  border-bottom: 1px solid rgba(0, 0, 0, .32);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7);
+}
+html[data-skin="aero"] .modal-head h2,
+html[data-skin="aero"] .modal-head h3 { font-size: 12.5px; color: #0b2130; text-shadow: 0 0 7px #fff, 0 0 10px #fff; }
+html[data-skin="aero"] .modal-close {
+  border-radius: 3px;
+  border: 1px solid #8e8f8f;
+  background: var(--aero-btn);
+  color: #1a1a1a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85);
+}
+html[data-skin="aero"] .modal-close:hover { background: var(--aero-btn-h); border-color: #3c7fb1; color: #0b2130; }
+html[data-skin="aero"][data-theme="dark"] .modal-mask { background: rgba(2, 4, 10, .78); }
+html[data-skin="aero"][data-theme="dark"] .modal-card {
+  border: 2px solid;
+  border-color: #4b6076 #0a0f1a #05080f #33465c;
+  border-radius: 0;
+  background: var(--y2k-metal);
+  box-shadow: 0 0 40px rgba(0, 229, 255, .18), inset 1px 1px 0 rgba(180, 230, 255, .10);
+}
+html[data-skin="aero"][data-theme="dark"] .modal-head {
+  margin: 0 -18px 14px;
+  padding: 6px 10px 7px;
+  border-radius: 0;
+  background: var(--y2k-chrome);
+  border-bottom: 2px solid #3d4d63;
+}
+html[data-skin="aero"][data-theme="dark"] .modal-head h2,
+html[data-skin="aero"][data-theme="dark"] .modal-head h3 {
+  font: 700 11px/1.4 "Consolas", monospace; letter-spacing: .18em; text-transform: uppercase; color: #0a1220;
+}
+html[data-skin="aero"][data-theme="dark"] .modal-close {
+  border: 2px solid; border-color: #cfe0f2 #26303f #131a26 #a9bccf;
+  border-radius: 0; background: var(--y2k-chrome); color: #08101c;
+}
+
+/* ---------- 11. 个人档案 ---------- */
+html[data-skin="aero"] .persona-top {
+  border-radius: 6px;
+  clip-path: none;
+  border: 1px solid var(--aero-frame);
+  background:
+    var(--aero-gloss),
+    linear-gradient(180deg, #eaf7ff 0%, #cfe9fa 46%, #b6d9f1 54%, #e2f3fd 100%);
+  box-shadow: 0 2px 10px 1px rgba(0, 0, 0, .3), inset 0 0 0 1px rgba(255, 255, 255, .8);
+}
+html[data-skin="aero"] .persona-back {
+  border-radius: 3px; border: 1px solid #8e8f8f;
+  background: var(--aero-btn); color: #14364b;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85);
+  clip-path: none;
+}
+html[data-skin="aero"] .persona-back:hover { background: var(--aero-btn-h); border-color: #3c7fb1; color: #0b2130; }
+html[data-skin="aero"] .persona-eyebrow { color: #1d4c6b; font-size: 8.5px; letter-spacing: .16em; text-shadow: 0 0 6px rgba(255, 255, 255, .9); }
+html[data-skin="aero"] .persona-name {
+  font-size: 26px; font-weight: 700; color: #0b2130;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .9), 0 0 14px rgba(255, 255, 255, .8);
+}
+html[data-skin="aero"] .persona-card { border-radius: 6px; }
+html[data-skin="aero"] .persona-card::before { display: none; }
+html[data-skin="aero"] .persona-card-head {
+  margin: -17px -18px 13px;
+  padding: 6px 10px 7px;
+  border-radius: 5px 5px 0 0;
+  background: var(--aero-gloss), var(--aero-sweep), var(--aero-glass);
+  border-bottom: 1px solid rgba(0, 0, 0, .32);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7);
+}
+html[data-skin="aero"] .persona-card-head h2 {
+  font-size: 12.5px; color: #0b2130; text-shadow: 0 0 7px #fff, 0 0 10px #fff;
+}
+html[data-skin="aero"] .persona-sub { color: #274a63; text-shadow: 0 0 6px rgba(255, 255, 255, .9); }
+html[data-skin="aero"] .persona-rules-btn {
+  border-radius: 3px; border: 1px solid #8e8f8f; background: var(--aero-btn); color: #14364b;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85);
+}
+html[data-skin="aero"] .persona-star-card {
+  display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
+  gap: 6px 18px; align-items: start; align-content: start; align-self: start;
+}
+html[data-skin="aero"] .persona-star-card > .persona-card-head { grid-column: 1 / -1; }
+html[data-skin="aero"] .persona-star { width: 100%; margin: 0; transform: none; }
+/* Vista 进度条 */
+html[data-skin="aero"] .ps-bar {
+  height: 15px; margin: 4px 0 5px; border-radius: 3px;
+  border: 1px solid #7a7a7a;
+  background: #e9eef2;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .18);
+  overflow: hidden;
+}
+html[data-skin="aero"] .ps-bar i {
+  border-radius: 2px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .85) 0%, rgba(255, 255, 255, .2) 44%, rgba(255, 255, 255, 0) 52%),
+    linear-gradient(180deg, #d8f0c4 0%, #8fd05f 42%, #5aab33 52%, #7cc24a 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5);
+}
+html[data-skin="aero"] .ps-name { font-size: 12px; font-weight: 700; color: #1a3346; }
+html[data-skin="aero"] .ps-rank { font-size: 10px; color: #5d7285; }
+html[data-skin="aero"] .persona-tiles { border-radius: 3px; border-color: #b9c7d5; background: #c9d6e2; }
+html[data-skin="aero"] .persona-tile { background: linear-gradient(180deg, #ffffff, #f2f7fb); }
+html[data-skin="aero"] .persona-tile b { color: #14507f; }
+html[data-skin="aero"] .persona-recent { border-bottom-color: #dbe6ef; }
+
+html[data-skin="aero"][data-theme="dark"] .persona-top {
+  border: 2px solid; border-color: #4b6076 #0a0f1a #05080f #33465c;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 229, 255, .04) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #101a2c 0%, #060a14 100%);
+  box-shadow: 0 0 30px rgba(0, 229, 255, .12);
+}
+html[data-skin="aero"][data-theme="dark"] .persona-back {
+  border: 2px solid; border-color: #cfe0f2 #26303f #131a26 #a9bccf;
+  border-radius: 0; background: var(--y2k-chrome); color: #08101c;
+  font-family: "Consolas", monospace; letter-spacing: .1em;
+}
+html[data-skin="aero"][data-theme="dark"] .persona-eyebrow { color: #7fd6e8; font-family: "Consolas", monospace; }
+html[data-skin="aero"][data-theme="dark"] .persona-name {
+  font: 700 24px/1.2 "Consolas", monospace; color: #eafcff; text-shadow: 0 0 20px rgba(0, 229, 255, .6);
+}
+html[data-skin="aero"][data-theme="dark"] .persona-card-head {
+  margin: -17px -18px 13px; padding: 6px 10px 7px; border-radius: 0;
+  background: var(--y2k-chrome); border-bottom: 2px solid #3d4d63;
+}
+html[data-skin="aero"][data-theme="dark"] .persona-card-head h2 {
+  font: 700 11px/1.4 "Consolas", monospace; letter-spacing: .18em; text-transform: uppercase; color: #0a1220;
+}
+html[data-skin="aero"][data-theme="dark"] .persona-sub { color: #22303f; font-family: "Consolas", monospace; }
+html[data-skin="aero"][data-theme="dark"] .persona-rules-btn {
+  border: 2px solid; border-color: #cfe0f2 #26303f #131a26 #a9bccf;
+  border-radius: 0; background: var(--y2k-chrome); color: #08101c; font-family: "Consolas", monospace;
+}
+html[data-skin="aero"][data-theme="dark"] .ps-bar {
+  border: 1px solid #3a4c63; border-radius: 0; background: #04070f;
+  box-shadow: inset 0 0 10px rgba(0, 229, 255, .12);
+}
+html[data-skin="aero"][data-theme="dark"] .ps-bar i {
+  border-radius: 0;
+  background: linear-gradient(180deg, #b9feff 0%, #3ee9ff 44%, #00a9c9 52%, #007d97 100%);
+  box-shadow: 0 0 14px rgba(0, 229, 255, .7);
+}
+html[data-skin="aero"][data-theme="dark"] .ps-name { font-family: "Consolas", monospace; color: #bfe9f7; letter-spacing: .1em; }
+html[data-skin="aero"][data-theme="dark"] .ps-rank { font-family: "Consolas", monospace; color: #6f8ca6; }
+html[data-skin="aero"][data-theme="dark"] .persona-tiles { border-color: #2f4058; background: #1a2434; }
+html[data-skin="aero"][data-theme="dark"] .persona-tile { background: linear-gradient(180deg, #101a2c, #080d18); }
+html[data-skin="aero"][data-theme="dark"] .persona-tile b { color: #7ff4ff; text-shadow: 0 0 12px rgba(0, 229, 255, .5); }
+html[data-skin="aero"][data-theme="dark"] .persona-recent { border-bottom-color: #22303f; }
+
+/* 雷达图 */
+.skin-radar { display: block; width: 100%; height: auto; }
+.skin-radar .sr-hub { fill: rgba(120, 190, 235, .12); }
+.skin-radar .sr-ring { fill: none; stroke: rgba(30, 100, 150, .22); stroke-width: 1; }
+.skin-radar .sr-ring-out { stroke: rgba(30, 100, 150, .45); stroke-width: 1.4; }
+.skin-radar .sr-spoke { stroke: rgba(30, 100, 150, .22); stroke-width: 1; }
+.skin-radar .sr-stop-a { stop-color: #7fd0f5; stop-opacity: .85; }
+.skin-radar .sr-stop-b { stop-color: #1f6fb2; stop-opacity: .10; }
+.skin-radar .sr-fill { fill: url(#skinRadarFill); }
+.skin-radar .sr-line { fill: none; stroke: #1f6fb2; stroke-width: 2; stroke-linejoin: round; }
+.skin-radar .sr-dot { fill: #fff; stroke: #1f6fb2; stroke-width: 2; }
+.skin-radar .sr-name { fill: #12354d; font: 700 11.5px "Segoe UI", "Microsoft YaHei", sans-serif; }
+.skin-radar .sr-rank { fill: #5d7285; font: 9.5px "Consolas", monospace; }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-hub { fill: rgba(0, 229, 255, .08); }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-ring { stroke: rgba(0, 229, 255, .20); }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-ring-out { stroke: rgba(0, 229, 255, .55); }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-spoke { stroke: rgba(0, 229, 255, .18); }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-stop-a { stop-color: #6ff0ff; stop-opacity: .72; }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-stop-b { stop-color: #ff2fd0; stop-opacity: .06; }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-line { stroke: #6ff0ff; filter: drop-shadow(0 0 8px rgba(0, 229, 255, .9)); }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-dot { fill: #041018; stroke: #8ff6ff; }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-name { fill: #cdeffa; font-family: "Consolas", monospace; letter-spacing: .06em; }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-rank { fill: #6f8ca6; }
+
+/* ---------- 12. 留言板 ---------- */
+html[data-skin="aero"] .board-write {
+  border-radius: 4px; border: 1px solid #b9c7d5;
+  background: linear-gradient(180deg, #ffffff, #f2f7fb);
+  box-shadow: inset 0 1px 0 #fff;
+}
+html[data-skin="aero"] .board-input { border-radius: 2px; }
+html[data-skin="aero"] .board-msg {
+  border-radius: 4px; border: 1px solid #c3d4e2; border-left: 3px solid var(--c, #1f6fb2);
+  background: linear-gradient(180deg, #ffffff, #f4f9fd);
+  box-shadow: inset 0 1px 0 #fff;
+}
+html[data-skin="aero"] .board-total { border-radius: 3px; border-color: #b9c7d5; color: #3c566b; }
+html[data-skin="aero"] .board-more { border-radius: 3px; }
+html[data-skin="aero"][data-theme="dark"] .board-write { border: 1px solid #2f4058; border-radius: 0; background: #070c16; }
+html[data-skin="aero"][data-theme="dark"] .board-msg {
+  border: 1px solid #2f4058; border-left: 3px solid var(--c, #00e5ff); border-radius: 0;
+  background: linear-gradient(180deg, #0c1424, #070c16);
+}
+html[data-skin="aero"][data-theme="dark"] .board-total { border-radius: 0; border-color: #3a4c63; color: #8fd7ea; font-family: "Consolas", monospace; }
+html[data-skin="aero"][data-theme="dark"] .board-more { border-radius: 0; }
+
+/* ---------- 13. 详情 / 设置 ---------- */
+html[data-skin="aero"] .detail-view .record { border-radius: 4px; }
+html[data-skin="aero"] .back-btn { border-radius: 3px; }
+html[data-skin="aero"] .detail-head { justify-content: flex-start; gap: 12px; }
+html[data-skin="aero"] .settings-item, html[data-skin="aero"] .changelog-item {
+  border-radius: 4px; border: 1px solid #b9c7d5;
+  background: linear-gradient(180deg, #ffffff, #f2f7fb);
+  box-shadow: inset 0 1px 0 #fff;
+}
+html[data-skin="aero"] .settings-item:hover, html[data-skin="aero"] .changelog-item:hover {
+  border-color: #3c7fb1; background: linear-gradient(180deg, #f2fbff, #dcf0fd);
+}
+html[data-skin="aero"] .settings-icon {
+  border-radius: 4px; background: linear-gradient(180deg, #e8f6ff, #b6dcf3);
+  color: #14507f; box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0, 40, 80, .15);
+}
+html[data-skin="aero"] .settings-switch { border-radius: 999px; }
+html[data-skin="aero"] .settings-switch i { border-radius: 50%; }
+html[data-skin="aero"][data-theme="dark"] .settings-item,
+html[data-skin="aero"][data-theme="dark"] .changelog-item {
+  border: 1px solid #2f4058; border-radius: 0;
+  background: linear-gradient(180deg, #101a2c, #070c16);
+  box-shadow: none;
+}
+html[data-skin="aero"][data-theme="dark"] .settings-item:hover,
+html[data-skin="aero"][data-theme="dark"] .changelog-item:hover {
+  border-color: #00e5ff; background: linear-gradient(180deg, #12233a, #0a1220);
+}
+html[data-skin="aero"][data-theme="dark"] .settings-icon {
+  border-radius: 0; background: linear-gradient(180deg, #2a4a5e, #0d1a26); color: #7ff4ff;
+  box-shadow: inset 0 0 10px rgba(0, 229, 255, .3);
+}
+html[data-skin="aero"][data-theme="dark"] .settings-switch {
+  border-radius: 0; background: #04070f; border-color: #3a4c63;
+}
+html[data-skin="aero"][data-theme="dark"] .settings-switch i { border-radius: 0; background: #6f8ca6; }
+html[data-skin="aero"][data-theme="dark"] .settings-switch.on { border-color: #00e5ff; background: rgba(0, 229, 255, .2); }
+html[data-skin="aero"][data-theme="dark"] .settings-switch.on i { background: #00e5ff; box-shadow: 0 0 10px #00e5ff; }
+
+/* ---------- 14. 统计 / 日报 ---------- */
+html[data-skin="aero"] .stats-range {
+  border-radius: 3px; padding: 2px;
+  border: 1px solid #b9c7d5;
+  background: #e8eef4;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .08);
+}
+html[data-skin="aero"] .range-btn { border-radius: 2px; border: 0; background: none; color: #3c566b; font-size: 11.5px; }
+html[data-skin="aero"] .range-btn.active {
+  background: linear-gradient(#f2fbff 0%, #cfeafd 46%, #a9d9f5 54%, #d6effe 100%);
+  border: 1px solid #7fb4d8; color: #0b2130; font-weight: 700;
+  box-shadow: inset 0 1px 0 #fff;
+}
+html[data-skin="aero"] .rank-bar-wrap {
+  border-radius: 3px; background: #e9eef2; border: 1px solid #c2cdd8;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .10);
+}
+html[data-skin="aero"] .rank-bar { border-radius: 2px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6); }
+html[data-skin="aero"] .persona-entry {
+  border-radius: 3px; clip-path: none;
+  border: 1px solid #8e8f8f; background: var(--aero-btn); color: #14364b;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85);
+}
+html[data-skin="aero"] .daily-card, html[data-skin="aero"] .daily-hero {
+  border-radius: 4px; border: 1px solid #b9c7d5;
+  background: linear-gradient(180deg, #ffffff, #f2f7fb);
+  box-shadow: inset 0 1px 0 #fff;
+}
+html[data-skin="aero"][data-theme="dark"] .stats-range { border-radius: 0; border-color: #3a4c63; background: #04070f; }
+html[data-skin="aero"][data-theme="dark"] .range-btn { border-radius: 0; color: #7fa0b8; font-family: "Consolas", monospace; }
+html[data-skin="aero"][data-theme="dark"] .range-btn.active {
+  background: linear-gradient(180deg, #d8feff, #3ee9ff 50%, #0a8fb0 100%);
+  border: 1px solid #8ff6ff; color: #021014; text-shadow: none;
+}
+html[data-skin="aero"][data-theme="dark"] .rank-bar-wrap { border-radius: 0; border-color: #2f4058; background: #04070f; }
+html[data-skin="aero"][data-theme="dark"] .persona-entry {
+  border: 2px solid; border-color: #cfe0f2 #26303f #131a26 #a9bccf;
+  border-radius: 0; background: var(--y2k-chrome); color: #08101c;
+}
+html[data-skin="aero"][data-theme="dark"] .daily-card,
+html[data-skin="aero"][data-theme="dark"] .daily-hero {
+  border-radius: 0; border-color: #2f4058;
+  background: linear-gradient(180deg, #101a2c, #070c16);
+}
+
+/* ---------- 15. 移动端 ---------- */
+@media (max-width: 820px) {
+  html[data-skin="aero"] header.app-bar { border-radius: 6px; }
+  html[data-skin="aero"] .hero { border-radius: 6px; }
+  html[data-skin="aero"] .persona-star-card { grid-template-columns: 1fr; }
+  html[data-skin="aero"] .hs b { font-size: 20px; }
+  html[data-skin="aero"] .hero-title { font-size: clamp(34px, 10vw, 52px); }
+  html[data-skin="aero"][data-theme="dark"] .hero-title { transform: none; }
+  html[data-skin="aero"][data-theme="dark"] .hero-title .line:not(:nth-child(2)) > span { text-shadow: 0 0 16px rgba(0, 229, 255, .5); }
+  html[data-skin="aero"][data-theme="dark"] .hs span { padding: 0; background: none; transform: none; }
+}
+
+/* ---------- 16. 夜间：清掉 P5 的贴纸 / 斜切 / 红影 ---------- */
+html[data-skin="aero"][data-theme="dark"] .brand-emblem {
+  width: 30px; height: 30px; padding: 5px; background: none;
+  color: #7ff4ff; transform: none; box-shadow: 0 0 12px rgba(0, 229, 255, .5);
+}
+html[data-skin="aero"][data-theme="dark"] .brand-text b {
+  font-size: 15px; transform: none; color: #eafcff;
+  text-shadow: 0 0 12px rgba(0, 229, 255, .6);
+}
+html[data-skin="aero"][data-theme="dark"] .brand-text small {
+  padding: 0; background: none; color: #7fa0b8; transform: none; font-weight: 400;
+}
+html[data-skin="aero"][data-theme="dark"] .header-mid .hm-text { color: #5d7d95; text-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .hbtn { transform: none; border: 1px solid transparent; background: none; color: #b7d6ea; box-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .hbtn:hover { background: rgba(0, 229, 255, .12); border-color: rgba(0, 229, 255, .5); color: #eafcff; }
+html[data-skin="aero"][data-theme="dark"] header.app-bar {
+  border-radius: 2px 2px 0 0;
+  border: 2px solid;
+  border-color: #4b6076 #0a0f1a #05080f #33465c;
+  background: var(--y2k-chrome);
+  box-shadow: 0 0 24px rgba(0, 229, 255, .18), inset 0 1px 0 #fff;
+}
+html[data-skin="aero"][data-theme="dark"] header.app-bar::before { content: none; }
+html[data-skin="aero"][data-theme="dark"] .brand-text b { color: #08101c; text-shadow: 0 1px 0 rgba(255, 255, 255, .8); }
+html[data-skin="aero"][data-theme="dark"] .brand-text b .sl { color: #0a5f78; }
+html[data-skin="aero"][data-theme="dark"] .brand-text small { color: #22303f; }
+html[data-skin="aero"][data-theme="dark"] .header-mid .hm-text { color: #22303f; }
+html[data-skin="aero"][data-theme="dark"] .hbtn { color: #08101c; }
+html[data-skin="aero"][data-theme="dark"] .hbtn:hover { background: linear-gradient(180deg, #ffffff, #b8e8ff); color: #04121c; }
+html[data-skin="aero"][data-theme="dark"] .user-tag { border-radius: 0; border: 1px solid rgba(0, 0, 0, .25); font-family: "Consolas", monospace; }
+html[data-skin="aero"][data-theme="dark"] .moon-tag {
+  font-size: 11px; left: -26px; bottom: 26px; padding: 0;
+  background: none; box-shadow: none; clip-path: none; border: 0; transform: rotate(-6deg);
+}
+/* 夜间：把 P5 遗留的米色标签 / 黄色徽章 / 红色条统一改成霓虹 */
+html[data-skin="aero"][data-theme="dark"] .hs span {
+  background: none !important; padding: 0 !important; transform: none !important;
+  color: #7fd6e8 !important; font: 8px/1.5 "Consolas", monospace; letter-spacing: .14em;
+}
+html[data-skin="aero"][data-theme="dark"] .heat-streak {
+  background: rgba(0, 229, 255, .14); color: #9ff8ff;
+  border: 1px solid rgba(0, 229, 255, .65); box-shadow: 0 0 14px rgba(0, 229, 255, .35);
+  font-family: "Consolas", monospace;
+}
+html[data-skin="aero"][data-theme="dark"] .rank-bar {
+  background: linear-gradient(180deg, #b9feff 0%, #3ee9ff 48%, #00a9c9 52%, #007d97 100%) !important;
+  box-shadow: 0 0 10px rgba(0, 229, 255, .5) !important;
+}
+html[data-skin="aero"][data-theme="dark"] .editor,
+html[data-skin="aero"][data-theme="dark"] .field .editor { color: #d8f4ff !important; }
+html[data-skin="aero"][data-theme="dark"] .editor:empty::before { color: #6f8ca6 !important; }
+html[data-skin="aero"][data-theme="dark"] input::placeholder,
+html[data-skin="aero"][data-theme="dark"] textarea::placeholder { color: #6f8ca6 !important; }
+html[data-skin="aero"][data-theme="dark"] .moon-tag::after { content: none; }
+html[data-skin="aero"][data-theme="dark"] .hero-moon::before { content: none; }
+html[data-skin="aero"][data-theme="dark"] .hero-code { font-size: 8px; }
+html[data-skin="aero"][data-theme="dark"] .hero-code::after { content: none; }
+html[data-skin="aero"][data-theme="dark"] .persona-back { transform: none; box-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .role-tag { transform: none; }
+html[data-skin="aero"][data-theme="dark"] .btn { transform: none; }
+html[data-skin="aero"][data-theme="dark"] .modal-card::before { content: none; }
+html[data-skin="aero"][data-theme="dark"] .modal-close { transform: none; box-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .modal-head::after { content: none; }
+html[data-skin="aero"][data-theme="dark"] .record::before { content: none; }
+html[data-skin="aero"][data-theme="dark"] .panel::after { content: none; }
+
+/* ==========================================================================
+   19. 版式重构：不再沿用原站的三段式排版
+   - 首屏从 3 行巨型标题压成一条「状态带」，时钟缩成小挂件
+   - 侧栏移到左侧、收窄成 268px 的 dock，主区变成应用主窗口
+   - 动态列表从卡片流改成「左元信息 / 右内容」的邮件式行
+   - 加噪点、扫描线、1px 硬阴影，提升复古质感
+   ========================================================================== */
+
+/* ---- 19.1 顶栏压缩成真正的标题栏 ---- */
+html[data-skin="aero"] header.app-bar { padding: 5px 10px; min-height: 36px; }
+html[data-skin="aero"] .brand-emblem { width: 24px; height: 24px; padding: 4px; }
+html[data-skin="aero"] .brand-text b { font-size: 13px; }
+html[data-skin="aero"] .brand-text small { display: none; }
+html[data-skin="aero"] .header-mid { display: none; }
+html[data-skin="aero"] .hbtn { min-height: 26px; padding: 0 8px; font-size: 11.5px; }
+
+/* ---- 19.2 首屏：一条状态带 ---- */
+html[data-skin="aero"] .hero {
+  min-height: 0;
+  padding: 9px 14px 9px 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+html[data-skin="aero"] .hero-main { max-width: none; display: flex; flex-direction: column; gap: 3px; }
+html[data-skin="aero"] .hero-eyebrow { order: 2; padding: 0; border: 0; background: none; box-shadow: none; font-size: 8.5px; }
+html[data-skin="aero"] .hero-title {
+  order: 1;
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px;
+  margin: 0; font-size: 25px; line-height: 1;
+}
+html[data-skin="aero"] .hero-title .line { display: inline-block; padding: 0; overflow: visible; }
+html[data-skin="aero"] .hero-title .line > span { animation: none; transform: none; opacity: 1; }
+html[data-skin="aero"] .hero-sub { display: none; }
+html[data-skin="aero"] .hero-stats { order: 3; margin: 2px 0 0; gap: 6px; }
+html[data-skin="aero"] .hs { padding: 2px 8px; border-radius: 3px; gap: 5px; }
+html[data-skin="aero"] .hs b { font-size: 15px; }
+html[data-skin="aero"] .hs span { font-size: 7px; line-height: 1.25; }
+html[data-skin="aero"] .hero-moon { position: static; transform: none; width: 66px; height: 66px; }
+html[data-skin="aero"] .moon-core { width: 60px; height: 60px; }
+html[data-skin="aero"] .moon-core span { font-size: 13px; letter-spacing: 0; }
+html[data-skin="aero"] .moon-core small { font-size: 5.5px; letter-spacing: .12em; }
+html[data-skin="aero"] .moon-ring, html[data-skin="aero"] .moon-halo { display: none; }
+html[data-skin="aero"] .hero-lines, html[data-skin="aero"] .hero-code, html[data-skin="aero"] .moon-tag { display: none; }
+
+/* ---- 19.3 工作区：左 dock + 右主窗口 ---- */
+html[data-skin="aero"] .workspace {
+  grid-template-columns: 268px minmax(0, 1fr);
+  gap: 12px;
+}
+html[data-skin="aero"] .col-side { order: 1; position: sticky; top: 58px; max-height: calc(100vh - 72px); overflow-y: auto; padding-right: 2px; }
+html[data-skin="aero"] .col-main { order: 2; min-width: 0; }
+html[data-skin="aero"] .col-side .panel { padding: 12px 12px; margin-bottom: 10px; }
+html[data-skin="aero"] .col-side .panel-head { margin: -12px -12px 9px; padding: 4px 8px 5px; min-height: 24px; }
+html[data-skin="aero"] .col-side .panel-head h2 { font-size: 11px; }
+html[data-skin="aero"] .col-side .record-time { font-size: 8.5px; }
+
+/* ---- 19.4 动态列表：邮件式两栏行 ---- */
+html[data-skin="aero"] .record-list {
+  gap: 0;
+  border: 1px solid #a9b9c9;
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: inset 0 1px 0 #fff;
+  overflow: hidden;
+}
+html[data-skin="aero"] .record {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr);
+  column-gap: 14px;
+  padding: 9px 12px 10px;
+  border: 0;
+  border-bottom: 1px solid #dde7ef;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+html[data-skin="aero"] .record:nth-child(even) { background: #f6fafd; }
+html[data-skin="aero"] .record:last-child { border-bottom: 0; }
+html[data-skin="aero"] .record.mine { background: #f2f9ff; box-shadow: inset 3px 0 0 #2f86c6; }
+html[data-skin="aero"] .record:hover {
+  background: #e9f4fd;
+  box-shadow: inset 3px 0 0 #1f6fb2;
+  transform: none;
+}
+html[data-skin="aero"] .record-head {
+  grid-column: 1; grid-row: 1 / span 3;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  margin: 0; padding-top: 1px;
+}
+html[data-skin="aero"] .record-user { flex-wrap: wrap; gap: 4px; }
+html[data-skin="aero"] .role-tag { min-height: 18px; padding: 0 6px; font-size: 10.5px; }
+html[data-skin="aero"] .record-time { font-size: 9.5px; }
+html[data-skin="aero"] .record-content { grid-column: 2; font-size: 12.5px; line-height: 1.7; }
+html[data-skin="aero"] .record-content img, html[data-skin="aero"] .record-content video { max-height: 240px; }
+html[data-skin="aero"] .quote-card { grid-column: 2; margin-top: 6px; }
+html[data-skin="aero"] .record-foot {
+  grid-column: 2; margin-top: 6px; padding-top: 5px;
+  border-top: 1px dashed #dbe6ef;
+}
+html[data-skin="aero"] .like-btn, html[data-skin="aero"] .fav-btn,
+html[data-skin="aero"] .quote-btn, html[data-skin="aero"] .edit-btn, html[data-skin="aero"] .del-btn {
+  font-size: 10.5px; padding: 1px 7px;
+}
+
+/* ---- 19.5 质感：噪点 + 硬阴影 ---- */
+html[data-skin="aero"] .shell::after {
+  content: ""; position: fixed; inset: 0; z-index: 60; pointer-events: none;
+  background-image: repeating-linear-gradient(0deg, rgba(0, 40, 70, .035) 0 1px, transparent 1px 2px);
+  mix-blend-mode: multiply; opacity: .5;
+}
+html[data-skin="aero"] .btn { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85), 0 1px 0 rgba(0, 0, 0, .18); }
+html[data-skin="aero"] .panel { box-shadow: 0 1px 0 rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .8); }
+html[data-skin="aero"] .modal-card { box-shadow: 0 2px 0 rgba(0, 0, 0, .4), 0 10px 40px rgba(0, 20, 40, .35), inset 0 0 0 1px rgba(255, 255, 255, .85); }
+
+/* ---- 19.6 夜间：同一版式，终端质感 ---- */
+html[data-skin="aero"][data-theme="dark"] header.app-bar { min-height: 34px; }
+html[data-skin="aero"][data-theme="dark"] .hero {
+  min-height: 0; padding: 8px 14px;
+  border: 1px solid rgba(0, 229, 255, .35);
+  border-radius: 0;
+}
+html[data-skin="aero"][data-theme="dark"] .hero-title { font-size: 24px; }
+html[data-skin="aero"][data-theme="dark"] .hero-title .line > span { animation: none; opacity: 1; }
+html[data-skin="aero"][data-theme="dark"] .hero-eyebrow { order: 2; }
+html[data-skin="aero"][data-theme="dark"] .hero-stats { order: 3; }
+html[data-skin="aero"][data-theme="dark"] .hero-moon { width: 62px; height: 62px; }
+html[data-skin="aero"][data-theme="dark"] .moon-core { width: 56px; height: 56px; }
+html[data-skin="aero"][data-theme="dark"] .moon-core span { font-size: 12px; }
+html[data-skin="aero"][data-theme="dark"] .moon-core small { font-size: 5px; }
+html[data-skin="aero"][data-theme="dark"] .moon-ring, html[data-skin="aero"][data-theme="dark"] .moon-halo { display: none; }
+html[data-skin="aero"][data-theme="dark"] .hs { padding: 2px 7px; }
+html[data-skin="aero"][data-theme="dark"] .hs b { font-size: 14px; }
+html[data-skin="aero"][data-theme="dark"] .hs span { font-size: 7px; }
+
+html[data-skin="aero"][data-theme="dark"] .col-side .panel { padding: 10px 10px; margin-bottom: 8px; }
+html[data-skin="aero"][data-theme="dark"] .col-side .panel-head { margin: -10px -10px 8px; padding: 4px 7px 5px; min-height: 22px; }
+html[data-skin="aero"][data-theme="dark"] .col-side .panel-head h2 { font-size: 9.5px; letter-spacing: .16em; }
+
+html[data-skin="aero"][data-theme="dark"] .record-list {
+  gap: 0; border: 1px solid #2f4058; border-radius: 0; background: #04070f; overflow: hidden;
+}
+html[data-skin="aero"][data-theme="dark"] .record {
+  display: grid; grid-template-columns: 118px minmax(0, 1fr); column-gap: 12px;
+  padding: 8px 10px; border: 0; border-bottom: 1px solid #16202f;
+  border-radius: 0; background: #04070f; box-shadow: none;
+}
+html[data-skin="aero"][data-theme="dark"] .record:nth-child(even) { background: #060b15; }
+html[data-skin="aero"][data-theme="dark"] .record:last-child { border-bottom: 0; }
+html[data-skin="aero"][data-theme="dark"] .record.mine { background: #061019; box-shadow: inset 3px 0 0 #00e5ff; }
+html[data-skin="aero"][data-theme="dark"] .record:hover { background: #08161f; box-shadow: inset 3px 0 0 #00e5ff; }
+html[data-skin="aero"][data-theme="dark"] .record-head {
+  grid-column: 1; grid-row: 1 / span 3; display: flex; flex-direction: column;
+  align-items: flex-start; gap: 3px; margin: 0;
+}
+html[data-skin="aero"][data-theme="dark"] .record-content { grid-column: 2; font-size: 12px; }
+html[data-skin="aero"][data-theme="dark"] .quote-card { grid-column: 2; }
+html[data-skin="aero"][data-theme="dark"] .record-foot { grid-column: 2; border-top: 1px dashed #16202f; }
+html[data-skin="aero"][data-theme="dark"] .role-tag { min-height: 17px; padding: 0 5px; font-size: 10px; }
+
+/* 扫描线 + CRT 暗角 */
+html[data-skin="aero"][data-theme="dark"] .shell::after {
+  content: ""; position: fixed; inset: 0; z-index: 60; pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .35) 0 1px, transparent 1px 3px);
+  opacity: .35;
+  animation: crtFlicker 6s steps(2) infinite;
+}
+html[data-skin="aero"][data-theme="dark"] .shell::before {
+  content: ""; position: fixed; inset: 0; z-index: 59; pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%, transparent 52%, rgba(0, 0, 0, .55) 100%);
+}
+@keyframes crtFlicker { 0%, 100% { opacity: .35; } 50% { opacity: .28; } }
+
+/* ---- 19.7 收尾：关键词云统一色调 / 首屏加深 / 扫描线减淡 ---- */
+html[data-skin="aero"]:not([data-theme="dark"]) .cloud-canvas {
+  filter: grayscale(1) sepia(1) hue-rotate(165deg) saturate(1.8) brightness(.95);
+  opacity: .92;
+}
+html[data-skin="aero"][data-theme="dark"] .cloud-canvas {
+  filter: grayscale(1) sepia(1) hue-rotate(140deg) saturate(2.4) brightness(1.15);
+  opacity: .9;
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero {
+  background:
+    radial-gradient(48% 90% at 90% 4%, rgba(255, 255, 255, .55), transparent 58%),
+    linear-gradient(180deg, #2a7fbe 0%, #4f9fd6 42%, #7cbde5 78%, #a8d5ef 100%);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-title .line > span {
+  text-shadow: 0 2px 0 rgba(6, 44, 72, .55), 0 6px 18px rgba(4, 34, 58, .45);
+}
+html[data-skin="aero"][data-theme="dark"] .shell::after { opacity: .24; }
+@keyframes crtFlicker2 { 0%, 100% { opacity: .24; } 50% { opacity: .19; } }
+html[data-skin="aero"][data-theme="dark"] .shell::after { animation-name: crtFlicker2; }
+
+/* ---- 19.7 收尾：关键词云统一色调 / 首屏加深 / 扫描线减淡 ---- */
+html[data-skin="aero"]:not([data-theme="dark"]) .cloud-canvas {
+  filter: grayscale(1) sepia(1) hue-rotate(165deg) saturate(1.8) brightness(.95);
+  opacity: .92;
+}
+html[data-skin="aero"][data-theme="dark"] .cloud-canvas {
+  filter: grayscale(1) sepia(1) hue-rotate(140deg) saturate(2.4) brightness(1.15);
+  opacity: .9;
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero {
+  background:
+    radial-gradient(48% 90% at 90% 4%, rgba(255, 255, 255, .55), transparent 58%),
+    linear-gradient(180deg, #2a7fbe 0%, #4f9fd6 42%, #7cbde5 78%, #a8d5ef 100%);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-title .line > span {
+  text-shadow: 0 2px 0 rgba(6, 44, 72, .55), 0 6px 18px rgba(4, 34, 58, .45);
+}
+html[data-skin="aero"][data-theme="dark"] .shell::after { opacity: .24; }
+@keyframes crtFlicker2 { 0%, 100% { opacity: .24; } 50% { opacity: .19; } }
+html[data-skin="aero"][data-theme="dark"] .shell::after { animation-name: crtFlicker2; }
+
+/* ---- 19.8 复古细节：滚动条 / 选区 ---- */
+html[data-skin="aero"] ::-webkit-scrollbar { width: 15px; height: 15px; }
+html[data-skin="aero"] ::-webkit-scrollbar-track {
+  background: linear-gradient(90deg, #eef2f6, #dfe6ee);
+  border-left: 1px solid #c3ccd6;
+}
+html[data-skin="aero"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #fdfdfd 0%, #d7dee6 44%, #c2ccd6 56%, #e6ecf2 100%);
+  border: 1px solid #9aa7b4; border-radius: 3px;
+  box-shadow: inset 0 1px 0 #fff;
+}
+html[data-skin="aero"] ::-webkit-scrollbar-thumb:hover {
+  border-color: #3c7fb1;
+  background: linear-gradient(180deg, #eaf6fd 0%, #bee6fd 48%, #a7d9f5 100%);
+}
+html[data-skin="aero"] ::selection { background: #3399ff; color: #fff; }
+
+html[data-skin="aero"][data-theme="dark"] ::-webkit-scrollbar { width: 12px; height: 12px; }
+html[data-skin="aero"][data-theme="dark"] ::-webkit-scrollbar-track { background: #05080f; border-left: 1px solid #1b2636; }
+html[data-skin="aero"][data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2a4a5e 0%, #0d1a26 100%);
+  border: 1px solid rgba(0, 229, 255, .35); border-radius: 0;
+  box-shadow: inset 0 1px 0 rgba(0, 229, 255, .25);
+}
+html[data-skin="aero"][data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #3ee9ff 0%, #0a8fb0 100%);
+  box-shadow: 0 0 10px rgba(0, 229, 255, .6);
+}
+html[data-skin="aero"][data-theme="dark"] ::selection { background: #00e5ff; color: #04121c; }
+
+/* ---- 19.8 复古细节：滚动条 / 选区 ---- */
+html[data-skin="aero"] ::-webkit-scrollbar { width: 15px; height: 15px; }
+html[data-skin="aero"] ::-webkit-scrollbar-track {
+  background: linear-gradient(90deg, #eef2f6, #dfe6ee);
+  border-left: 1px solid #c3ccd6;
+}
+html[data-skin="aero"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #fdfdfd 0%, #d7dee6 44%, #c2ccd6 56%, #e6ecf2 100%);
+  border: 1px solid #9aa7b4; border-radius: 3px;
+  box-shadow: inset 0 1px 0 #fff;
+}
+html[data-skin="aero"] ::-webkit-scrollbar-thumb:hover {
+  border-color: #3c7fb1;
+  background: linear-gradient(180deg, #eaf6fd 0%, #bee6fd 48%, #a7d9f5 100%);
+}
+html[data-skin="aero"] ::selection { background: #3399ff; color: #fff; }
+
+html[data-skin="aero"][data-theme="dark"] ::-webkit-scrollbar { width: 12px; height: 12px; }
+html[data-skin="aero"][data-theme="dark"] ::-webkit-scrollbar-track { background: #05080f; border-left: 1px solid #1b2636; }
+html[data-skin="aero"][data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2a4a5e 0%, #0d1a26 100%);
+  border: 1px solid rgba(0, 229, 255, .35); border-radius: 0;
+  box-shadow: inset 0 1px 0 rgba(0, 229, 255, .25);
+}
+html[data-skin="aero"][data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #3ee9ff 0%, #0a8fb0 100%);
+  box-shadow: 0 0 10px rgba(0, 229, 255, .6);
+}
+html[data-skin="aero"][data-theme="dark"] ::selection { background: #00e5ff; color: #04121c; }
+
+/* ==========================================================================
+   20. 年代语言修正：直角、少图标多文字、宋体小字号、实色渐变标题条
+   参考 2003–2009 年的中文网站与 Windows 经典控件：1px 边框、2px 立体斜面、
+   蓝色渐变标题栏、11–12px 宋体、文字链接代替图标按钮。
+   ========================================================================== */
+
+/* ---- 20.1 全部改直角 ---- */
+html[data-skin="aero"] .panel,
+html[data-skin="aero"] .record,
+html[data-skin="aero"] .btn,
+html[data-skin="aero"] .hbtn,
+html[data-skin="aero"] .user-tag,
+html[data-skin="aero"] .role-tag,
+html[data-skin="aero"] .modal-card,
+html[data-skin="aero"] .modal-close,
+html[data-skin="aero"] .settings-item,
+html[data-skin="aero"] .changelog-item,
+html[data-skin="aero"] .settings-icon,
+html[data-skin="aero"] .board-write,
+html[data-skin="aero"] .board-msg,
+html[data-skin="aero"] .board-total,
+html[data-skin="aero"] .board-more,
+html[data-skin="aero"] .ps-bar,
+html[data-skin="aero"] .ps-bar i,
+html[data-skin="aero"] .stats-range,
+html[data-skin="aero"] .range-btn,
+html[data-skin="aero"] .rank-bar-wrap,
+html[data-skin="aero"] .rank-bar,
+html[data-skin="aero"] .daily-card,
+html[data-skin="aero"] .daily-hero,
+html[data-skin="aero"] .quote-card,
+html[data-skin="aero"] .reply-state,
+html[data-skin="aero"] .persona-top,
+html[data-skin="aero"] .persona-card,
+html[data-skin="aero"] .persona-back,
+html[data-skin="aero"] .persona-rules-btn,
+html[data-skin="aero"] .persona-entry,
+html[data-skin="aero"] .persona-tiles,
+html[data-skin="aero"] .persona-tile,
+html[data-skin="aero"] .hero,
+html[data-skin="aero"] header.app-bar,
+html[data-skin="aero"] .hs,
+html[data-skin="aero"] .input,
+html[data-skin="aero"] input,
+html[data-skin="aero"] textarea,
+html[data-skin="aero"] select,
+html[data-skin="aero"] .editor,
+html[data-skin="aero"] .record-list,
+html[data-skin="aero"] .like-btn,
+html[data-skin="aero"] .fav-btn,
+html[data-skin="aero"] .quote-btn,
+html[data-skin="aero"] .edit-btn,
+html[data-skin="aero"] .del-btn {
+  border-radius: 0 !important;
+}
+
+/* ---- 20.2 字体：宋体 + Tahoma 小字号 ---- */
+html[data-skin="aero"] body,
+html[data-skin="aero"] .record-content,
+html[data-skin="aero"] .panel,
+html[data-skin="aero"] .modal-card {
+  font-family: Tahoma, "SimSun", "宋体", "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+}
+html[data-skin="aero"] .panel-head h2,
+html[data-skin="aero"] .modal-head h2,
+html[data-skin="aero"] .modal-head h3,
+html[data-skin="aero"] .persona-card-head h2 {
+  font-family: Tahoma, "SimSun", "宋体", sans-serif;
+  font-size: 12px; font-weight: 700; text-shadow: none; letter-spacing: 0;
+}
+
+/* ---- 20.3 顶栏：图标换文字，做成一行文字导航 ---- */
+html[data-skin="aero"] header.app-bar {
+  border-radius: 0;
+  border: 1px solid #7a8fa6;
+  border-top-color: #b9cbdc;
+  border-left-color: #b9cbdc;
+  background: linear-gradient(180deg, #f7fbff 0%, #dbe9f6 46%, #c3d9ec 54%, #e8f2fb 100%);
+  box-shadow: none;
+  padding: 4px 10px;
+  min-height: 32px;
+}
+html[data-skin="aero"] .brand-emblem { display: none; }
+html[data-skin="aero"] .brand-text b {
+  font: 700 14px/1.2 Tahoma, "SimSun", "宋体", sans-serif;
+  color: #14456b; text-shadow: none; letter-spacing: 0;
+}
+html[data-skin="aero"] .brand-text b .sl { color: #7a8fa6; }
+html[data-skin="aero"] .hbtn .ico { display: none; }
+html[data-skin="aero"] .hbtn .hbtn-label { display: inline; }
+html[data-skin="aero"] .hbtn {
+  border: 0; background: none; box-shadow: none; transform: none;
+  color: #0645ad; text-decoration: none; padding: 0 7px; font-size: 12px;
+  min-height: 20px; line-height: 20px; text-shadow: none;
+}
+html[data-skin="aero"] .hbtn:hover { background: none; color: #0b0080; text-decoration: underline; }
+html[data-skin="aero"] .hbtn.quit { color: #a33; }
+html[data-skin="aero"] .user-area { gap: 0; }
+html[data-skin="aero"] .user-area > * + *::before {
+  content: "|"; color: #9fb0c2; margin-right: 7px;
+}
+html[data-skin="aero"] .user-tag {
+  border: 0; background: none !important; color: #0645ad !important;
+  padding: 0 7px; font-weight: 400; box-shadow: none; text-decoration: none;
+}
+html[data-skin="aero"] .user-tag:hover { text-decoration: underline; }
+html[data-skin="aero"] .color-btn { padding: 0 6px; }
+html[data-skin="aero"] #colorDot { width: 10px; height: 10px; border-radius: 0; border: 1px solid #6b7f93; }
+
+/* ---- 20.4 标题条：实色蓝渐变 + 白字（不再用玻璃高光） ---- */
+html[data-skin="aero"] .panel-head,
+html[data-skin="aero"] .persona-card-head,
+html[data-skin="aero"] .modal-head {
+  background: linear-gradient(180deg, #4f8fc9 0%, #3576b4 48%, #2a639c 52%, #3d7fbb 100%);
+  border-bottom: 1px solid #1e4f7d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45);
+  border-radius: 0;
+}
+html[data-skin="aero"] .panel-head h2,
+html[data-skin="aero"] .persona-card-head h2,
+html[data-skin="aero"] .modal-head h2,
+html[data-skin="aero"] .modal-head h3,
+html[data-skin="aero"] .persona-sub {
+  color: #fff; text-shadow: 1px 1px 0 rgba(0, 0, 0, .35);
+}
+html[data-skin="aero"] .panel-head .record-time { color: #e3f0fb; text-shadow: none; }
+html[data-skin="aero"] .persona-rules-btn {
+  border: 1px solid rgba(255, 255, 255, .55); background: rgba(255, 255, 255, .16);
+  color: #fff; text-shadow: none; padding: 0 6px; font-size: 11px;
+}
+html[data-skin="aero"] .persona-rules-btn svg { display: none; }
+html[data-skin="aero"] .collapse-head .chev { color: #fff; }
+
+/* ---- 20.5 控件：方角立体按钮 ---- */
+html[data-skin="aero"] .btn {
+  border: 1px solid #7f8fa0;
+  border-top-color: #f4f8fc; border-left-color: #f4f8fc;
+  border-bottom-color: #5d6f82; border-right-color: #5d6f82;
+  background: linear-gradient(180deg, #fbfdff 0%, #e6eef6 48%, #d3e0ec 52%, #eaf2f9 100%);
+  box-shadow: none; color: #1b3a52; font-size: 12px; min-height: 24px; padding: 0 12px;
+}
+html[data-skin="aero"] .btn:hover { background: linear-gradient(180deg, #fff 0%, #eaf6fd 48%, #bee6fd 52%, #dff1fd 100%); color: #0b2130; }
+html[data-skin="aero"] .btn:active {
+  border-top-color: #5d6f82; border-left-color: #5d6f82;
+  border-bottom-color: #f4f8fc; border-right-color: #f4f8fc;
+  background: linear-gradient(180deg, #cfdeea 0%, #e2edf7 100%);
+}
+html[data-skin="aero"] .btn.primary {
+  border-color: #2a5f8c; border-top-color: #9cc8e8; border-left-color: #9cc8e8;
+  background: linear-gradient(180deg, #7db8e0 0%, #4a8fc4 48%, #3576ac 52%, #5b9bcc 100%);
+  color: #fff; text-shadow: 1px 1px 0 rgba(0, 0, 0, .35); font-weight: 700;
+}
+html[data-skin="aero"] .btn.primary:hover { background: linear-gradient(180deg, #93c8e9 0%, #5fa1d2 48%, #4585ba 52%, #6fadd8 100%); }
+html[data-skin="aero"] input, html[data-skin="aero"] textarea,
+html[data-skin="aero"] select, html[data-skin="aero"] .input, html[data-skin="aero"] .editor {
+  border: 1px solid #7f8fa0;
+  border-top-color: #5d6f82; border-left-color: #5d6f82;
+  border-bottom-color: #e8eef4; border-right-color: #e8eef4;
+  background: #fff; box-shadow: none; font-size: 12px;
+}
+html[data-skin="aero"] input:focus, html[data-skin="aero"] textarea:focus,
+html[data-skin="aero"] select:focus, html[data-skin="aero"] .editor:focus {
+  border-color: #3c7fb1; box-shadow: none; outline: 1px solid #9cc8e8;
+}
+
+/* ---- 20.6 少图标多文字：记录操作改文字 ---- */
+html[data-skin="aero"] .like-btn .act-ico,
+html[data-skin="aero"] .fav-btn .act-ico,
+html[data-skin="aero"] .quote-btn .act-ico { display: none; }
+html[data-skin="aero"] .like-btn::before { content: "赞 "; }
+html[data-skin="aero"] .fav-btn::before { content: "收藏"; }
+html[data-skin="aero"] .quote-btn::before { content: "转发"; }
+html[data-skin="aero"] .like-btn,
+html[data-skin="aero"] .fav-btn,
+html[data-skin="aero"] .quote-btn,
+html[data-skin="aero"] .edit-btn,
+html[data-skin="aero"] .del-btn {
+  border: 1px solid #9aa9b8; background: linear-gradient(180deg, #fff, #e9f0f7);
+  color: #1b3a52; padding: 0 6px; font-size: 11px; min-height: 19px;
+}
+html[data-skin="aero"] .like-btn:hover,
+html[data-skin="aero"] .fav-btn:hover,
+html[data-skin="aero"] .quote-btn:hover,
+html[data-skin="aero"] .edit-btn:hover,
+html[data-skin="aero"] .del-btn:hover { border-color: #3c7fb1; background: linear-gradient(180deg, #f2fbff, #d8eefc); }
+html[data-skin="aero"] .emoji-open .smile-ico { display: none; }
+html[data-skin="aero"] .emoji-open::before { content: "表情"; font-size: 11px; white-space: nowrap; }
+html[data-skin="aero"] .board-emoji {
+  width: auto; min-width: 52px; flex: none; padding: 0 10px; white-space: nowrap;
+}
+
+/* ---- 20.7 首屏：实色渐变横幅，去掉光晕与阴影 ---- */
+html[data-skin="aero"]:not([data-theme="dark"]) .hero {
+  border: 1px solid #2a639c;
+  border-radius: 0;
+  background: linear-gradient(180deg, #2f74ad 0%, #4a90c6 46%, #6aa9d6 54%, #8cc3e4 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero::before,
+html[data-skin="aero"]:not([data-theme="dark"]) .hero::after { content: none; }
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-title .line > span {
+  background: none; -webkit-background-clip: border-box; color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, .45);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hero-title .outline {
+  color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, .85);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, .35);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hs {
+  border: 1px solid rgba(255, 255, 255, .45);
+  background: rgba(255, 255, 255, .12);
+  box-shadow: none;
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .hs b { text-shadow: 1px 1px 0 rgba(0, 0, 0, .4); }
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-core {
+  border: 2px solid #fff;
+  box-shadow: none;
+  background: radial-gradient(circle at 34% 24%, #fff 0%, #cbe9fb 22%, #5aa6d4 70%, #2f74ad 100%);
+}
+html[data-skin="aero"]:not([data-theme="dark"]) .moon-core::after { display: none; }
+
+/* ---- 20.8 夜间：同样直角 + 文字化，换成 CRT 终端配色 ---- */
+html[data-skin="aero"][data-theme="dark"] header.app-bar {
+  border: 1px solid #00b8cc; border-radius: 0;
+  background: linear-gradient(180deg, #0d3b44 0%, #062028 52%, #0a2c34 100%);
+  box-shadow: inset 0 1px 0 rgba(0, 255, 255, .25);
+}
+html[data-skin="aero"][data-theme="dark"] .brand-text b {
+  color: #7ff4ff; font: 700 14px/1.2 Tahoma, "SimSun", "宋体", sans-serif; text-shadow: none;
+}
+html[data-skin="aero"][data-theme="dark"] .hbtn { color: #7ff4ff; }
+html[data-skin="aero"][data-theme="dark"] .hbtn:hover { color: #fff; background: none; text-decoration: underline; }
+html[data-skin="aero"][data-theme="dark"] .user-area > * + *::before { color: #2e6b78; }
+html[data-skin="aero"][data-theme="dark"] .user-tag { color: #7ff4ff !important; background: none !important; }
+html[data-skin="aero"][data-theme="dark"] .panel-head,
+html[data-skin="aero"][data-theme="dark"] .persona-card-head,
+html[data-skin="aero"][data-theme="dark"] .modal-head {
+  background: linear-gradient(180deg, #0f4550 0%, #0a2f38 52%, #0d3a45 100%);
+  border-bottom: 1px solid #00b8cc;
+  box-shadow: inset 0 1px 0 rgba(0, 255, 255, .2);
+}
+html[data-skin="aero"][data-theme="dark"] .panel-head h2,
+html[data-skin="aero"][data-theme="dark"] .persona-card-head h2,
+html[data-skin="aero"][data-theme="dark"] .modal-head h2,
+html[data-skin="aero"][data-theme="dark"] .modal-head h3 {
+  color: #9ff8ff; text-shadow: none;
+}
+html[data-skin="aero"][data-theme="dark"] .btn {
+  border: 1px solid #3c7f8c;
+  border-top-color: #9fe8f2; border-left-color: #9fe8f2;
+  border-bottom-color: #0b2b33; border-right-color: #0b2b33;
+  background: linear-gradient(180deg, #17414c 0%, #0b2830 100%);
+  color: #bff4ff; box-shadow: none;
+}
+html[data-skin="aero"][data-theme="dark"] .btn:hover { background: linear-gradient(180deg, #1f5663, #0e3540); color: #fff; }
+html[data-skin="aero"][data-theme="dark"] .btn.primary {
+  border-color: #00b8cc; border-top-color: #b9feff; border-left-color: #b9feff;
+  background: linear-gradient(180deg, #10b6c9 0%, #067f92 52%, #0a9fb4 100%);
+  color: #04191f; text-shadow: none; font-weight: 700;
+}
+html[data-skin="aero"][data-theme="dark"] .like-btn,
+html[data-skin="aero"][data-theme="dark"] .fav-btn,
+html[data-skin="aero"][data-theme="dark"] .quote-btn,
+html[data-skin="aero"][data-theme="dark"] .edit-btn,
+html[data-skin="aero"][data-theme="dark"] .del-btn {
+  border: 1px solid #3c7f8c; background: #0a2c34; color: #9ff8ff; border-radius: 0;
+}
+html[data-skin="aero"][data-theme="dark"] .hero {
+  border: 1px solid #00b8cc; border-radius: 0;
+  background: linear-gradient(180deg, #062028 0%, #031016 100%);
+  box-shadow: inset 0 1px 0 rgba(0, 255, 255, .18);
+}
+html[data-skin="aero"][data-theme="dark"] .hero::before,
+html[data-skin="aero"][data-theme="dark"] .hero::after { content: none; }
+html[data-skin="aero"][data-theme="dark"] .moon-core { border: 2px solid #00b8cc; box-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .moon-core::after { display: none; }
+html[data-skin="aero"][data-theme="dark"] .hs { border: 1px solid #2e6b78; background: rgba(0, 255, 255, .05); box-shadow: none; }
+
+/* ---- 20.9 雷达图去玻璃感：平涂色块 + 1px 描边 ---- */
+html[data-skin="aero"] .skin-radar .sr-fill { fill: rgba(120, 180, 220, .38); }
+html[data-skin="aero"] .skin-radar .sr-line { stroke: #2a639c; stroke-width: 1.5; }
+html[data-skin="aero"] .skin-radar .sr-dot { fill: #fff; stroke: #2a639c; stroke-width: 1.5; }
+html[data-skin="aero"] .skin-radar .sr-hub { fill: none; }
+html[data-skin="aero"] .skin-radar .sr-ring { stroke: #9fc3dd; }
+html[data-skin="aero"] .skin-radar .sr-spoke { stroke: #b7d3e6; }
+html[data-skin="aero"] .skin-radar .sr-name { fill: #14456b; font: 700 11px Tahoma, "SimSun", "宋体", sans-serif; }
+html[data-skin="aero"] .skin-radar .sr-rank { fill: #5d7285; font: 9.5px Tahoma, "SimSun", "宋体", sans-serif; }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-fill { fill: rgba(0, 200, 220, .22); }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-line { stroke: #00e5ff; filter: none; }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-ring { stroke: rgba(0, 229, 255, .35); }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-spoke { stroke: rgba(0, 229, 255, .22); }
+
+/* ==========================================================================
+   21. CYBER CAFÉ 2000 参考版：紫黑 / 铬银 / 桃红 / 荧光绿 / 硬阴影
+   保留直角和文字导航；夜间 Y2K 不再只是单色 CRT 终端。
+   ========================================================================== */
+
+/* ---- 21.1 收紧学习动态：主列约 700px，整组窗口居中 ---- */
+/* 内容宽 = 240 侧栏 + 14 间距 + 700 主列；顶栏与首屏共用同一宽度。 */
+html[data-skin="aero"] .shell { max-width: 1010px; }
+@media (min-width: 821px) {
+  html[data-skin="aero"] .workspace {
+    grid-template-columns: 240px minmax(0, 700px);
+    justify-content: center;
+    gap: 14px;
+  }
+  html[data-skin="aero"] .col-main { width: 100%; max-width: 700px; }
+  html[data-skin="aero"] .record { grid-template-columns: 112px minmax(0, 1fr); column-gap: 12px; }
+  html[data-skin="aero"] .comments { grid-column: 2; min-width: 0; }
+}
+@media (min-width: 821px) and (max-width: 1000px) {
+  html[data-skin="aero"] .workspace { grid-template-columns: 220px minmax(0, 1fr); }
+}
+
+/* ---- 21.2 Y2K 色板与等宽字体 ---- */
+html[data-skin="aero"][data-theme="dark"] {
+  --bg: #06030f;
+  --panel: #0b0718;
+  --panel-soft: #120c26;
+  --ink: #e9ecff;
+  --muted: #949ec3;
+  --line: #2b2148;
+  --line-strong: #4a3c72;
+  --primary: #3ee8ff;
+  --primary-dark: #a9f6ff;
+  --primary-soft: rgba(62, 232, 255, .10);
+  --danger: #ff3cac;
+  --success: #c9ff3d;
+  --warn: #ffe45e;
+  --mono: "Courier New", "Cascadia Mono", "MS Gothic", monospace;
+  --panel-shadow: 4px 4px 0 rgba(0, 0, 0, .72);
+}
+html[data-skin="aero"][data-theme="dark"] body,
+html[data-skin="aero"][data-theme="dark"] .panel,
+html[data-skin="aero"][data-theme="dark"] .modal-card {
+  color: #e9ecff;
+  font-family: Tahoma, "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+html[data-skin="aero"][data-theme="dark"] .record-time,
+html[data-skin="aero"][data-theme="dark"] .hero-eyebrow,
+html[data-skin="aero"][data-theme="dark"] .hero-code,
+html[data-skin="aero"][data-theme="dark"] .brand-text small,
+html[data-skin="aero"][data-theme="dark"] .panel-head h2,
+html[data-skin="aero"][data-theme="dark"] .persona-card-head h2,
+html[data-skin="aero"][data-theme="dark"] .modal-head h2,
+html[data-skin="aero"][data-theme="dark"] .modal-head h3 {
+  font-family: "Courier New", "SimSun", monospace;
+}
+
+/* ---- 21.3 像素星野、细网格、轻扫描线 ---- */
+html[data-skin="aero"][data-theme="dark"] .bg-grad {
+  background:
+    radial-gradient(58vw 46vh at 80% 4%, rgba(138, 92, 255, .25), transparent 70%),
+    radial-gradient(48vw 42vh at 8% 18%, rgba(255, 60, 172, .16), transparent 72%),
+    radial-gradient(70vw 46vh at 52% 104%, rgba(62, 232, 255, .13), transparent 72%),
+    #06030f;
+}
+html[data-skin="aero"][data-theme="dark"] .bg-grid {
+  opacity: .55;
+  background-image:
+    radial-gradient(1px 1px at 22px 34px, #fff, transparent),
+    radial-gradient(1px 1px at 130px 88px, #3ee8ff, transparent),
+    radial-gradient(1.5px 1.5px at 190px 42px, #ff8bd1, transparent),
+    linear-gradient(rgba(138, 92, 255, .08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(138, 92, 255, .08) 1px, transparent 1px);
+  background-size: 280px 240px, 280px 240px, 280px 240px, 64px 64px, 64px 64px;
+}
+html[data-skin="aero"][data-theme="dark"] .bg-scan {
+  inset: 0; height: auto; opacity: .22; transform: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .42) 0 1px, transparent 1px 3px);
+  -webkit-mask-image: none; mask-image: none;
+}
+html[data-skin="aero"][data-theme="dark"] .bg-vignette {
+  background: radial-gradient(ellipse at 50% 38%, transparent 38%, rgba(3, 1, 8, .68) 100%);
+}
+html[data-skin="aero"][data-theme="dark"] .shell::after {
+  opacity: .22;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .32) 0 1px, transparent 1px 3px);
+}
+
+/* ---- 21.4 铬银顶栏 + 桃红 / 青色文字链接 ---- */
+html[data-skin="aero"][data-theme="dark"] header.app-bar {
+  border: 1px solid #05030c;
+  background: linear-gradient(180deg, #fff 0%, #eaf0ff 8%, #a9b6d8 24%, #5a6488 44%, #f6f9ff 50%, #c3cee9 57%, #6a7599 74%, #dbe4fa 88%, #fff 100%);
+  box-shadow: 0 0 0 1px #3a2f5e, 4px 4px 0 rgba(0, 0, 0, .72), inset 0 1px 0 #fff;
+}
+html[data-skin="aero"][data-theme="dark"] .brand-text b {
+  color: #11152c; font: 900 15px/1.1 "Arial Black", Tahoma, sans-serif;
+  letter-spacing: -.03em; text-shadow: 0 1px 0 #fff;
+}
+html[data-skin="aero"][data-theme="dark"] .brand-text b .sl { color: #b3126f; }
+html[data-skin="aero"][data-theme="dark"] .brand-text small,
+html[data-skin="aero"][data-theme="dark"] .header-mid .hm-text { color: #343b5b; text-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .header-mid .hm-line { background: linear-gradient(90deg, transparent, #5a6488, transparent); }
+html[data-skin="aero"][data-theme="dark"] .hbtn,
+html[data-skin="aero"][data-theme="dark"] .user-tag {
+  color: #123a92 !important; background: none !important;
+  font: 700 11px/20px "Courier New", "SimSun", monospace;
+  text-shadow: none;
+}
+html[data-skin="aero"][data-theme="dark"] .hbtn:hover,
+html[data-skin="aero"][data-theme="dark"] .user-tag:hover { color: #b3126f !important; background: none; }
+html[data-skin="aero"][data-theme="dark"] .hbtn.quit { color: #8f174d !important; }
+html[data-skin="aero"][data-theme="dark"] .user-area > * + *::before { color: #6a7599; }
+
+/* ---- 21.5 窗口面板：蓝紫标题栏、硬阴影、荧光绿窗标 ---- */
+html[data-skin="aero"][data-theme="dark"] .panel,
+html[data-skin="aero"][data-theme="dark"] .persona-card,
+html[data-skin="aero"][data-theme="dark"] .modal-card {
+  border: 1px solid #3a2f5e;
+  background: linear-gradient(180deg, rgba(18, 12, 38, .98), rgba(9, 6, 20, .99));
+  box-shadow: 0 0 0 1px #05030c, 4px 4px 0 rgba(0, 0, 0, .72), inset 0 1px 0 rgba(255, 255, 255, .06);
+  transform: none;
+}
+html[data-skin="aero"][data-theme="dark"] .panel:hover { border-color: #3ee8ff; box-shadow: 0 0 0 1px #05030c, 4px 4px 0 rgba(0, 0, 0, .72); }
+html[data-skin="aero"][data-theme="dark"] .panel-head,
+html[data-skin="aero"][data-theme="dark"] .persona-card-head,
+html[data-skin="aero"][data-theme="dark"] .modal-head {
+  position: relative;
+  border-bottom: 1px solid #0a0f2a;
+  background: linear-gradient(180deg, #a9e2ff 0%, #4f8ef0 42%, #2050b8 52%, #123a92 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .48);
+}
+html[data-skin="aero"][data-theme="dark"] .panel-head h2,
+html[data-skin="aero"][data-theme="dark"] .persona-card-head h2,
+html[data-skin="aero"][data-theme="dark"] .modal-head h2,
+html[data-skin="aero"][data-theme="dark"] .modal-head h3 {
+  color: #fff; font-size: 10px; letter-spacing: .12em;
+  text-shadow: 0 1px 1px rgba(0, 10, 40, .8);
+}
+html[data-skin="aero"][data-theme="dark"] .panel-head h2::before,
+html[data-skin="aero"][data-theme="dark"] .persona-card-head h2::before {
+  content: "◆"; width: auto; height: auto; background: none; transform: none;
+  color: #c9ff3d; font-size: 8px; text-shadow: none;
+}
+html[data-skin="aero"][data-theme="dark"] .panel-head .record-time { color: #dce8ff; font-size: 9px; }
+
+/* ---- 21.6 首屏：铬字、像素星、荧光统计 ---- */
+html[data-skin="aero"][data-theme="dark"] .hero {
+  border: 1px solid #3a2f5e;
+  background:
+    linear-gradient(90deg, rgba(138, 92, 255, .14) 1px, transparent 1px),
+    linear-gradient(rgba(138, 92, 255, .14) 1px, transparent 1px),
+    linear-gradient(110deg, rgba(255, 60, 172, .10), transparent 42%, rgba(62, 232, 255, .08)),
+    #0b0718;
+  background-size: 32px 32px, 32px 32px, auto, auto;
+  box-shadow: 0 0 0 1px #05030c, 4px 4px 0 rgba(0, 0, 0, .72), inset 0 1px 0 rgba(255, 255, 255, .07);
+}
+html[data-skin="aero"][data-theme="dark"] .hero::before {
+  content: "✦"; display: block; position: absolute; right: 92px; top: 6px;
+  color: #ffe45e; font-size: 18px; text-shadow: none;
+}
+html[data-skin="aero"][data-theme="dark"] .hero::after {
+  content: "EST. 2000 // ALWAYS ONLINE"; display: block; position: absolute;
+  right: 10px; bottom: 5px; color: #6f79a4; background: none;
+  font: 8px/1 "Courier New", monospace; letter-spacing: .12em;
+}
+html[data-skin="aero"][data-theme="dark"] .hero-title .line > span,
+html[data-skin="aero"][data-theme="dark"] .hero-title .outline {
+  background: linear-gradient(180deg, #fff 0%, #eaf0ff 8%, #a9b6d8 24%, #5a6488 44%, #f6f9ff 50%, #c3cee9 57%, #6a7599 74%, #dbe4fa 88%, #fff 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-text-stroke: 0; text-shadow: none; filter: drop-shadow(2px 2px 0 #05030c);
+}
+html[data-skin="aero"][data-theme="dark"] .hero-title .line:nth-child(2) > span {
+  background: linear-gradient(180deg, #ffd9f0, #ff3cac 46%, #b3126f 54%, #ff9bd3);
+  -webkit-background-clip: text; background-clip: text;
+}
+html[data-skin="aero"][data-theme="dark"] .hero-eyebrow { color: #3ee8ff; font-size: 8px; letter-spacing: .13em; }
+html[data-skin="aero"][data-theme="dark"] .hero-eyebrow .dot { background: #c9ff3d; box-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .hs {
+  border: 1px solid #2b2148; background: #090515;
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .06), 2px 2px 0 rgba(0, 0, 0, .6);
+}
+html[data-skin="aero"][data-theme="dark"] .hs b { color: #c9ff3d; font-family: "Courier New", monospace; text-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .hs span { color: #949ec3; font-family: "Courier New", monospace; }
+html[data-skin="aero"][data-theme="dark"] .moon-core {
+  border: 1px solid #aab6d8;
+  background: radial-gradient(circle at 32% 25%, #fff 0%, #dce7ff 12%, #7d8bad 35%, #222a47 62%, #080412 82%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .12), 3px 3px 0 #000;
+}
+html[data-skin="aero"][data-theme="dark"] .moon-core span { color: #c9ff3d; font-family: "Courier New", monospace; text-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .moon-core small { color: #c4cbe8; }
+
+/* ---- 21.7 动态列表：深紫行、虚线分隔、荧光交互 ---- */
+html[data-skin="aero"][data-theme="dark"] .record-list {
+  border: 1px solid #3a2f5e; background: #090515;
+  box-shadow: 0 0 0 1px #05030c, 4px 4px 0 rgba(0, 0, 0, .72), inset 1px 1px 0 rgba(255, 255, 255, .05);
+}
+html[data-skin="aero"][data-theme="dark"] .record,
+html[data-skin="aero"][data-theme="dark"] .record:nth-child(even),
+html[data-skin="aero"][data-theme="dark"] .record.mine {
+  border: 0; border-bottom: 1px dashed #2b2148;
+  background: transparent; box-shadow: none; transform: none;
+}
+html[data-skin="aero"][data-theme="dark"] .record:nth-child(even) { background: rgba(138, 92, 255, .035); }
+html[data-skin="aero"][data-theme="dark"] .record.mine { box-shadow: inset 3px 0 0 #ff3cac; }
+html[data-skin="aero"][data-theme="dark"] .record:hover {
+  border-color: #2b2148; background: rgba(62, 232, 255, .055);
+  box-shadow: inset 3px 0 0 #3ee8ff; transform: none;
+}
+html[data-skin="aero"][data-theme="dark"] .record:last-child { border-bottom: 0; }
+html[data-skin="aero"][data-theme="dark"] .record-content { color: #e9ecff; font-size: 12.5px; line-height: 1.75; }
+html[data-skin="aero"][data-theme="dark"] .record-time { color: #8b96bd; font-size: 9px; }
+html[data-skin="aero"][data-theme="dark"] .role-tag {
+  border: 1px solid #3a2f5e; background: #171030 !important; color: #3ee8ff !important;
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .08); font-weight: 400;
+}
+html[data-skin="aero"][data-theme="dark"] .record-foot { border-top: 1px dashed #2b2148; }
+html[data-skin="aero"][data-theme="dark"] .quote-card,
+html[data-skin="aero"][data-theme="dark"] .reply-state {
+  border: 1px dashed #4a3c72; background: #0d0820; color: #c4cbe8; box-shadow: none;
+}
+
+/* ---- 21.8 按钮：参考页的铬银、青色主按钮、桃红次要按钮 ---- */
+html[data-skin="aero"][data-theme="dark"] .btn,
+html[data-skin="aero"][data-theme="dark"] .like-btn,
+html[data-skin="aero"][data-theme="dark"] .fav-btn,
+html[data-skin="aero"][data-theme="dark"] .quote-btn,
+html[data-skin="aero"][data-theme="dark"] .edit-btn,
+html[data-skin="aero"][data-theme="dark"] .del-btn,
+html[data-skin="aero"][data-theme="dark"] .range-btn,
+html[data-skin="aero"][data-theme="dark"] .board-more {
+  border: 1px solid #3a2f5e;
+  background: linear-gradient(180deg, #1a1336, #0d0820);
+  color: #c6cff0; box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .10), inset -1px -1px 0 rgba(0, 0, 0, .55), 2px 2px 0 rgba(0, 0, 0, .55);
+  font-family: "Courier New", "SimSun", monospace; text-shadow: none;
+}
+html[data-skin="aero"][data-theme="dark"] .btn:hover,
+html[data-skin="aero"][data-theme="dark"] .like-btn:hover,
+html[data-skin="aero"][data-theme="dark"] .fav-btn:hover,
+html[data-skin="aero"][data-theme="dark"] .quote-btn:hover,
+html[data-skin="aero"][data-theme="dark"] .edit-btn:hover,
+html[data-skin="aero"][data-theme="dark"] .del-btn:hover {
+  border-color: #bff8ff; background: linear-gradient(180deg, #3ee8ff, #159ec2); color: #0a0616;
+}
+html[data-skin="aero"][data-theme="dark"] .btn.primary {
+  border: 1px solid #c8fbff;
+  background: linear-gradient(180deg, #95faff 0%, #35d8f4 42%, #0fa3c9 58%, #0a7ba6 100%);
+  color: #03121a; box-shadow: 0 0 0 1px #041018, 3px 3px 0 #000, inset 0 1px 0 #fff;
+}
+html[data-skin="aero"][data-theme="dark"] .like-btn.liked,
+html[data-skin="aero"][data-theme="dark"] .fav-btn.favored {
+  border-color: #ffb6e1; background: linear-gradient(180deg, #ff3cac, #b3126f); color: #180410;
+}
+html[data-skin="aero"][data-theme="dark"] input,
+html[data-skin="aero"][data-theme="dark"] textarea,
+html[data-skin="aero"][data-theme="dark"] select,
+html[data-skin="aero"][data-theme="dark"] .input,
+html[data-skin="aero"][data-theme="dark"] .editor {
+  border: 1px solid #3a2f5e; background: #05030c; color: #e9ecff;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .85), inset -1px -1px 0 rgba(255, 255, 255, .05);
+}
+html[data-skin="aero"][data-theme="dark"] input:focus,
+html[data-skin="aero"][data-theme="dark"] textarea:focus,
+html[data-skin="aero"][data-theme="dark"] .editor:focus { border-color: #3ee8ff; outline: 1px solid #3ee8ff; outline-offset: 1px; }
+html[data-skin="aero"][data-theme="dark"] ::selection { background: #c9ff3d; color: #07110a; }
+
+/* ---- 21.9 档案页统一紫黑窗口，不用旧 CRT 青色 ---- */
+html[data-skin="aero"][data-theme="dark"] .persona-page { color: #e9ecff; }
+html[data-skin="aero"][data-theme="dark"] .persona-name,
+html[data-skin="aero"][data-theme="dark"] .persona-tile b { color: #e9ecff; text-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .persona-sub { color: #dce8ff; }
+html[data-skin="aero"][data-theme="dark"] .persona-tile,
+html[data-skin="aero"][data-theme="dark"] .settings-item,
+html[data-skin="aero"][data-theme="dark"] .changelog-item,
+html[data-skin="aero"][data-theme="dark"] .daily-card,
+html[data-skin="aero"][data-theme="dark"] .daily-hero,
+html[data-skin="aero"][data-theme="dark"] .board-msg {
+  border: 1px solid #2b2148; background: #0d0820; box-shadow: 2px 2px 0 rgba(0, 0, 0, .55);
+}
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-name { fill: #e9ecff; font-family: "Courier New", monospace; }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-rank { fill: #949ec3; }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-fill { fill: rgba(255, 60, 172, .20); }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-line { stroke: #3ee8ff; }
+html[data-skin="aero"][data-theme="dark"] .skin-radar .sr-dot { fill: #c9ff3d; stroke: #06030f; }
+
+@media (max-width: 820px) {
+  html[data-skin="aero"] .shell { max-width: none; }
+  html[data-skin="aero"] .record { grid-template-columns: 1fr; }
+  html[data-skin="aero"] .record-head,
+  html[data-skin="aero"] .record-content,
+  html[data-skin="aero"] .quote-card,
+  html[data-skin="aero"] .record-foot,
+  html[data-skin="aero"] .comments { grid-column: 1; }
+  html[data-skin="aero"] .record-head { grid-row: auto; }
+  html[data-skin="aero"][data-theme="dark"] .hero::after { display: none; }
+}
+
+/* 侧栏收窄后，日报日期同步降号，避免十位日期被裁掉。 */
+html[data-skin="aero"] .daily-card-title,
+html[data-skin="aero"] .daily-hero-date { gap: 6px; font-style: normal; }
+html[data-skin="aero"] .daily-card-title b,
+html[data-skin="aero"] .daily-hero-date b {
+  font-family: "Courier New", Tahoma, monospace;
+  font-size: 26px; line-height: 1; letter-spacing: -.06em;
+}
+html[data-skin="aero"] .daily-card-title span,
+html[data-skin="aero"] .daily-hero-date span { font-size: 8px; letter-spacing: .06em; }
+html[data-skin="aero"][data-theme="dark"] .daily-card-title b,
+html[data-skin="aero"][data-theme="dark"] .daily-hero-date b { color: #c9ff3d; text-shadow: none; }
+html[data-skin="aero"][data-theme="dark"] .daily-card-title span,
+html[data-skin="aero"][data-theme="dark"] .daily-hero-date span { padding: 0; background: none; color: #949ec3; transform: none; }
+html[data-skin="aero"][data-theme="dark"] .daily-card-sub { color: #c4cbe8; font-weight: 400; }
+
+html[data-skin="aero"] .hbtn,
+html[data-skin="aero"] .user-tag { white-space: nowrap; }
+@media (max-width: 600px) {
+  html[data-skin="aero"] .shell { overflow-x: clip; }
+  html[data-skin="aero"] header.app-bar { display: block; padding: 6px 9px; }
+  html[data-skin="aero"] header.app-bar .brand { margin-bottom: 5px; }
+  html[data-skin="aero"] header.app-bar .header-mid { display: none; }
+  html[data-skin="aero"] .user-area { display: flex; flex-wrap: wrap; justify-content: flex-end; row-gap: 3px; }
+  html[data-skin="aero"] .hero { grid-template-columns: 1fr; padding: 10px 12px; }
+  html[data-skin="aero"] .hero-title { font-size: 28px; gap: 6px; }
+  html[data-skin="aero"] .hero-moon { display: none; }
+  html[data-skin="aero"] .hero::before { right: 10px; top: 5px; }
+  html[data-skin="aero"] .panel,
+  html[data-skin="aero"] .record-list { box-shadow: 2px 2px 0 rgba(0, 0, 0, .55); }
+}
+
+/* ==========================================================================
+   22. 学习动态窗口对齐 + 静态千禧年网页
+   ========================================================================== */
+html[data-skin="aero"] .record-panel { padding: 0; overflow: hidden; }
+html[data-skin="aero"] .record-panel > .panel-head { margin: 0 0 12px !important; }
+html[data-skin="aero"] .record-panel .record-list {
+  border: 0; box-shadow: none; background: transparent;
+}
+html[data-skin="aero"] .record-panel .empty { padding: 30px 14px; text-align: center; }
+
+/* 这套皮肤只保留静态视觉：关闭背景、按钮、弹窗、SVG 等全部 CSS 动效。 */
+html[data-skin="aero"] { scroll-behavior: auto !important; }
+html[data-skin="aero"] *,
+html[data-skin="aero"] *::before,
+html[data-skin="aero"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+html[data-skin="aero"] .pfx { display: none !important; }
+
+/* 看板娘入口使用静态头像，避免全身立绘遮挡正文。 */
+html[data-skin="aero"] .mascot-btn.is-avatar {
+  width: 58px; height: 58px; padding: 2px;
+  border: 1px solid #6f8ca5; border-radius: 0;
+  background: #eef6fc; box-shadow: 2px 2px 0 rgba(0, 40, 70, .28);
+}
+html[data-skin="aero"] .mascot-btn.is-avatar:hover { transform: none; border-color: #2f74ad; }
+html[data-skin="aero"] .mascot-btn.is-avatar img { object-fit: cover; filter: none; }
+html[data-skin="aero"][data-theme="dark"] .mascot-btn.is-avatar {
+  border-color: #3ee8ff; background: #0b0718; box-shadow: 2px 2px 0 #000;
+}
+@media (max-width: 600px) {
+  html[data-skin="aero"] .mascot-wrap { right: 12px; bottom: 64px; }
+  html[data-skin="aero"] .mascot-btn.is-avatar { width: 48px; height: 48px; }
+}
+
+/* ==========================================================================
+   23. 细节清理：去光标 / 方正主题色 / 长用户名 / 弹窗文字化
+   ========================================================================== */
+html[data-skin="aero"] .hero-title .cursor { display: none; }
+html[data-skin="aero"] .hbtn,
+html[data-skin="aero"] .user-tag,
+html[data-skin="aero"] #colorBtn,
+html[data-skin="aero"] #colorDot {
+  clip-path: none; transform: none; border-radius: 0;
+}
+html[data-skin="aero"] #colorBtn {
+  width: 24px; height: 22px; min-height: 20px; padding: 3px;
+  border: 1px solid #7f8fa0; background: #eef4f9; box-shadow: none;
+}
+html[data-skin="aero"] #colorDot {
+  width: 12px !important; height: 12px !important;
+  border: 1px solid #5d6f82; box-shadow: none;
+}
+html[data-skin="aero"] .color-palette { border-radius: 0; box-shadow: 3px 3px 0 rgba(0, 0, 0, .25); }
+html[data-skin="aero"] .color-palette button {
+  border-radius: 0; clip-path: none; transform: none;
+}
+html[data-skin="aero"] .color-palette button:hover { transform: none; }
+html[data-skin="aero"] .user-tag { overflow: visible; text-overflow: clip; }
+@media (max-width: 600px) {
+  html[data-skin="aero"] .user-tag {
+    max-width: 46vw; height: auto; min-height: 20px; line-height: 16px;
+    white-space: normal; overflow-wrap: anywhere; word-break: break-all;
+  }
+}
+
+/* 设置与消息：装饰图标移除，操作改为文字。 */
+html[data-skin="aero"] .settings-head-ico,
+html[data-skin="aero"] .settings-icon,
+html[data-skin="aero"] .notif-ico,
+html[data-skin="aero"] .settings-switch { display: none; }
+html[data-skin="aero"] .settings-item { gap: 8px; }
+html[data-skin="aero"] .settings-arrow::before {
+  content: "进入"; font: 11px/1 Tahoma, "SimSun", sans-serif; color: #0645ad;
+}
+html[data-skin="aero"] .settings-arrow svg { display: none; }
+html[data-skin="aero"] .modal-close {
+  min-width: 38px; min-height: 22px; padding: 0 6px;
+  font-size: 0 !important; clip-path: none; transform: none;
+}
+html[data-skin="aero"] .modal-close::before {
+  content: "关闭"; font: 11px/20px Tahoma, "SimSun", sans-serif;
+}
+html[data-skin="aero"] .modal-close svg { display: none; }
+html[data-skin="aero"] .notif-dot {
+  width: auto; height: auto; margin-left: 6px; border-radius: 0; background: none;
+}
+html[data-skin="aero"] .notif-dot::before {
+  content: "[新]"; color: #b3261e; font: 10px/1 Tahoma, "SimSun", sans-serif;
+}
+html[data-skin="aero"][data-theme="dark"] .settings-arrow::before { color: #3ee8ff; }
+html[data-skin="aero"][data-theme="dark"] .notif-dot::before { color: #ff3cac; }
+html[data-skin="aero"][data-theme="dark"] #colorBtn {
+  border-color: #aab6d8; background: #0b0718; box-shadow: none;
+}
+
+/* 去除浏览器默认的蓝色按钮焦点圈；键盘操作仍保留灰色方点线。 */
+html[data-skin="aero"] button:focus,
+html[data-skin="aero"] a:focus,
+html[data-skin="aero"] [tabindex]:focus {
+  outline: none !important;
+  box-shadow: none;
+}
+html[data-skin="aero"] button:focus-visible,
+html[data-skin="aero"] a:focus-visible,
+html[data-skin="aero"] [tabindex]:focus-visible {
+  outline: 1px dotted #3f4b57 !important;
+  outline-offset: 1px;
+}
+html[data-skin="aero"] #colorBtn:focus,
+html[data-skin="aero"] #colorBtn:focus-visible {
+  outline: 1px solid #3f4b57 !important;
+  outline-offset: 1px;
+}
+
+/* 词云不裁底：去掉最后 18% 的渐隐遮罩，四周保留安全边距。 */
+html[data-skin="aero"] .cloud-canvas {
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  padding: 4px 4px 6px;
+}
+
+/* ---------- 20. Aero 移动端兜底 ----------
+   放在 skin.css 最末，确保覆盖 19.1 顶栏压缩块和 style.css 的默认移动端规则。 */
+@media (max-width: 820px) {
+  /* 顶栏：让 6 个按钮一行排下 */
+  html[data-skin="aero"] header.app-bar { padding: 6px 8px; }
+  html[data-skin="aero"] .user-area { gap: 2px; margin-left: 6px; }
+  html[data-skin="aero"] .user-tag { font-size: 10px; padding: 0 5px; max-width: 18vw; min-height: 24px; }
+  html[data-skin="aero"] .hbtn { padding: 0 5px; min-height: 26px; font-size: 11px; }
+  html[data-skin="aero"] .hbtn .ico { width: 14px; height: 14px; }
+  html[data-skin="aero"] .hbtn.color-btn { padding: 3px 4px; }
+  html[data-skin="aero"] #colorDot { width: 16px; height: 16px; }
+
+  /* 底部 tab = Vista 工具栏按钮（浅色） */
+  html[data-skin="aero"] .module-tabs {
+    border-top: 1px solid rgba(0, 0, 0, .72);
+    background: linear-gradient(180deg, #d8e6f2 0%, #eaf2f9 40%, #c4d5e6 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), inset 0 -1px 0 rgba(0, 0, 0, .18);
+    padding: 7px 10px calc(7px + env(safe-area-inset-bottom));
+    gap: 4px;
+  }
+  html[data-skin="aero"] .module-tabs button {
+    border-radius: 3px;
+    border: 1px solid transparent;
+    padding: 4px 0;
+    background: none;
+    color: #14364b;
+    font-size: 11.5px;
+    font-weight: 400;
+    clip-path: none;
+    text-shadow: 0 0 6px rgba(255, 255, 255, .9);
+  }
+  html[data-skin="aero"] .module-tabs button:hover {
+    border-color: #3c7fb1;
+    background: var(--aero-btn-h);
+    color: #0b2130;
+  }
+  html[data-skin="aero"] .module-tabs button.on {
+    border-color: #2c6b9b;
+    background: var(--aero-btn);
+    color: #0b2130;
+    font-weight: 700;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85);
+  }
+
+  /* 底部 tab = 铬金属按钮（深色） */
+  html[data-skin="aero"][data-theme="dark"] .module-tabs {
+    border-top: 1px solid #3a4c63;
+    background: var(--y2k-metal);
+    box-shadow: inset 0 1px 0 rgba(180, 230, 255, .10);
+  }
+  html[data-skin="aero"][data-theme="dark"] .module-tabs button {
+    border: 1px solid #3a4c63;
+    border-radius: 0;
+    background: linear-gradient(180deg, #243246, #131b28);
+    color: #9fc6dd;
+    font-family: "Consolas", monospace;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-shadow: none;
+  }
+  html[data-skin="aero"][data-theme="dark"] .module-tabs button.on {
+    border: 1px solid #8ff6ff;
+    background: linear-gradient(180deg, #d8feff, #3ee9ff 50%, #0a8fb0 100%);
+    color: #021014;
+    text-shadow: none;
+    box-shadow: 0 0 14px rgba(0, 229, 255, .55), inset 0 1px 0 #fff;
+  }
+}

@@ -14,10 +14,19 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.10";
+    public static final String VERSION = "1.15.12";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.12", List.of(
+                    "修复移动端从日报页切到动态页时先跳页再翻页的顿挫感：翻页特效现在是先滑出旧页、再滑入新页，顺序正确。",
+                    "Frutiger Aero 皮肤移动端底栏改成 Vista 工具栏按钮风格（圆角、渐变、选中发光）；顶栏 6 个按钮统一压缩，退出按钮不再挤到第二行。"
+            )),
+            new ReleaseNote("1.15.11", List.of(
+                    "新增「设置 → 皮肤预置」：可在 Persona 与 Frutiger Aero 之间切换，选择结果会保存在当前浏览器。",
+                    "Frutiger Aero 皮肤正式上线：蓝天与玻璃标题栏、直角窗口、文字导航和静态页面，同时移除 Y2K 夜间方案。",
+                    "界面细节修复：顶部与工作区等宽、关键词词云完整显示、个人档案页消除大块空白、长用户名完整显示。"
+            )),
             new ReleaseNote("1.15.10", List.of(
                     "修复同一天日报被重复生成时 AI助手 会重复发播报的问题：现在只有首次发布才播报，覆盖已有日报不再重复发。",
                     "日报统计排除 AI助手 的播报记录：播报里的「日报」「发布」等词不会再进入当日热词，记录总数也不再计入播报。"
