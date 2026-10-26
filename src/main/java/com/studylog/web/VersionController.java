@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.14";
+    public static final String VERSION = "1.15.15";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.15", List.of(
+                    "修复查询筛选「按用户 / 内容」失效：之前是拿关键词直接去匹配记录里原样的 HTML，而图片是 base64 内嵌在标签里的，短关键词会在乱码串里随机命中，搜出来一堆不相干的记录（比如搜「jojo」会带出 18 条别人的记录）。现在先剥掉 HTML 标签、只对看得见的文字做模糊匹配，搜什么就出什么。"
+            )),
             new ReleaseNote("1.15.14", List.of(
                     "修复 Persona 5 深色主题下动态页整块面板看起来是斜的：一块面板装着全部记录时高度可达数万像素，原本 0.25° 的轻微手绘旋转被纵向放大成两百多像素的横向漂移，导致标题被切掉、往下滚动时面板一路斜着走。现在面板本身摆正，只保留记录卡各自的贴纸式微旋。"
             )),

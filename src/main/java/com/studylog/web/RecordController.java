@@ -99,7 +99,10 @@ public class RecordController {
         String kw = null;
         if (!q.isEmpty()) {
             kw = "%" + escapeLike(q) + "%";
-            sql.append(" AND (LOWER(r.username) LIKE LOWER(:q) ESCAPE '\\\\' OR LOWER(r.content) LIKE LOWER(:q) ESCAPE '\\\\')");
+            // 内容必须先剥掉 HTML 标签再匹配：记录里的图片是 data:image/...;base64 内嵌的，
+            // 直接 LIKE 原始 HTML 会让短关键词在 base64 串里随机命中，搜出来一堆无关记录。
+            sql.append(" AND (LOWER(r.username) LIKE LOWER(:q) ESCAPE '\\\\' " +
+                    "OR LOWER(REGEXP_REPLACE(r.content, '<[^>]*>', '')) LIKE LOWER(:q) ESCAPE '\\\\')");
             params.put("q", kw);
         }
         // 兼容旧参数 username（仅按角色）
