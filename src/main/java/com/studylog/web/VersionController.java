@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.15.13";
+    public static final String VERSION = "1.15.14";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.15.14", List.of(
+                    "修复 Persona 5 深色主题下动态页整块面板看起来是斜的：一块面板装着全部记录时高度可达数万像素，原本 0.25° 的轻微手绘旋转被纵向放大成两百多像素的横向漂移，导致标题被切掉、往下滚动时面板一路斜着走。现在面板本身摆正，只保留记录卡各自的贴纸式微旋。"
+            )),
             new ReleaseNote("1.15.13", List.of(
                     "Frutiger Aero 皮肤全局去斜切：点赞、收藏、转发、顶栏按钮、主按钮、底栏 tab 等所有按钮不再用 Persona 的斜角 clip-path，改为方正或圆角的 Vista 风格。",
                     "Frutiger Aero 皮肤底栏 tab 隐藏 SVG 图标，只保留「动态 01 / 日报 02 / 统计 03」的文字+编号形式。"

@@ -1891,16 +1891,18 @@ html[data-theme="dark"] .moon-tag::after { content: "TAKE YOUR NOTES"; font-size
 html[data-theme="dark"] .moon-spark { background: #f7f3e6; box-shadow: 0 0 0 2px #111; }
 html[data-theme="dark"] .hero-code { color: #f7f3e6; opacity: .7; }
 
-/* --- 面板：厚白边 + 红/黑硬阴影 + 胶带贴纸，交替微旋 --- */
+/* --- 面板：厚白边 + 红/黑硬阴影 + 胶带贴纸 --- */
+/* 面板本身不旋转：动态列表整块面板可达数万像素高，0.25° 旋转在纵向会被放大成两百多像素的横向
+   漂移，导致标题被裁、滚动时整块面板斜着走。轻微手绘感交给记录卡（单卡高度小，漂移不可见）。 */
 html[data-theme="dark"] .panel {
   border: 2px solid #f7f3e6;
   background:
     radial-gradient(rgba(247, 243, 230, .07) 1px, transparent 1.3px) 0 0 / 8px 8px,
     #0c0c0c;
   box-shadow: 7px 7px 0 #e60012;
-  transform: rotate(-0.25deg);
+  transform: none;
 }
-html[data-theme="dark"] .col-main > .panel:nth-of-type(even) { transform: rotate(0.3deg); box-shadow: 7px 7px 0 #000; }
+html[data-theme="dark"] .col-main > .panel:nth-of-type(even) { transform: none; box-shadow: 7px 7px 0 #000; }
 html[data-theme="dark"] .col-side .panel { transform: none; box-shadow: 6px 6px 0 #e60012; }
 html[data-theme="dark"] .panel::after {
   content: ""; position: absolute; bottom: -7px; right: 24px; width: 74px; height: 12px;
@@ -2888,6 +2890,10 @@ html[data-theme="dark"] .persona-entry:hover { color: #e60012; box-shadow: 3px 3
   gap: 18px; align-items: stretch;
   margin-top: 18px;
 }
+.persona-main-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+/* 两栏内部各自连续排布；多出来的高度由摘要 / 最近记录吸收，避免出现整块空白。 */
+.persona-main-col > .persona-summary-card { flex: 1 1 auto; }
+.persona-main-col > .persona-star-card { align-self: stretch; }
 .persona-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 /* 右栏多出来的高度由最末的「最近记录」吸收，面板底色一直铺到与左栏齐平 */
 .persona-side > .persona-recent-card { flex: 1 1 auto; }
@@ -3130,6 +3136,7 @@ html[data-theme="dark"] .persona-tile {
   .persona-eyebrow { font-size: 8.5px; letter-spacing: .12em; }
   .persona-meta { font-size: 10px; gap: 4px 7px; }
   .persona-grid { grid-template-columns: 1fr; gap: 14px; margin-top: 14px; }
+  .persona-main-col, .persona-side { gap: 14px; }
   .persona-card { padding: 15px 15px; }
   .persona-star { width: min(100%, 300px); }
   .st-label { font-size: 10.5px; padding: 2px 7px; }
