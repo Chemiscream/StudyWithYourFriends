@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.16.0";
+    public static final String VERSION = "1.16.1";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.16.1", List.of(
+                    "学习动态改为自动续载：滑到列表底部会自动接上更早的记录，不用再手动点「加载更多」。",
+                    "首屏记录不足一屏时会自动补足，不会停在半屏等待；翻到最后会显示「已经到底了」。"
+            )),
             new ReleaseNote("1.16.0", List.of(
                     "图片和视频改为独立文件存储：记录正文只保留文件地址，打开首页不再先下载几十 MB 的图片数据，首屏从数秒缩短到一秒内。",
                     "列表里的图片先显示轻量缩略图，滚动到附近才加载；点击图片仍然是全尺寸原图预览。",

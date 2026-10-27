@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive } from "vue";
+import { computed, reactive, ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImage, openPersona, loadMoreRecords } from "../store.js";
 import { renderMention } from "../utils/md.js";
 import { useMention } from "../useMention.js";
@@ -12,6 +12,43 @@ const countInfo = computed(() => {
   return state.records.length < total
     ? `已显示 ${state.records.length} / 共 ${total} 条`
     : `共 ${total} 条`;
+});
+
+// ---------- 无限滚动：底部哨兵提前 300px 进入视口时自动续载 ----------
+const sentinel = ref(null);
+let io = null;
+
+function nearBottom() {
+  if (!sentinel.value) return false;
+  return sentinel.value.getBoundingClientRect().top < window.innerHeight + 300;
+}
+
+async function autoLoadMore() {
+  if (!state.recordsHasMore || state.recordsLoading) return;
+  const before = state.records.length;
+  await loadMoreRecords();
+  await nextTick();
+  // 加载成功且新内容仍不足一屏时继续补一页；请求失败（条数没变）则停下，等下次滚动再试
+  if (state.recordsHasMore && state.records.length > before) autoLoadMore();
+}
+
+onMounted(() => {
+  if (typeof IntersectionObserver !== "undefined" && sentinel.value) {
+    io = new IntersectionObserver(
+      (entries) => { if (entries.some((e) => e.isIntersecting)) autoLoadMore(); },
+      { rootMargin: "300px 0px" }
+    );
+    io.observe(sentinel.value);
+  }
+  // 首屏 20 条可能撑不满视口，挂载后补一次判断
+  nextTick(() => { if (nearBottom()) autoLoadMore(); });
+});
+
+onUnmounted(() => { if (io) io.disconnect(); });
+
+// 首屏数据到达后若仍有更多且哨兵已在视口内，立即补载（哨兵一直可见时 IO 不会再次回调）
+watch(() => state.recordsHasMore, (more) => {
+  if (more) nextTick(() => { if (nearBottom()) autoLoadMore(); });
 });
 
 // 每条记录的评论输入框内容（key 为记录 id），需响应式才能在发送后清空输入框
@@ -169,10 +206,10 @@ function onRecordClick(r, e) {
           </template>
         </div>
       </article>
-      <div v-if="state.recordsHasMore" style="display:flex;justify-content:center;padding:14px 0 4px;">
-        <button class="btn ghost" type="button" :disabled="state.recordsLoading" @click.stop="loadMoreRecords">
-          {{ state.recordsLoading ? "加载中…" : "加载更多" }}
-        </button>
+      <div ref="sentinel" class="load-more-wrap">
+        <span v-if="state.recordsLoading" class="load-more-hint">加载中…</span>
+        <span v-else-if="state.recordsHasMore" class="load-more-hint can-tap" @click.stop="autoLoadMore">继续向下滚动加载更多</span>
+        <span v-else-if="state.records.length" class="load-more-hint">已经到底了</span>
       </div>
     </div>
   </section>

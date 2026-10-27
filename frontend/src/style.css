@@ -3439,3 +3439,18 @@ html.reduce-motion .pfx-p3 .p3-tag { opacity: 1; animation: none; }
 html.reduce-motion .pfx-p3 .p3-tag.flip .p3-tag-txt { animation: none; }
 /* ===== 五维 POINT UP / RANK UP 动画 END ===== */
 
+/* 动态列表无限滚动提示：滚动到底部自动续载，文字仅作状态反馈 */
+.load-more-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 18px 0 10px;
+  min-height: 20px;
+}
+.load-more-hint {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  user-select: none;
+}
+.load-more-hint.can-tap { cursor: pointer; }
+
