@@ -1,5 +1,5 @@
 <script setup>
-import { state, fmtComment, openNotification, clearNotifications, askConfirm } from "../store.js";
+import { state, fmtComment, openNotification, clearNotifications, markAllNotificationsRead, askConfirm } from "../store.js";
 
 function typeText(t) {
   if (t === "reply") return "回复了你的留言";
@@ -9,6 +9,9 @@ function typeText(t) {
   if (t === "quote") return "转发了你的记录";
   if (t === "board") return "在你的留言板留言";
   return "评论了你的记录";
+}
+async function onReadAll() {
+  await markAllNotificationsRead();
 }
 async function onClear() {
   if (!state.notif.items.length) return;
@@ -26,6 +29,10 @@ function close() {
       <div class="notif-modal-head">
         <h2>消息</h2>
         <div class="notif-head-actions">
+          <button
+            class="notif-clear notif-readall" type="button" title="把全部未读消息标记为已读"
+            :disabled="!state.notif.unread" @click="onReadAll"
+          >全部已读</button>
           <button class="notif-clear" type="button" title="清除全部消息" @click="onClear">清除消息</button>
           <button class="modal-close" type="button" title="关闭" @click="close">✕</button>
         </div>

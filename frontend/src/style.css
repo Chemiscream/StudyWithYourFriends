@@ -481,6 +481,10 @@ html[data-theme="dark"] .editor { background: #0d1726; }
   white-space: nowrap; flex: none; /* 防止弹窗头部挤压时逐字竖排 */
 }
 .notif-clear:hover { background: var(--danger-soft); }
+/* 「全部已读」用主色，且没有未读时置灰不可点 */
+.notif-readall { color: var(--primary); }
+.notif-readall:hover { background: var(--primary-soft); }
+.notif-readall:disabled { color: var(--muted); cursor: default; background: none; }
 .notif-empty { padding: 24px 12px; text-align: center; color: var(--muted); font-size: 13px; }
 .notif-item {
   display: grid; gap: 2px; text-align: left;

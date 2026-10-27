@@ -70,8 +70,8 @@ export const state = reactive({
   },
   // POINT UP 加分动画：实时行为与登录后合并的未读加分公司一份动画
   pointFx: { show: false, gains: [], total: 0, pending: false },
-  // RANK UP 升级动画：一次可包含多个维度
-  rankFx: { show: false, items: [], pending: false },
+  // RANK UP 升级动画：一次可包含多个维度；gains 是同批普通加点（RANK UP 卡片里一起展示）
+  rankFx: { show: false, items: [], gains: [], pending: false },
   // 播放 POINT UP / RANK UP 动画用的五维实时数据（圆圈大小、五角星形状都靠它）
   fxStats: [],
   lightbox: null, // 图片放大预览 {src}
@@ -271,6 +271,16 @@ export async function clearNotifications() {
     }
   } catch (e) { /* 忽略 */ }
 }
+/** 一键已读：把当前用户的全部未读消息标记为已读。 */
+export async function markAllNotificationsRead() {
+  if (!state.token || !state.notif.unread) return;
+  try {
+    const res = await request("/api/notifications/read-all", { method: "POST" });
+    if (!res.ok) return;
+    state.notif.unread = 0;
+    state.notif.items = state.notif.items.map((n) => (n.read ? n : { ...n, read: true }));
+  } catch (e) { /* 忽略 */ }
+}
 
 // ---------- 主题 ----------
 export function applyTheme(t) {
@@ -321,7 +331,7 @@ export function showHome() { state.view = "home"; location.hash = ""; }
 function clearAuth() {
   state.token = ""; state.user = ""; state.myColor = ""; state.isAdmin = false; state.activeReply = null;
   state.pointFx.show = false; state.pointFx.gains = []; state.pointFx.pending = false;
-  state.rankFx.show = false; state.rankFx.items = []; state.rankFx.pending = false;
+  state.rankFx.show = false; state.rankFx.items = []; state.rankFx.gains = []; state.rankFx.pending = false;
   setToken("");
   localStorage.removeItem("studylog_user");
   localStorage.removeItem("studylog_admin");
@@ -765,13 +775,20 @@ let pointFxTimer = null;
  */
 export function queuePointGains(gains, pending = false) {
   if (!gains) return;
-  // 同时有 RANK UP 时只播 RANK UP，避免两个动画叠在一起
-  if (state.rankFx.show) return;
   const list = Array.isArray(gains)
     ? gains
     : Object.entries(gains).map(([key, delta]) => ({ key, name: POINT_NAMES[key] || key, delta }));
   const valid = list.filter((g) => g && g.delta > 0);
   if (!valid.length) return;
+
+  // RANK UP 正在播放：普通加点并入 RANK UP 卡片一起展示（横幅保持 RANK UP），
+  // 这样同一批里升级的维度放大圆环、其他维度的加点也有闪光提示
+  if (state.rankFx.show) {
+    mergeRankGains(valid);
+    state.rankFx.pending = pending || state.rankFx.pending;
+    loadFxStats();
+    return;
+  }
 
   // 上一轮动画已结束（show=false）时从头算起，避免旧加分混进新的 POINT UP
   const base = state.pointFx.show ? state.pointFx.gains : [];
@@ -802,6 +819,19 @@ function hidePointFx() {
   pointFxTimer = setTimeout(() => {
     if (!state.pointFx.show) state.pointFx.gains = [];
   }, 400);
+}
+
+/** 把普通加点并入 RANK UP 卡片；已经升级的维度由升级动画本身表达，不重复展示。 */
+function mergeRankGains(list) {
+  const rankKeys = new Set((state.rankFx.items || []).map((i) => i.key));
+  const merged = new Map((state.rankFx.gains || []).filter((g) => !rankKeys.has(g.key)).map((g) => [g.key, { ...g }]));
+  for (const g of list) {
+    if (!g || rankKeys.has(g.key)) continue;
+    const cur = merged.get(g.key);
+    if (cur) cur.delta += g.delta;
+    else merged.set(g.key, { key: g.key, name: g.name || POINT_NAMES[g.key] || g.key, delta: g.delta });
+  }
+  state.rankFx.gains = [...merged.values()];
 }
 
 /** 拉取五维实时数据供 POINT UP / RANK UP 动画绘制圆圈大小与五角星形状。 */
@@ -837,10 +867,17 @@ export function queueRankUps(list, pending = false) {
     if (!cur || r.rank > cur.rank) merged.set(r.key, { ...r });
   }
   if (!merged.size) return;
-  // POINT UP 与 RANK UP 同时出现时只播 RANK UP
-  if (state.pointFx.show) hidePointFx();
+  // 同一批的普通加点不丢弃：先取走再收起 POINT UP 卡片，并入 RANK UP 一起播放
+  const carriedGains = (state.pointFx.gains || []).slice();
+  const carriedPending = state.pointFx.pending;
+  const keepGains = state.rankFx.show ? (state.rankFx.gains || []).slice() : [];
+  if (state.pointFx.show || carriedPending) hidePointFx();
+  state.pointFx.gains = []; // 已并入 RANK UP 卡片，清空避免下次重复累计
   state.rankFx.items = [...merged.values()];
-  state.rankFx.pending = pending || state.rankFx.pending;
+  state.rankFx.gains = [];
+  mergeRankGains(carriedGains);
+  mergeRankGains(keepGains);
+  state.rankFx.pending = pending || carriedPending || state.rankFx.pending;
   state.rankFx.show = true;
   loadFxStats();
 
@@ -853,7 +890,10 @@ function hideRankFx() {
   state.rankFx.pending = false;
   clearTimeout(rankFxTimer);
   rankFxTimer = setTimeout(() => {
-    if (!state.rankFx.show) state.rankFx.items = [];
+    if (!state.rankFx.show) {
+      state.rankFx.items = [];
+      state.rankFx.gains = [];
+    }
   }, 500);
 }
 

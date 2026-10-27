@@ -72,7 +72,13 @@ function titleOf(key, rank) {
 const isRank = computed(() => state.rankFx.show);
 const show = computed(() => state.rankFx.show || state.pointFx.show);
 const fx = computed(() => (isRank.value ? state.rankFx : state.pointFx));
-const changed = computed(() => (isRank.value ? state.rankFx.items : state.pointFx.gains) || []);
+// RANK UP 卡片里也带着同批的普通加点（rankFx.gains），两者一起参与动画
+const changed = computed(() => {
+  if (!isRank.value) return state.pointFx.gains || [];
+  const items = state.rankFx.items || [];
+  const keys = new Set(items.map((i) => i.key));
+  return [...items, ...(state.rankFx.gains || []).filter((g) => !keys.has(g.key))];
+});
 const statMap = computed(() => Object.fromEntries((state.fxStats || []).map((s) => [s.key, s])));
 const changedMap = computed(() => Object.fromEntries(changed.value.map((c) => [c.key, c])));
 const orderIdx = computed(() => Object.fromEntries(changed.value.map((c, i) => [c.key, i])));
@@ -89,9 +95,11 @@ const fxKey = ref(0);
 const dots = computed(() => ORDER.map((k, i) => {
   const s = statMap.value[k] || {};
   const ch = changedMap.value[k];
-  const rank = ch && isRank.value ? ch.rank : (s.rank || 1);
-  const fromRank = ch && isRank.value ? ch.from : rank;
-  const isUp = !!(ch && isRank.value && rank > fromRank);
+  // RANK UP 卡片里可能混有普通加点项（只有 delta 没有 rank），它们只闪光不长大
+  const rankUp = !!(ch && isRank.value && ch.rank && ch.from != null);
+  const rank = rankUp ? ch.rank : (s.rank || 1);
+  const fromRank = rankUp ? ch.from : rank;
+  const isUp = !!(rankUp && rank > fromRank);
   const shownRank = isUp && !grown.value[i] ? fromRank : rank;
   const r = P3_MIN + (shownRank - 1) * P3_STEP;
   const rTo = P3_MIN + (rank - 1) * P3_STEP;
@@ -113,6 +121,7 @@ const dots = computed(() => ORDER.map((k, i) => {
     // 称号跟着圆圈的节奏走：RANK UP 时旧称号保持到圆圈长大那一刻再换成新称号
     title: isUp && !grown.value[i] ? titleOf(k, fromRank) : (s.title || titleOf(k, rank)),
     changed: !!ch,
+    rankUp,
     pendingGrow: isUp && !grown.value[i],
     grow: !!(isUp && grown.value[i]),
     scaleFrom: (rFrom / rTo).toFixed(3),
@@ -282,7 +291,7 @@ onBeforeUnmount(clearAnim);
             />
             <circle
               v-for="(c, i) in dots" v-show="c.changed" :key="'f' + i"
-              class="pfx-flash" :class="{ gold: isRank }" :cx="c.x" :cy="c.y" :r="c.rFx"
+              class="pfx-flash" :class="{ gold: c.rankUp }" :cx="c.x" :cy="c.y" :r="c.rFx"
               :style="{ animationDelay: (c.delay + RING_MS + 30) + 'ms' }"
             />
             <polygon class="pfx-p3-star" :points="p3Star" />

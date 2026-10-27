@@ -14,10 +14,15 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.16.1";
+    public static final String VERSION = "1.16.2";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.16.2", List.of(
+                    "消息弹窗新增「全部已读」：点一下就把所有未读消息标记为已读，顶栏铃铛的红点立刻消失；没有未读时按钮自动置灰。",
+                    "修复升级时其他属性的加分动画丢失：以前一次操作里既有属性升级、又有别的属性加点时，只播放升级那一个，其他属性的加点没有任何提示。现在同一张 RANK UP 卡片里，升级的属性显示圆环长大，其余加点的属性也会正常闪光提示。",
+                    "同一批里有两个属性同时升级时，两个属性都会各自播放升级动画，不会只显示其中一个。"
+            )),
             new ReleaseNote("1.16.1", List.of(
                     "学习动态改为自动续载：滑到列表底部会自动接上更早的记录，不用再手动点「加载更多」。",
                     "首屏记录不足一屏时会自动补足，不会停在半屏等待；翻到最后会显示「已经到底了」。",

@@ -63,6 +63,14 @@ public class NotificationController {
         return Map.of("ok", true);
     }
 
+    /** 一键已读：把当前用户的全部未读通知标记为已读。 */
+    @PostMapping("/read-all")
+    Map<String, Object> markAllRead(HttpServletRequest req) {
+        String me = requireLogin(req);
+        int updated = notifications.markAllRead(me);
+        return Map.of("ok", true, "updated", updated);
+    }
+
     /** 一键清除：删除我的全部通知。 */
     @PostMapping("/clear")
     Map<String, Object> clear(HttpServletRequest req) {
