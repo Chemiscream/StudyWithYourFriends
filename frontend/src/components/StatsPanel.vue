@@ -57,6 +57,7 @@ function drawCloud() {
   }
   const max = words[0].weight, min = words[words.length - 1].weight;
   const placed = [];
+  const pad = 8; // 画布四周安全边距，防止最后一行的描边/阴影贴边被裁
   for (let i = 0; i < words.length; i++) {
     const w = words[i];
     const t = max === min ? 1 : (w.weight - min) / (max - min);
@@ -71,7 +72,7 @@ function drawCloud() {
       x = W / 2 + r * Math.cos(angle) * 1.4;
       y = H / 2 + r * Math.sin(angle);
       const rect = { x: x - tw / 2 - 3, y: y - th / 2 - 3, w: tw + 6, h: th + 6 };
-      if (rect.x < 0 || rect.y < 0 || rect.x + rect.w > W || rect.y + rect.h > H) continue;
+      if (rect.x < pad || rect.y < pad || rect.x + rect.w > W - pad || rect.y + rect.h > H - pad) continue;
       let hit = false;
       for (const p of placed) {
         if (rect.x < p.x + p.w && p.x < rect.x + rect.w && rect.y < p.y + p.h && p.y < rect.y + rect.h) { hit = true; break; }

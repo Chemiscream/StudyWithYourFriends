@@ -1,11 +1,21 @@
 server:
   port: 8090
+  # 记录正文已外置为图片 URL，JSON 响应开启 gzip 后首屏大幅变小
+  compression:
+    enabled: true
+    mime-types: application/json,application/javascript,text/css,text/html,text/plain,image/svg+xml
+    min-response-size: 2048
   tomcat:
     max-http-form-post-size: 20MB
 
 spring:
   application:
     name: studylog
+  servlet:
+    multipart:
+      # 媒体上传：图片 ≤5MB、视频 ≤40MB，留出表单开销
+      max-file-size: 45MB
+      max-request-size: 64MB
   web:
     resources:
       # 前端静态资源：外部目录优先（npm run build 后同步到这里，改前端无需重启），jar 内为兜底
@@ -34,6 +44,9 @@ spring:
 app:
   secret: ${STUDYLOG_SECRET:studylog-local-secret}
   token-ttl-seconds: 3153600000
+  # 记录图片/视频落盘目录（相对启动目录），正文只保存 /media/... 相对地址
+  media:
+    dir: ${STUDYLOG_MEDIA_DIR:./media}
   ai:
     # 默认模型服务（OpenAI 兼容接口），本机 LM Studio 默认地址如下；可用环境变量覆盖
     base-url: ${STUDYLOG_AI_BASE_URL:http://localhost:1234/v1}

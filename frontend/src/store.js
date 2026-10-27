@@ -23,6 +23,11 @@ export const state = reactive({
   view: location.hash === "#login" ? "login" : "home",
   // 记录
   records: [],
+  recordsTotal: 0,      // 当前筛选下的总条数（后端 count）
+  recordsHasMore: false,
+  recordsLoading: false,
+  // 每日打卡聚合（后端按全站/本人分别统计，分页后热力图仍完整）
+  dayStats: { all: {}, mine: {}, participants: 0 },
   // user：精确按用户名筛选（档案页「查看所有记录」用），与 q 的模糊搜索互不影响
   filter: { q: "", user: "", from: "", to: "" },
   activeReply: null, // {rid, name} 普通留言时为 null
@@ -402,16 +407,84 @@ export async function changePassword(oldPwd, newPwd) {
   return res.ok ? { ok: true } : { ok: false, message: res.message || "修改失败" };
 }
 
+// ---------- 媒体上传 ----------
+/** 上传图片/视频到服务器，返回 { ok, url, full, thumb, mime, width, height }。正文只保存返回的地址。 */
+export async function uploadMedia(file) {
+  const fd = new FormData();
+  fd.append("file", file);
+  try {
+    const res = await fetch("/api/media", { method: "POST", headers: authHeaders(), body: fd });
+    return await res.json();
+  } catch (e) {
+    return { ok: false, message: "网络错误" };
+  }
+}
+
 // ---------- 记录 ----------
-export async function loadRecords() {
+const RECORD_PAGE_SIZE = 20;
+
+function recordQuery(extra = {}) {
   const params = new URLSearchParams();
   if (state.filter.q) params.set("q", state.filter.q);
   if (state.filter.user) params.set("username", state.filter.user);
   if (state.filter.from) params.set("from", state.filter.from);
   if (state.filter.to) params.set("to", state.filter.to);
-  const res = await request("/api/records?" + params.toString());
-  state.records = res.records || [];
+  params.set("size", String(RECORD_PAGE_SIZE));
+  for (const [k, v] of Object.entries(extra)) params.set(k, String(v));
+  return params;
+}
+
+function applyRecordPage(res, append) {
+  const list = res.records || [];
+  if (append) {
+    const seen = new Set(state.records.map((r) => r.id));
+    state.records = [...state.records, ...list.filter((r) => !seen.has(r.id))];
+  } else {
+    state.records = list;
+  }
+  state.recordsTotal = res.total || 0;
+  state.recordsHasMore = !!res.has_more;
+}
+
+export async function loadRecords() {
+  try {
+    const res = await request("/api/records?" + recordQuery().toString());
+    applyRecordPage(res, false);
+  } catch (e) {
+    state.records = [];
+    state.recordsTotal = 0;
+    state.recordsHasMore = false;
+  }
+  // 统计（排行/词云/热力图）较慢或与首屏无关，后台加载，不阻塞动态列表
   loadStats();
+  loadDayStats();
+}
+
+/** 每日打卡数：一次拿全站与本人两套数据，供 Hero 与热力图使用。 */
+export async function loadDayStats() {
+  try {
+    const res = await request("/api/records/days");
+    state.dayStats = {
+      all: res.all || {},
+      mine: res.mine || {},
+      participants: res.participants || 0,
+    };
+  } catch (e) { /* 统计失败不影响动态列表 */ }
+}
+
+/** 动态列表「加载更多」：用上一页最后一条 id 做游标，避免新记录插队导致重复。 */
+export async function loadMoreRecords() {
+  if (!state.recordsHasMore || state.recordsLoading) return;
+  const last = state.records[state.records.length - 1];
+  if (!last) return;
+  state.recordsLoading = true;
+  try {
+    const res = await request("/api/records?" + recordQuery({ before: last.id }).toString());
+    applyRecordPage(res, true);
+  } catch (e) { /* 加载失败保留已有列表，用户可再点一次 */ }
+  finally {
+    state.recordsLoading = false;
+  }
 }
 
 export async function search(f) {

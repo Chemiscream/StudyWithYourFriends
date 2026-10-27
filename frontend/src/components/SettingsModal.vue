@@ -35,6 +35,18 @@
             <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
           </span>
         </button>
+        <button class="settings-item" type="button" @click="openSkinSettings">
+          <span class="settings-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15"/><path d="M3.5 9h17M8 9v10.5"/></svg>
+          </span>
+          <span class="settings-text">
+            <b>皮肤预置</b>
+            <small>当前：{{ state.skin === "aero" ? "Frutiger Aero" : "Persona" }}</small>
+          </span>
+          <span class="settings-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+          </span>
+        </button>
         <button class="settings-item" type="button" @click="openAiSettings">
           <span class="settings-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><rect x="4" y="7.5" width="16" height="11" rx="1"/><path d="M12 3.5v4"/><path d="M9 12h.01M15 12h.01"/><path d="M9.5 16h5"/></svg>
@@ -48,6 +60,7 @@
           </span>
         </button>
         <button
+          v-if="state.skin !== 'aero'"
           class="settings-item"
           type="button"
           role="switch"
@@ -81,6 +94,10 @@ function openProfile() {
 function openChangelog() {
   state.settingsOpen = false;
   state.changelogOpen = true;
+}
+function openSkinSettings() {
+  state.settingsOpen = false;
+  state.skinSettingsOpen = true;
 }
 function openAiSettings() {
   state.settingsOpen = false;

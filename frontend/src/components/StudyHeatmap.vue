@@ -31,18 +31,9 @@ const todayKey = shanghaiKey(new Date());
 
 const countMap = computed(() => {
   if (props.days) return props.days;
-  // 登录后只统计自己的学习记录（留言不算打卡）；未登录时没有「自己」，保持全站聚合
-  const me = state.user;
-  const m = {};
-  for (const r of state.records || []) {
-    if (me && r.username !== me) continue;
-    if (!r.created_at) continue;
-    const t = new Date(r.created_at);
-    if (Number.isNaN(t.getTime())) continue;
-    const k = shanghaiKey(t);
-    m[k] = (m[k] || 0) + 1;
-  }
-  return m;
+  // 登录后只统计自己的学习记录（留言不算打卡）；未登录时没有「自己」，保持全站聚合。
+  // 数据来自 /api/records/days，分页后热力图仍覆盖全部历史，不再只统计首屏 20 条。
+  return state.user ? (state.dayStats.mine || {}) : (state.dayStats.all || {});
 });
 
 const todayUTC = keyToUTC(todayKey);

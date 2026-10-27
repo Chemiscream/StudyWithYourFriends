@@ -48,7 +48,7 @@ function onQuote() {
 }
 // 详情页点击图片 → 放大预览
 function onContentClick(e) {
-  if (e.target.tagName === "IMG") openImage(e.target.src);
+  if (e.target.tagName === "IMG") openImage(e.target.dataset.full || e.target.src);
 }
 </script>
 

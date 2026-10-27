@@ -87,7 +87,9 @@ watch(input, (v) => {
 });
 // 待机动作慢速轮换：仅当处于待机组（非问候/思考/倾听等临时姿势）时推进
 function scheduleIdle() {
+  if (state.skin === "aero") return;
   idleTimer = setTimeout(() => {
+    if (state.skin === "aero") return;
     if (!ai.busy && IDLES.includes(pose.value)) {
       const rest = IDLES.filter((p) => p !== pose.value);
       pose.value = rest[Math.floor(Math.random() * rest.length)];
@@ -99,7 +101,9 @@ watch(() => ai.history.length, () => nextTick(scrollBottom));
 
 // 待机鼓励气泡：面板关闭时每 40~80 秒冒一句，8 秒后自动消失
 function scheduleBubble() {
+  if (state.skin === "aero") return;
   bubbleTimer = setTimeout(() => {
+    if (state.skin === "aero") return;
     if (!open.value && !document.hidden) {
       bubble.value = CHEERS[Math.floor(Math.random() * CHEERS.length)];
       if (bubbleHideTimer) clearTimeout(bubbleHideTimer);
@@ -113,8 +117,8 @@ onMounted(() => {
   scheduleBubble();
   scheduleIdle();
   clockTimer = setInterval(() => { now.value = new Date(); }, 15000);
-  // 预加载姿势图，避免状态切换时闪烁
-  ["idle", "wave", "think", "write", "cheer", "sleep", "avatar", "read", "play", "listen"].forEach((p) => {
+  // 只预载首屏可见的待机图与面板头像，其余姿势按需加载，避免首屏抢占带宽
+  ["idle", "avatar"].forEach((p) => {
     const img = new Image();
     img.src = "/mascot/" + p + ".png?v=" + MASCOT_VER;
   });
@@ -189,8 +193,8 @@ onUnmounted(() => {
     <transition name="mascot-bub">
       <div v-if="bubble && !open" class="mascot-bubble" @click="togglePanel">{{ bubble }}</div>
     </transition>
-    <button class="mascot-btn" type="button" title="库莉姆" @click="togglePanel">
-      <img :src="poseSrc" alt="库莉姆">
+    <button class="mascot-btn" :class="{ 'is-avatar': state.skin === 'aero' }" type="button" title="库莉姆" @click="togglePanel">
+      <img :src="state.skin === 'aero' ? headSrc : poseSrc" alt="库莉姆">
     </button>
   </div>
 </template>

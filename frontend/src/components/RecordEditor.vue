@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
-import { state, submitRecord, cancelEdit, cancelQuote, toggleEmoji, askConfirm, ensureUsers } from "../store.js";
+import { state, submitRecord, cancelEdit, cancelQuote, toggleEmoji, askConfirm, ensureUsers, uploadMedia } from "../store.js";
 
 const editor = ref(null);      // contenteditable div
 const imgInput = ref(null);
@@ -90,19 +90,14 @@ function nextTickScroll() {
 
 function setMsg(text, cls) { state.addMsg = { text, cls: cls || "" }; }
 
-// ---------- 媒体插入 ----------
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = reject;
-    r.readAsDataURL(file);
-  });
-}
-function makeImg(src) {
+// ---------- 媒体插入（先上传到服务器，正文只存 /media/ 地址） ----------
+function makeImg(thumb, full) {
   const img = document.createElement("img");
-  img.src = src;
+  img.src = thumb || full;
+  if (full) img.dataset.full = full; // 点击放大时用原图
   img.alt = "学习图片";
+  img.loading = "lazy";
+  img.decoding = "async";
   return img;
 }
 function makeVideo(src) {
@@ -154,6 +149,9 @@ async function insertMediaFile(file) {
   if (!isImg && !isVideo) {
     setMsg("仅支持 png/jpg/gif/webp 图片或 mp4/webm/mov 视频", "err"); return;
   }
+  if (!state.token) {
+    setMsg("请先登录再插入图片/视频", "err"); return;
+  }
   if (isImg && file.size > MAX_IMG_SIZE) {
     setMsg("图片不能超过 5MB", "err"); return;
   }
@@ -161,12 +159,15 @@ async function insertMediaFile(file) {
     setMsg("视频不能超过 40MB", "err"); return;
   }
   try {
-    setMsg(isVideo ? "视频读取中…" : "");
-    const b64 = await fileToBase64(file);
-    insertNodeAtCursor(isVideo ? makeVideo(b64) : makeImg(b64));
+    setMsg(isVideo ? "视频上传中…" : "图片上传中…");
+    const up = await uploadMedia(file);
+    if (!up || !up.ok) {
+      setMsg((up && up.message) || "上传失败", "err"); return;
+    }
+    insertNodeAtCursor(isVideo ? makeVideo(up.url) : makeImg(up.thumb, up.full || up.url));
     setMsg("");
   } catch (e) {
-    setMsg("插入失败", "err");
+    setMsg("上传失败", "err");
   }
 }
 

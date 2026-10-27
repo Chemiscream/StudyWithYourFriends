@@ -39,6 +39,13 @@ AGENT.md
 # 本地私密待办记录（含未发布计划与个人信息，不提交）
 BACKLOG.md
 
+# 运维备份（数据库 dump / 旧 jar）与用户上传的媒体文件，不入仓库
+backups/
+media/
+
+# 本地工具/代理生成的临时工作目录
+.workbuddy-ai/
+
 # 设计素材工作区（定稿/姿势原图、抠图脚本等，不提交）
 design-drafts/
 

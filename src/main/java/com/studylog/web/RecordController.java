@@ -1,6 +1,7 @@
 package com.studylog.web;
 
 import com.studylog.ai.AiAssistantService;
+import com.studylog.media.MediaService;
 import com.studylog.model.Comment;
 import com.studylog.model.CommentLike;
 import com.studylog.model.Notification;
@@ -37,8 +38,8 @@ import java.util.*;
 @RequestMapping("/api")
 public class RecordController {
 
-    // 图文/视频混排 base64 内嵌：40MB 视频 base64 约 53MB，加若干图片留余量
-    private static final int MAX_CONTENT = 70_000_000;
+    // 图片/视频已改为外置 URL，正文只保留文字与 /media/ 地址，1MB 足够
+    private static final int MAX_CONTENT = 1_000_000;
     // 「我的收藏」弹窗最多返回的条数
     private static final int MAX_FAVORITES = 200;
     // 一条留言最多通知的 @提及人数
@@ -58,6 +59,7 @@ public class RecordController {
     private final EntityManager em;
     private final AiAssistantService aiAssistant;
     private final PersonaService persona;
+    private final MediaService media;
 
     public RecordController(RecordRepository records, CommentRepository comments,
                             UserRepository users, RecordLikeRepository likes,
@@ -65,7 +67,8 @@ public class RecordController {
                             RecordFavoriteRepository favorites,
                             NotificationRepository notifications,
                             Tokens tokens, EntityManager em,
-                            AiAssistantService aiAssistant, PersonaService persona) {
+                            AiAssistantService aiAssistant, PersonaService persona,
+                            MediaService media) {
         this.records = records;
         this.comments = comments;
         this.users = users;
@@ -77,53 +80,66 @@ public class RecordController {
         this.em = em;
         this.aiAssistant = aiAssistant;
         this.persona = persona;
+        this.media = media;
     }
 
-    // ---------- 列表 + 筛选 ----------
+    // ---------- 列表 + 筛选（游标分页：before=上一页最后一条 id） ----------
     @GetMapping("/records")
     Map<String, Object> list(HttpServletRequest req,
                              @RequestParam(name = "q", defaultValue = "") String q,
                              @RequestParam(name = "username", defaultValue = "") String username,
                              @RequestParam(name = "from", defaultValue = "") String dateFrom,
-                             @RequestParam(name = "to", defaultValue = "") String dateTo) {
+                             @RequestParam(name = "to", defaultValue = "") String dateTo,
+                             @RequestParam(name = "before", required = false) Long before,
+                             @RequestParam(name = "size", defaultValue = "20") int size) {
         q = q.trim();
         username = username.trim();
         dateFrom = dateFrom.trim();
         dateTo = dateTo.trim();
+        size = Math.max(1, Math.min(50, size));
 
-        StringBuilder sql = new StringBuilder(
-                "SELECT r.id, r.username, r.content, r.created_at, r.updated_at, COALESCE(u.color, '4a90d9'), r.quoted_record_id " +
-                "FROM records r LEFT JOIN users u ON u.username = r.username WHERE 1=1");
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
         Map<String, Object> params = new HashMap<>();
         // q：角色名或记录内容模糊搜索（不区分大小写，参数化绑定，通配符转义）
-        String kw = null;
         if (!q.isEmpty()) {
-            kw = "%" + escapeLike(q) + "%";
-            // 内容必须先剥掉 HTML 标签再匹配：记录里的图片是 data:image/...;base64 内嵌的，
-            // 直接 LIKE 原始 HTML 会让短关键词在 base64 串里随机命中，搜出来一堆无关记录。
-            sql.append(" AND (LOWER(r.username) LIKE LOWER(:q) ESCAPE '\\\\' " +
+            // 内容必须先剥掉 HTML 标签再匹配：图片是 /media/ 相对地址或历史 base64，
+            // 直接 LIKE 原始 HTML 会让短关键词在地址/base64 串里随机命中，搜出来一堆无关记录。
+            where.append(" AND (LOWER(r.username) LIKE LOWER(:q) ESCAPE '\\\\' " +
                     "OR LOWER(REGEXP_REPLACE(r.content, '<[^>]*>', '')) LIKE LOWER(:q) ESCAPE '\\\\')");
-            params.put("q", kw);
+            params.put("q", "%" + escapeLike(q) + "%");
         }
         // 兼容旧参数 username：精确按角色过滤（用户名唯一，不受记录内容里提到该名字的干扰）
         if (!username.isEmpty()) {
-            sql.append(" AND r.username = :uname");
+            where.append(" AND r.username = :uname");
             params.put("uname", username);
         }
         if (!dateFrom.isEmpty()) {
-            sql.append(" AND DATE(r.created_at) >= :from");
+            where.append(" AND DATE(r.created_at) >= :from");
             params.put("from", LocalDate.parse(dateFrom));
         }
         if (!dateTo.isEmpty()) {
-            sql.append(" AND DATE(r.created_at) <= :to");
+            where.append(" AND DATE(r.created_at) <= :to");
             params.put("to", LocalDate.parse(dateTo));
         }
-        sql.append(" ORDER BY r.created_at DESC LIMIT 500");
 
-        var query = em.createNativeQuery(sql.toString());
+        // 总数（当前筛选下），用于「共 N 条」与是否还有下一页的判断
+        var countQuery = em.createNativeQuery("SELECT COUNT(*) FROM records r" + where);
+        params.forEach(countQuery::setParameter);
+        long total = ((Number) countQuery.getSingleResult()).longValue();
+
+        String sql = "SELECT r.id, r.username, r.content, r.created_at, r.updated_at, " +
+                "COALESCE(u.color, '4a90d9'), r.quoted_record_id " +
+                "FROM records r LEFT JOIN users u ON u.username = r.username" + where +
+                (before == null ? "" : " AND r.id < :before") +
+                " ORDER BY r.created_at DESC, r.id DESC LIMIT :lim";
+        var query = em.createNativeQuery(sql);
         params.forEach(query::setParameter);
+        if (before != null) query.setParameter("before", before);
+        query.setParameter("lim", size + 1); // 多取一条判断是否还有下一页
         @SuppressWarnings("unchecked")
         List<Object[]> rows = query.getResultList();
+        boolean hasMore = rows.size() > size;
+        if (hasMore) rows = new ArrayList<>(rows.subList(0, size));
 
         String me = tokens.currentUser(req);
         List<Long> ids = rows.stream().map(r -> ((Number) r[0]).longValue()).toList();
@@ -186,7 +202,42 @@ public class RecordController {
             out.add(m);
         }
 
-        return Map.of("ok", true, "records", out);
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("ok", true);
+        res.put("records", out);
+        res.put("total", total);
+        res.put("has_more", hasMore);
+        res.put("next_cursor", out.isEmpty() ? null : ((Number) rows.get(rows.size() - 1)[0]).longValue());
+        return res;
+    }
+
+    // ---------- 每日打卡聚合（热力图 / Hero 用，不含正文，避免分页后统计不全） ----------
+    @GetMapping("/records/days")
+    Map<String, Object> days(HttpServletRequest req) {
+        String me = tokens.currentUser(req);
+        String mineName = me == null ? "\u0000" : me;
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(
+                "SELECT DATE_FORMAT(r.created_at + INTERVAL 8 HOUR, '%Y-%m-%d') d, COUNT(*) c, " +
+                "SUM(CASE WHEN r.username = :me THEN 1 ELSE 0 END) mine " +
+                "FROM records r GROUP BY d").setParameter("me", mineName).getResultList();
+        Map<String, Long> all = new LinkedHashMap<>();
+        Map<String, Long> mine = new LinkedHashMap<>();
+        for (Object[] r : rows) {
+            String d = String.valueOf(r[0]);
+            long c = ((Number) r[1]).longValue();
+            long mc = ((Number) r[2]).longValue();
+            all.put(d, c);
+            if (mc > 0) mine.put(d, mc);
+        }
+        long participants = ((Number) em.createNativeQuery(
+                "SELECT COUNT(DISTINCT username) FROM records").getSingleResult()).longValue();
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("ok", true);
+        res.put("all", all);
+        res.put("mine", mine);
+        res.put("participants", participants);
+        return res;
     }
 
     // ---------- 单条详情（详情页） ----------
@@ -420,7 +471,9 @@ public class RecordController {
         likes.deleteByRecordId(rid);
         favorites.deleteByRecordId(rid);
         notifications.deleteByRecordId(rid);
+        Set<String> mediaShas = MediaService.shasIn(r.getContent());
         records.delete(r);
+        media.releaseIfUnused(mediaShas); // 记录删掉后不再被引用的图片/视频一并回收
         return Map.of("ok", true, "message", "已删除");
     }
 
@@ -437,10 +490,14 @@ public class RecordController {
         String content = HtmlSanitize.clean(body.getOrDefault("content", ""));
         if (content.isBlank()) throw new BizException(HttpStatus.BAD_REQUEST, "内容不能为空");
         if (content.length() > MAX_CONTENT) throw new BizException(HttpStatus.BAD_REQUEST, "内容过长");
+        Set<String> oldShas = MediaService.shasIn(r.getContent());
+        Set<String> newShas = MediaService.shasIn(content);
+        oldShas.removeAll(newShas); // 本次编辑删掉、不再引用的媒体
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
         r.setContent(content);
         r.setUpdatedAt(now);
         records.save(r);
+        media.releaseIfUnused(oldShas);
         // 编辑后正文中包含 @AI助手 也触发回应（无论原记录是否已触发过）；普通用户 @提及 编辑时不重复通知
         aiAssistant.replyOnRecord(r, me);
         Map<String, Object> m = new LinkedHashMap<>();

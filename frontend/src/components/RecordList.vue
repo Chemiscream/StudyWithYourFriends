@@ -1,12 +1,18 @@
 <script setup>
 import { computed, reactive } from "vue";
-import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImage, openPersona } from "../store.js";
+import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImage, openPersona, loadMoreRecords } from "../store.js";
 import { renderMention } from "../utils/md.js";
 import { useMention } from "../useMention.js";
 
 const mention = useMention(); // 留言 @提及自动补全（全部输入框共用一个弹层状态）
 
-const countInfo = computed(() => (state.records.length ? `共 ${state.records.length} 条` : ""));
+const countInfo = computed(() => {
+  const total = state.recordsTotal || 0;
+  if (!total) return "";
+  return state.records.length < total
+    ? `已显示 ${state.records.length} / 共 ${total} 条`
+    : `共 ${total} 条`;
+});
 
 // 每条记录的评论输入框内容（key 为记录 id），需响应式才能在发送后清空输入框
 const commentDrafts = reactive({});
@@ -51,7 +57,7 @@ function registerInput(r, el) {
 
 // 点击记录正文区域进入详情页；链接/按钮/输入框/媒体/评论区/引用卡片不触发；点击图片放大预览
 function onRecordClick(r, e) {
-  if (e.target.tagName === "IMG") return openImage(e.target.src);
+  if (e.target.tagName === "IMG") return openImage(e.target.dataset.full || e.target.src);
   if (e.target.closest("a, button, input, video, .comments, .record-foot, .quote-card")) return;
   if (window.getSelection().toString()) return; // 正在选择文本时不跳转
   openDetail(r.id);
@@ -59,7 +65,7 @@ function onRecordClick(r, e) {
 </script>
 
 <template>
-  <section>
+  <section class="panel record-panel">
     <div class="panel-head" style="margin-bottom:12px;">
       <h2>学习动态</h2>
       <span class="record-time">{{ countInfo }}</span>
@@ -163,6 +169,11 @@ function onRecordClick(r, e) {
           </template>
         </div>
       </article>
+      <div v-if="state.recordsHasMore" style="display:flex;justify-content:center;padding:14px 0 4px;">
+        <button class="btn ghost" type="button" :disabled="state.recordsLoading" @click.stop="loadMoreRecords">
+          {{ state.recordsLoading ? "加载中…" : "加载更多" }}
+        </button>
+      </div>
     </div>
   </section>
 </template>

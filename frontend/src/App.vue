@@ -85,20 +85,10 @@ const clock = computed(() => {
 });
 const dayMap = computed(() => {
   // 与右侧「学习打卡」保持一致：登录后只算自己的记录，未登录时仍为全站
-  const me = state.user;
-  const m = {};
-  for (const r of state.records || []) {
-    if (me && r.username !== me) continue;
-    if (!r.created_at) continue;
-    const d = new Date(r.created_at);
-    if (Number.isNaN(d.getTime())) continue;
-    const k = shKey(d);
-    m[k] = (m[k] || 0) + 1;
-  }
-  return m;
+  return state.user ? (state.dayStats.mine || {}) : (state.dayStats.all || {});
 });
 const todayCount = computed(() => dayMap.value[todayKey.value] || 0);
-const participants = computed(() => new Set((state.records || []).map((r) => r.username)).size);
+const participants = computed(() => state.dayStats.participants || 0);
 const DAY_MS = 86400000;
 const streak = computed(() => {
   const map = dayMap.value;

@@ -30,4 +30,8 @@ public interface RecordRepository extends JpaRepository<Record, Long> {
             "WHERE username = :username AND created_at < :before", nativeQuery = true)
     List<Object> findDaysBefore(@Param("username") String username,
                                 @Param("before") OffsetDateTime before);
+
+    /** 还有多少条记录正文引用该媒体 sha1（媒体回收前的引用检查）。 */
+    @Query("select count(r) from Record r where r.content like concat('%', :sha, '%')")
+    long countByContentContainingSha(@Param("sha") String sha);
 }

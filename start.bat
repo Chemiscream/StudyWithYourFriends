@@ -26,6 +26,6 @@ if errorlevel 1 (
 
 rem 2) start the app
 echo Starting StudyLog on port 8090...
-start "studylog-app" /min "%JAVA_HOME%\bin\javaw.exe" -jar "%APPDIR%target\studylog.jar"
+start "studylog-app" /min "%JAVA_HOME%\bin\javaw.exe" -jar "%APPDIR%target\studylog.jar" --server.port=8090
 echo Done.
 endlocal

@@ -100,7 +100,7 @@ onUnmounted(() => {
         <span v-if="state.notif.unread > 0" class="notif-badge">{{ state.notif.unread > 99 ? "99+" : state.notif.unread }}</span>
       </span>
       <a v-if="!loggedIn" class="hbtn login-link" href="#login">登录</a>
-      <button class="hbtn" type="button" :title="theme === 'dark' ? '切换到浅色（Persona 3）' : '切换到深色（Persona 5）'" @click="flipBtn($event, switchTheme)">
+      <button v-if="state.skin !== 'aero'" class="hbtn" type="button" :title="theme === 'dark' ? '切换到浅色（Persona 3）' : '切换到深色（Persona 5）'" @click="flipBtn($event, switchTheme)">
         <svg v-if="theme === 'dark'" class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
         <svg v-else class="ico" viewBox="0 0 24 24"><path d="M20.5 14.6A8.5 8.5 0 1 1 9.4 3.5a6.8 6.8 0 0 0 11.1 11.1z"/></svg>
         <span class="hbtn-label">主题</span>
