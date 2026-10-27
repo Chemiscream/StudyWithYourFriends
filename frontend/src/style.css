@@ -3454,3 +3454,17 @@ html.reduce-motion .pfx-p3 .p3-tag.flip .p3-tag-txt { animation: none; }
 }
 .load-more-hint.can-tap { cursor: pointer; }
 
+/* 记录底栏操作按钮：禁止文字逐字竖排；窄屏压缩留白，仍在放不下时整组换到下一行 */
+.record-actions, .foot-left { flex: none; }
+.record-foot { flex-wrap: wrap; row-gap: 6px; }
+.record-actions { margin-left: auto; }
+.like-btn, .fav-btn, .quote-btn, .edit-btn, .del-btn { white-space: nowrap; }
+@media (max-width: 600px) {
+  .record-foot, .foot-left, .record-actions { gap: 6px; }
+  .like-btn, .fav-btn, .quote-btn, .edit-btn, .del-btn {
+    padding-left: 7px;
+    padding-right: 7px;
+    min-height: 32px;
+  }
+}
+
