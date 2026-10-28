@@ -21,7 +21,8 @@ function subtitle(item) {
     <div class="modal-card daily-list-card">
       <h2><svg class="modal-title-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/><path d="M8 13.5h2M14 13.5h2M8 17h2M14 17h2"/></svg>AI 日报</h2>
 
-      <div v-if="d.loading" class="daily-loading">加载中…</div>
+      <!-- 仅首次加载（列表为空）时显示占位，翻页时保留旧列表，避免加载页一闪而过 -->
+      <div v-if="d.loading && !d.list.length" class="daily-loading">加载中…</div>
       <div v-else-if="!d.list.length" class="daily-empty">还没有日报</div>
 
       <div v-else class="daily-list">
@@ -39,9 +40,9 @@ function subtitle(item) {
       <div v-if="d.msg" class="daily-msg">{{ d.msg }}</div>
 
       <div class="daily-pager" v-if="d.list.length">
-        <button class="btn ghost" type="button" :disabled="d.page <= 0" @click="dailyPrevPage">上一页</button>
+        <button class="btn ghost" type="button" :disabled="d.loading || d.page <= 0" @click="dailyPrevPage">上一页</button>
         <span class="daily-page-info">{{ pageInfo }}</span>
-        <button class="btn ghost" type="button" :disabled="!d.hasMore" @click="dailyNextPage">下一页</button>
+        <button class="btn ghost" type="button" :disabled="d.loading || !d.hasMore" @click="dailyNextPage">下一页</button>
       </div>
 
       <div class="daily-footer">

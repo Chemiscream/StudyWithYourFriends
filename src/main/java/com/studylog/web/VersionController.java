@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.16.3";
+    public static final String VERSION = "1.16.4";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.16.4", List.of(
+                    "AI 日报列表翻页优化：点「上一页 / 下一页」时不再先闪一下「加载中」页面，旧内容会一直保留到新一页回来，观感更连贯。",
+                    "翻页请求期间按钮会短暂置灰，避免连续点击造成页面错乱。"
+            )),
             new ReleaseNote("1.16.3", List.of(
                     "图片预览支持左右切换：同一条记录里有多张图片时，灯箱左右两侧会出现箭头按钮，点一下就能看上一张 / 下一张，循环切换。",
                     "除按钮外还支持键盘方向键 ← / → 切换，底部会显示「第几张 / 共几张」；Esc 或点击空白处仍可直接关闭。"
