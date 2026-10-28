@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.16.4";
+    public static final String VERSION = "1.16.5";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.16.5", List.of(
+                    "修复 Persona 5 深色主题页面右侧凭空出现的白色小横条：那是各个面板右下角的胶带贴纸，因为面板缺少定位基准，全都跑到了页面右下角叠在一起。",
+                    "现在胶带贴纸回到各自面板的右下角，页面右侧不再有多余白条。"
+            )),
             new ReleaseNote("1.16.4", List.of(
                     "AI 日报列表翻页优化：点「上一页 / 下一页」时不再先闪一下「加载中」页面，旧内容会一直保留到新一页回来，观感更连贯。",
                     "翻页请求期间按钮会短暂置灰，避免连续点击造成页面错乱。"

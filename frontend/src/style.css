@@ -1939,6 +1939,9 @@ html[data-theme="dark"] .hero-code { color: #f7f3e6; opacity: .7; }
 /* 面板本身不旋转：动态列表整块面板可达数万像素高，0.25° 旋转在纵向会被放大成两百多像素的横向
    漂移，导致标题被裁、滚动时整块面板斜着走。轻微手绘感交给记录卡（单卡高度小，漂移不可见）。 */
 html[data-theme="dark"] .panel {
+  /* 胶带贴纸 ::after 依赖面板自身定位；缺少 position 时会以初始包含块为基准，
+     跑到页面右下角叠成一条白条 */
+  position: relative;
   border: 2px solid #f7f3e6;
   background:
     radial-gradient(rgba(247, 243, 230, .07) 1px, transparent 1.3px) 0 0 / 8px 8px,
