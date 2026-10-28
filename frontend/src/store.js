@@ -528,12 +528,30 @@ export function cancelQuote() {
   state.quoteOf = null;
 }
 
-/** 点击富文本里的图片 → 全屏放大预览。 */
-export function openImage(src) {
-  if (src) state.lightbox = { src };
+/** 点击富文本里的图片 → 全屏放大预览，并带上同一正文里的其他图片供左右切换。 */
+export function openImage(src, list = []) {
+  if (!src) return;
+  const imgs = (list.length ? list : [src]).filter(Boolean);
+  const idx = Math.max(0, imgs.indexOf(src));
+  state.lightbox = { src: imgs[idx], imgs, idx };
 }
 export function closeImage() {
   state.lightbox = null;
+}
+/** 点击正文中的 img 元素：收集同一段正文内的全部图片再打开灯箱。 */
+export function openImageFrom(img) {
+  if (!img) return;
+  const full = img.dataset.full || img.src;
+  const box = img.closest(".record-content");
+  const list = box ? [...box.querySelectorAll("img")].map((i) => i.dataset.full || i.src) : [full];
+  openImage(full, list);
+}
+/** 灯箱切换到上一张 / 下一张（循环）。 */
+export function stepImage(delta) {
+  const lb = state.lightbox;
+  if (!lb || !lb.imgs || lb.imgs.length < 2) return;
+  const idx = (lb.idx + delta + lb.imgs.length) % lb.imgs.length;
+  state.lightbox = { ...lb, idx, src: lb.imgs[idx] };
 }
 
 export function cancelEdit() {

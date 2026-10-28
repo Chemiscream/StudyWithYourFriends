@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive, ref, watch, nextTick, onMounted, onUnmounted } from "vue";
-import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImage, openPersona, loadMoreRecords } from "../store.js";
+import { state, fmtTime, fmtComment, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImageFrom, openPersona, loadMoreRecords } from "../store.js";
 import { renderMention } from "../utils/md.js";
 import { useMention } from "../useMention.js";
 
@@ -94,7 +94,7 @@ function registerInput(r, el) {
 
 // 点击记录正文区域进入详情页；链接/按钮/输入框/媒体/评论区/引用卡片不触发；点击图片放大预览
 function onRecordClick(r, e) {
-  if (e.target.tagName === "IMG") return openImage(e.target.dataset.full || e.target.src);
+  if (e.target.tagName === "IMG") return openImageFrom(e.target);
   if (e.target.closest("a, button, input, video, .comments, .record-foot, .quote-card")) return;
   if (window.getSelection().toString()) return; // 正在选择文本时不跳转
   openDetail(r.id);

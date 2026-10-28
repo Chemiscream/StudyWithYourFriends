@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref, computed } from "vue";
-import { state, fmtTime, fmtComment, closeDetail, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImage, openPersona } from "../store.js";
+import { state, fmtTime, fmtComment, closeDetail, delRecord, delComment, sendComment, startReply, cancelReply, startEdit, startQuote, toggleEmoji, toggleLike, toggleFavorite, toggleCommentLike, openDetail, openImageFrom, openPersona } from "../store.js";
 import { renderMention } from "../utils/md.js";
 import { useMention } from "../useMention.js";
 
@@ -48,7 +48,7 @@ function onQuote() {
 }
 // 详情页点击图片 → 放大预览
 function onContentClick(e) {
-  if (e.target.tagName === "IMG") openImage(e.target.dataset.full || e.target.src);
+  if (e.target.tagName === "IMG") openImageFrom(e.target);
 }
 </script>
 

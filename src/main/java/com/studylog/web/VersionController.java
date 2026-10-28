@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.16.2";
+    public static final String VERSION = "1.16.3";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.16.3", List.of(
+                    "图片预览支持左右切换：同一条记录里有多张图片时，灯箱左右两侧会出现箭头按钮，点一下就能看上一张 / 下一张，循环切换。",
+                    "除按钮外还支持键盘方向键 ← / → 切换，底部会显示「第几张 / 共几张」；Esc 或点击空白处仍可直接关闭。"
+            )),
             new ReleaseNote("1.16.2", List.of(
                     "消息弹窗新增「全部已读」：点一下就把所有未读消息标记为已读，顶栏铃铛的红点立刻消失；没有未读时按钮自动置灰。",
                     "修复升级时其他属性的加分动画丢失：以前一次操作里既有属性升级、又有别的属性加点时，只播放升级那一个，其他属性的加点没有任何提示。现在同一张 RANK UP 卡片里，升级的属性显示圆环长大，其余加点的属性也会正常闪光提示。",
