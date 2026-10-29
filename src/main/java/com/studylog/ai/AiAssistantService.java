@@ -50,7 +50,8 @@ public class AiAssistantService {
     private static final int MAX_REPLY_CHARS = 2000;
     private static final int MAX_SELF_RECORDS = 2;
     private static final int MAX_SELF_RECORD_CHARS = 240;
-    private static final Duration CHAT_TIMEOUT = Duration.ofSeconds(120);
+    /** 本机模型是 CPU 推理，预处理慢，上下文长时一次请求可能要两三分钟。 */
+    private static final Duration CHAT_TIMEOUT = Duration.ofSeconds(300);
     private static final DateTimeFormatter CN_DATE = DateTimeFormatter.ofPattern("M月d日");
     private static final java.time.ZoneId CN_ZONE = java.time.ZoneId.of("Asia/Shanghai");
 
@@ -293,6 +294,7 @@ public class AiAssistantService {
             System.err.println("[AI助手] 模型不可用，跳过本次回应");
             return null;
         }
+        System.out.println("[AI助手] 调用模型 " + model + "，提示词 " + (system.length() + user.length()) + " 字");
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("model", model);
         payload.put("messages", List.of(

@@ -14,10 +14,14 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.16.5";
+    public static final String VERSION = "1.16.6";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.16.6", List.of(
+                    "修复 @AI助手 之后长时间没有回复的问题：之前给模型的知识里塞进了建站以来全部版本的更新日志，本机模型是 CPU 推理，光读这段提示就要好几分钟，超过超时时间就静默放弃了。",
+                    "现在只注入最近几条更新日志，并放宽了等待时间，@AI助手 能正常回复了。"
+            )),
             new ReleaseNote("1.16.5", List.of(
                     "修复 Persona 5 深色主题页面右侧凭空出现的白色小横条：那是各个面板右下角的胶带贴纸，因为面板缺少定位基准，全都跑到了页面右下角叠在一起。",
                     "现在胶带贴纸回到各自面板的右下角，页面右侧不再有多余白条。"
@@ -358,10 +362,15 @@ public class VersionController {
 
     private record ReleaseNote(String version, List<String> notes) {}
 
-    /** 全部版本更新日志的纯文本（供 AI 助手 system prompt 引用），格式：v1.9.5：条目；条目。 */
+    /**
+     * 供 AI 助手 system prompt 引用的更新日志纯文本，格式：v1.9.5：条目；条目。
+     * 只取最近几条并限制总长度：本机模型是 CPU 推理，提示词越长预处理越慢，
+     * 全部 73 个版本的日志会让一次回复要几分钟，直接超过超时时间。
+     */
     public static String notesText() {
         StringBuilder sb = new StringBuilder();
         for (ReleaseNote n : NOTES) {
+            if (sb.length() > 600) break;
             sb.append("v").append(n.version()).append("：").append(String.join("；", n.notes())).append("\n");
         }
         return sb.toString();
