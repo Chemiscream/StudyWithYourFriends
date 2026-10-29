@@ -14,10 +14,15 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.16.6";
+    public static final String VERSION = "1.16.7";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.16.7", List.of(
+                    "新增「我的备忘录」：顶栏收藏旁边多了一个「备忘」入口，可以把待办、灵感、想记的零碎内容随手写进去。",
+                    "每条备忘都能勾选完成（勾掉后置灰划掉，还能再点回来）、也能单独删除；列表里未完成的排在最上面，最新记的在前。",
+                    "备忘录内容只有自己能看到，别人无法访问；单条最多 300 字，一个账号最多存 200 条。"
+            )),
             new ReleaseNote("1.16.6", List.of(
                     "修复 @AI助手 之后长时间没有回复的问题：之前给模型的知识里塞进了建站以来全部版本的更新日志，本机模型是 CPU 推理，光读这段提示就要好几分钟，超过超时时间就静默放弃了。",
                     "现在只注入最近几条更新日志，并放宽了等待时间，@AI助手 能正常回复了。"

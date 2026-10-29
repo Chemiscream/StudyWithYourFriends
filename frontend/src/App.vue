@@ -22,6 +22,7 @@ import ChangelogModal from "./components/ChangelogModal.vue";
 import ImageLightbox from "./components/ImageLightbox.vue";
 import NotifModal from "./components/NotifModal.vue";
 import FavoriteModal from "./components/FavoriteModal.vue";
+import MemoModal from "./components/MemoModal.vue";
 import UpdateModal from "./components/UpdateModal.vue";
 import EmojiPanel from "./components/EmojiPanel.vue";
 import AppDialog from "./components/AppDialog.vue";
@@ -210,6 +211,7 @@ onUnmounted(() => {
   <EmojiPanel />
   <NotifModal v-if="state.notif.open" />
   <FavoriteModal v-if="state.favorites.open" />
+  <MemoModal v-if="state.memo.open" />
   <ProfileModal v-if="state.profileOpen" />
   <SettingsModal v-if="state.settingsOpen" />
   <SkinSettingsModal v-if="state.skinSettingsOpen" />

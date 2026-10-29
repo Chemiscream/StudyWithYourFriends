@@ -163,6 +163,8 @@ public class AuthController {
                 .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
         em.createNativeQuery("UPDATE record_favorites SET username = :n WHERE username = :o")
                 .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
+        em.createNativeQuery("UPDATE memos SET username = :n WHERE username = :o")
+                .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
         em.createNativeQuery("UPDATE notifications SET recipient = :n WHERE recipient = :o")
                 .setParameter("n", newName).setParameter("o", oldName).executeUpdate();
         em.createNativeQuery("UPDATE notifications SET actor = :n WHERE actor = :o")

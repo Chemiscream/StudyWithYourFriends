@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onUnmounted } from "vue";
-import { state, PALETTE, chooseColor, logout, toggleTheme, loadNotifications, openFavorites, openPersona } from "../store.js";
+import { state, PALETTE, chooseColor, logout, toggleTheme, loadNotifications, openFavorites, openMemo, openPersona } from "../store.js";
 
 const loggedIn = computed(() => !!state.token);
 const myColor = computed(() => state.myColor || "4a90d9");
@@ -91,6 +91,10 @@ onUnmounted(() => {
       <button v-if="loggedIn" class="hbtn" type="button" title="我的收藏" @click="flipBtn($event, openFavorites)">
         <svg class="ico" viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/></svg>
         <span class="hbtn-label">收藏</span>
+      </button>
+      <button v-if="loggedIn" class="hbtn" type="button" title="我的备忘录" @click="flipBtn($event, openMemo)">
+        <svg class="ico" viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16"/><path d="M8.6 4.5V3h6.8v1.5"/><path d="M8.5 10h7M8.5 13.5h7M8.5 17h4.5"/></svg>
+        <span class="hbtn-label">备忘</span>
       </button>
       <span v-if="loggedIn" class="notif-wrap">
         <button class="hbtn notif-btn" type="button" title="消息通知" @click="flipBtn($event, toggleNotif)">

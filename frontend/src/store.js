@@ -41,6 +41,8 @@ export const state = reactive({
   notif: { open: false, unread: 0, items: [], loading: false },
   // 我的收藏（弹窗预览）
   favorites: { open: false, items: [], loading: false, msg: "" },
+  // 个人备忘录（弹窗，仅自己可见）
+  memo: { open: false, items: [], loading: false, msg: "", text: "", busy: false },
   // 用户列表（留言 @提及补全用，登录后拉取）
   users: [],
   // 通用提示/确认弹窗（替代原生 alert/confirm，与项目风格一致）
@@ -216,6 +218,70 @@ export async function loadFavorites() {
   }
 }
 
+// ---------- 个人备忘录 ----------
+export function openMemo() {
+  if (!state.token) return;
+  state.memo.open = true;
+  loadMemos();
+}
+export function closeMemo() {
+  state.memo.open = false;
+  state.memo.msg = "";
+}
+
+export async function loadMemos() {
+  if (!state.token) return;
+  state.memo.loading = true;
+  state.memo.msg = "";
+  try {
+    const res = await request("/api/memos");
+    if (!res.ok) { state.memo.msg = res.message || "加载失败"; return; }
+    state.memo.items = res.items || [];
+  } catch (e) {
+    state.memo.msg = "网络错误";
+  } finally {
+    state.memo.loading = false;
+  }
+}
+
+export async function addMemo() {
+  if (!state.token) { showDialog("请先登录再使用备忘录"); return; }
+  const text = (state.memo.text || "").trim();
+  if (!text) return;
+  if (text.length > 300) { showDialog("单条内容最多 300 字"); return; }
+  state.memo.busy = true;
+  try {
+    const res = await request("/api/memos", { method: "POST", body: JSON.stringify({ content: text }) });
+    if (!res.ok) { showDialog(res.message || "添加失败"); return; }
+    state.memo.text = "";
+    await loadMemos();
+  } catch (e) {
+    showDialog("网络错误，请稍后再试");
+  } finally {
+    state.memo.busy = false;
+  }
+}
+
+export async function toggleMemo(m) {
+  try {
+    const res = await request(`/api/memos/${m.id}`, { method: "PUT", body: JSON.stringify({ done: !m.done }) });
+    if (!res.ok) { showDialog(res.message || "操作失败"); return; }
+    await loadMemos();
+  } catch (e) {
+    showDialog("网络错误");
+  }
+}
+
+export async function deleteMemo(m) {
+  try {
+    const res = await request(`/api/memos/${m.id}`, { method: "DELETE" });
+    if (!res.ok) { showDialog(res.message || "删除失败"); return; }
+    await loadMemos();
+  } catch (e) {
+    showDialog("网络错误");
+  }
+}
+
 // ---------- 留言点赞 ----------
 export async function toggleCommentLike(cid) {
   if (!state.token) { showDialog("请先登录再点赞"); return; }
@@ -356,6 +422,7 @@ export function logout() {
   stopNotifPoll();
   state.notif = { open: false, unread: 0, items: [], loading: false };
   state.favorites = { open: false, items: [], loading: false, msg: "" };
+  state.memo = { open: false, items: [], loading: false, msg: "", text: "", busy: false };
   state.users = [];
   closeDetail();
   cancelEdit(); // 清理编辑态，避免残留到下一次登录
