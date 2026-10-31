@@ -14,10 +14,13 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.16.7";
+    public static final String VERSION = "1.16.8";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.16.8", List.of(
+                    "发布记录后编辑器下方的「已添加」「已更新」「转发成功」提示现在会在 3 秒后自动消失，不再一直留在页面上。"
+            )),
             new ReleaseNote("1.16.7", List.of(
                     "新增「我的备忘录」：顶栏收藏旁边多了一个「备忘」入口，可以把待办、灵感、想记的零碎内容随手写进去。",
                     "每条备忘都能勾选完成（勾掉后置灰划掉，还能再点回来）、也能单独删除；列表里未完成的排在最上面，最新记的在前。",

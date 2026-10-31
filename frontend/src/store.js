@@ -628,6 +628,17 @@ export function cancelEdit() {
   state.addMsg = { text: "", cls: "" };
 }
 
+// 成功提示（已添加/已更新/转发成功）几秒后自动消失，避免常驻在编辑器下方
+let addMsgTimer = null;
+function flashAddMsg(text) {
+  state.addMsg = { text, cls: "ok" };
+  clearTimeout(addMsgTimer);
+  addMsgTimer = setTimeout(() => {
+    // 期间若已被其它提示覆盖（如编辑态/错误提示），就不再清空
+    if (state.addMsg.text === text) state.addMsg = { text: "", cls: "" };
+  }, 3000);
+}
+
 export async function submitRecord(html) {
   const editing = !!state.editingId;
   state.addMsg = { text: editing ? "保存中…" : "添加中…", cls: "" };
@@ -641,7 +652,7 @@ export async function submitRecord(html) {
     if (res.ok) {
       const quoted = !!state.quoteOf;
       cancelEdit();
-      state.addMsg = { text: quoted ? "转发成功" : editing ? "已更新" : "已添加", cls: "ok" };
+      flashAddMsg(quoted ? "转发成功" : editing ? "已更新" : "已添加");
       queuePointGains(res.gains); // 新记录的五维加分即时 POINT UP（编辑无加分）
       queueRankUps(res.rank_ups);
       await loadRecords();
