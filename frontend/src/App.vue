@@ -27,6 +27,7 @@ import UpdateModal from "./components/UpdateModal.vue";
 import EmojiPanel from "./components/EmojiPanel.vue";
 import AppDialog from "./components/AppDialog.vue";
 import PersonaFx from "./components/PersonaFx.vue";
+import SkinTransition from "./components/SkinTransition.vue";
 
 // 移动端模块分页：feed=动态、daily=日报、stats=统计（桌面端由 CSS 忽略，三个模块同屏并列）
 const tab = ref("feed");
@@ -224,4 +225,6 @@ onUnmounted(() => {
   <AppDialog />
   <PersonaFx v-if="state.skin !== 'aero'" />
   <MascotWidget v-if="state.view !== 'login'" />
+  <!-- P3 ⇄ P5 全屏转场（潮水 / 披风），常驻挂载、按需显示 -->
+  <SkinTransition />
 </template>

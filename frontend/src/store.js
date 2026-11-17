@@ -19,6 +19,8 @@ export const state = reactive({
   reduceMotion: false,
   // 皮肤预设：default = 原版 P3/P5；aero = 白天 Aero / 夜间 Y2K
   skin: localStorage.getItem("studylog_skin") === "aero" ? "aero" : "default",
+  // P3 ⇄ P5 全屏转场：mode = tide（潮水）/ cape（披风），token 每次自增触发重播
+  skinFx: { active: false, mode: "", next: "", token: 0 },
   // 视图：home / login（hash 同步，兼容旧 /login.html → /#login）
   view: location.hash === "#login" ? "login" : "home",
   // 记录
@@ -374,6 +376,30 @@ export function applySkin(s) {
 applySkin(state.skin);
 export function toggleTheme() {
   applyTheme((localStorage.getItem("studylog_theme") || "light") === "dark" ? "light" : "dark");
+}
+
+// ---------- P3 ⇄ P5 转场 ----------
+// 亮(P3) → 暗(P5)：黑红披风自右上角斜掠覆盖，翻面掀开后露出 P5
+// 暗(P5) → 亮(P3)：潮水自顶端涌下淹没整屏，再向上褪去露出 P3
+export function fxReduced() {
+  return state.reduceMotion || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+/** 顶栏「主题」按钮入口：带转场地切到另一套皮肤（转场中重复点击直接忽略）。 */
+export function requestThemeSwitch() {
+  if (state.skinFx.active) return;
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  if (fxReduced()) {
+    applyTheme(next);
+    return;
+  }
+  state.skinFx.mode = next === "light" ? "tide" : "cape";
+  state.skinFx.next = next;
+  state.skinFx.token += 1;
+  state.skinFx.active = true;
+}
+/** 转场组件播放结束回调。 */
+export function endSkinFx() {
+  state.skinFx.active = false;
 }
 
 // ---------- 动效偏好 ----------

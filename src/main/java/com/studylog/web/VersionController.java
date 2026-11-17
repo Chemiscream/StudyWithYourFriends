@@ -14,10 +14,18 @@ import java.util.Map;
 public class VersionController {
 
     /** 当前版本号（发版时手工维护，遵循语义化版本）。 */
-    public static final String VERSION = "1.16.8";
+    public static final String VERSION = "1.17.0";
 
     /** 每个版本的更新说明，前端按版本展示，最新写在最前。 */
     private static final List<ReleaseNote> NOTES = List.of(
+            new ReleaseNote("1.17.0", List.of(
+                    "Persona 3 / Persona 5 两套皮肤之间新增了全屏切换动画，点顶栏「主题」按钮即可看到。",
+                    "从 P5 切到 P3：潮水从页面顶部向下涌入，蓝色水体配白色浪花前缘，淹没整屏后再向上褪去，P3 页面直接从水后露出。",
+                    "从 P3 切到 P5：黑色披风从右上角斜掠到左下角盖住整屏，再向原路掀开飞走，露出 P5 页面；披风有布料褶皱与边缘抓光。",
+                    "页面换色藏在水或布被完全遮住的那一帧完成，所以看不到瞬间闪变。",
+                    "浪的尺度会跟着窗口宽度自动调整，手机和电脑上都是同一套比例，不会在窄屏被压成碎纹。",
+                    "系统开启「减少动态效果」或站内关闭动效时，切换仍是即时生效，不播放动画。"
+            )),
             new ReleaseNote("1.16.8", List.of(
                     "发布记录后编辑器下方的「已添加」「已更新」「转发成功」提示现在会在 3 秒后自动消失，不再一直留在页面上。"
             )),

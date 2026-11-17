@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onUnmounted } from "vue";
-import { state, PALETTE, chooseColor, logout, toggleTheme, loadNotifications, openFavorites, openMemo, openPersona } from "../store.js";
+import { state, PALETTE, chooseColor, logout, requestThemeSwitch, loadNotifications, openFavorites, openMemo, openPersona } from "../store.js";
 
 const loggedIn = computed(() => !!state.token);
 const myColor = computed(() => state.myColor || "4a90d9");
@@ -23,8 +23,8 @@ function flipBtn(e, action) {
 }
 
 function switchTheme() {
-  toggleTheme();
-  theme.value = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  // 转场组件会在全屏遮住的瞬间真正切换 data-theme；图标随之由 studylog:theme 事件更新
+  requestThemeSwitch();
 }
 
 // 通知铃铛：点击打开消息弹窗（NotifModal）
